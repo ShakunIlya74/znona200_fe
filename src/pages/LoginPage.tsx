@@ -23,27 +23,44 @@ const LoginPage: React.FC = () => {
             sx={{
                 display: 'flex',
                 height: '100vh',
-                width: '100vw',
-                overflow: 'hidden',
+                width: '100%',
+                position: 'absolute',
+                top: 0,
+                flexDirection: 'row',
+                backgroundColor: '#CCE8E6',
             }}
         >
+
             {/* Image Section */}
             <Box
                 sx={{
                     display: { xs: 'none', md: 'flex' },
                     flexDirection: 'column',
                     alignItems: 'flex-start',
+
                     backgroundColor: '#CCE8E6',
-                    padding: '45px 105px 0 105px',
-                    width: { md: '40%', lg: '60%' },
+                    // padding: '45px 45px 0 45px',
+                    width: { md: '60%', lg: '40%' },
                     boxSizing: 'border-box',
+                    flexGrow: 0.7,
                 }}
             >
-                <Box sx={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-                    <img src={ZnoLogo} alt="Logo ZNO" style={{ maxWidth: '100%', height: 'auto' }} />
+                <Box sx={{
+                    cursor: 'pointer',
+                    mt: 5, ml: 10, mr: 2, maxWidth: '120%', height: 'auto',
+                }} onClick={() => navigate('/')}>
+                    <Box component="img"
+                        sx={{ width: '140%', maxWidth: '140%', minWidth: '60%', height: 'auto', }}
+                        src={ZnoLogo} alt="Logo ZNO" />
                 </Box>
-                <Box sx={{ marginTop: '20px' }}>
-                    <img src={SapImage} alt="SAP" style={{ width: '90%' }} />
+
+                <Box sx={{
+                    alignContent: 'center', flexGrow: 1,
+                    mr: 2, width: '140%'
+                }}>
+                    <Box component="img"
+                        sx={{ width: '120%', maxWidth: '70%', height: 'auto', }}
+                        src={SapImage} alt="SAP" />
                 </Box>
             </Box>
 
@@ -55,11 +72,24 @@ const LoginPage: React.FC = () => {
                     alignItems: 'center',
                     padding: '20px',
                     flexGrow: 1,
-                    boxSizing: 'border-box',
+                    width: { md: '60%', lg: '60%' },
+                    // boxSizing: 'border-box',
                     backgroundColor: '#f3f1f2',
                 }}
             >
-                {isNewUser ? <Register changeFlow={changeFlow} /> : <Login changeFlow={changeFlow} />}
+                <Box sx={{ growFlex: 1 }}>
+                    <Box sx={{
+                        display: { xs: 'flex', md: 'none' },
+                        cursor: 'pointer',
+                        maxWidth: '70%', height: 'auto', flexGrow: 1,
+                        justifyContent: 'center', alignContent: 'center',
+                    }} onClick={() => navigate('/')}>
+                        <Box component="img"
+                            sx={{ width: '140%', maxWidth: '140%', minWidth: '60%', height: 'auto', }}
+                            src={ZnoLogo} alt="Logo ZNO" />
+                    </Box>
+                    {isNewUser ? <Register changeFlow={changeFlow} /> : <Login changeFlow={changeFlow} />}
+                </Box>
             </Box>
         </Box>
     );
@@ -75,7 +105,8 @@ const Login: React.FC<FlowProps> = ({ changeFlow }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     return (
-        <Box sx={{ maxWidth: 490, width: '100%' }}>
+        <Box sx={{ maxWidth: '140%', width: '120%', mx: 1, }}>
+
             <Typography variant="h6" sx={{ fontWeight: 200, mb: 2 }}>
                 Нумо починати!
             </Typography>
