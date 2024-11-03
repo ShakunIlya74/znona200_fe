@@ -1,0 +1,14 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Status">
+<g clip-path="url(#clip0_1627_8557)">
+<rect width="24" height="24" rx="12" fill="#E0E3E2"/>
+<rect id="Card" x="-0.000976562" y="12" width="12" height="12" fill="#E0E3E2"/>
+<circle id="Container" cx="11.999" cy="12" r="8" fill="white"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_1627_8557">
+<rect width="24" height="24" rx="12" fill="white"/>
+</clipPath>
+</defs>
+</svg>
