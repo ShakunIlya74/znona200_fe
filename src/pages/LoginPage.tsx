@@ -26,7 +26,7 @@ const LoginPage: React.FC = () => {
                 width: '100%',
                 position: 'absolute',
                 top: 0,
-                flexDirection: 'row',
+                flexDirection: { xs: 'column', md: 'row' },
                 backgroundColor: '#CCE8E6',
             }}
         >
@@ -37,29 +37,32 @@ const LoginPage: React.FC = () => {
                     display: { xs: 'none', md: 'flex' },
                     flexDirection: 'column',
                     alignItems: 'flex-start',
-
                     backgroundColor: '#CCE8E6',
-                    // padding: '45px 45px 0 45px',
-                    width: { md: '60%', lg: '40%' },
+                    width: { xs: '100%', md: '60%', lg: '40%' },
                     boxSizing: 'border-box',
                     flexGrow: 0.7,
+                    padding: { xs: 2, md: 5 },
                 }}
             >
                 <Box sx={{
                     cursor: 'pointer',
-                    mt: 5, ml: 10, mr: 2, maxWidth: '120%', height: 'auto',
+                    mt: { xs: 2, md: 5 },
+                    ml: { xs: 2, md: 5 },
+                    mr: { xs: 2, md: 2 },
+                    maxWidth: '120%',
+                    height: 'auto',
                 }} onClick={() => navigate('/')}>
                     <Box component="img"
-                        sx={{ width: '140%', maxWidth: '140%', minWidth: '60%', height: 'auto', }}
+                        sx={{ width: '120%', maxWidth: '140%', minWidth: '60%', height: 'auto' }}
                         src={ZnoLogo} alt="Logo ZNO" />
                 </Box>
 
                 <Box sx={{
                     alignContent: 'center', flexGrow: 1,
-                    mr: 2, width: '140%'
+                    mr: { xs: 2, md: 2 }, width: '100%'
                 }}>
                     <Box component="img"
-                        sx={{ width: '120%', maxWidth: '70%', height: 'auto', }}
+                        sx={{ width: '100%', maxWidth: '100%', height: 'auto' }}
                         src={SapImage} alt="SAP" />
                 </Box>
             </Box>
@@ -70,22 +73,26 @@ const LoginPage: React.FC = () => {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    padding: '20px',
+                    padding: { xs: 3, md: 5 },
                     flexGrow: 1,
-                    width: { md: '60%', lg: '60%' },
-                    // boxSizing: 'border-box',
+                    width: { xs: '100%', md: '60%', lg: '60%' },
                     backgroundColor: '#f3f1f2',
                 }}
             >
-                <Box sx={{ growFlex: 1 }}>
+                <Box sx={{ width: { xs: '90%', md: '90%', lg: '50%' }, }}>
                     <Box sx={{
                         display: { xs: 'flex', md: 'none' },
                         cursor: 'pointer',
-                        maxWidth: '70%', height: 'auto', flexGrow: 1,
-                        justifyContent: 'center', alignContent: 'center',
+                        maxWidth: '70%',
+                        height: 'auto',
+                        flexGrow: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mx: 'auto',
+                        mb: 3,
                     }} onClick={() => navigate('/')}>
                         <Box component="img"
-                            sx={{ width: '140%', maxWidth: '140%', minWidth: '60%', height: 'auto', }}
+                            sx={{ width: '100%', maxWidth: '140%', minWidth: '60%', height: 'auto' }}
                             src={ZnoLogo} alt="Logo ZNO" />
                     </Box>
                     {isNewUser ? <Register changeFlow={changeFlow} /> : <Login changeFlow={changeFlow} />}
@@ -105,13 +112,15 @@ const Login: React.FC<FlowProps> = ({ changeFlow }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     return (
-        <Box sx={{ maxWidth: '140%', width: '120%', mx: 1, }}>
+        <Box sx={{ maxWidth: { xs: '100%', sm: '80%', md: '140%' }, width: '100%', mx: 1,
+        
+        }}>
 
             <Typography variant="h6" sx={{ fontWeight: 200, mb: 2 }}>
                 Нумо починати!
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Typography sx={{ fontWeight: 400, fontSize: 18, color: '#3F6563', mr: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                <Typography sx={{ fontWeight: 400, fontSize: 18, color: '#3F6563', mr: { sm: 1 }, mb: { xs: 1, sm: 0 } }}>
                     Немає облікового запису?
                 </Typography>
                 <Button
@@ -136,7 +145,7 @@ const Login: React.FC<FlowProps> = ({ changeFlow }) => {
                     height: '45px',
                     mb: 2,
                     textTransform: 'none',
-                    '&:hover': { backgroundColor: '#1b85c4' }, // Optional hover effect
+                    '&:hover': { backgroundColor: '#1b85c4' },
                 }}
             >
                 Увійти за допомогою Telegram
@@ -154,7 +163,7 @@ const Login: React.FC<FlowProps> = ({ changeFlow }) => {
                 component="form"
                 sx={{
                     backgroundColor: '#FFFFFF',
-                    padding: 3,
+                    padding: { xs: 2, md: 3 },
                     borderRadius: 2,
                     boxShadow: '0px 10px 110px 1px rgba(59, 59, 59, 0.08)',
                 }}
@@ -177,10 +186,11 @@ const Login: React.FC<FlowProps> = ({ changeFlow }) => {
             </Box>
 
             {/* Remember Me and Forgot Password */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
                 <FormControlLabel
                     control={<Checkbox checked={isRemember} onChange={() => setIsRemember(!isRemember)} />}
                     label="Запам'ятати мене"
+                    sx={{ mb: { xs: 1, sm: 0 } }}
                 />
                 <Button
                     onClick={() => navigate('/password-restore')}
@@ -213,13 +223,13 @@ const Login: React.FC<FlowProps> = ({ changeFlow }) => {
 const Register: React.FC<FlowProps> = ({ changeFlow }) => {
     // Placeholder for the Register component
     return (
-        <Box sx={{ maxWidth: 490, width: '100%' }}>
+        <Box sx={{ maxWidth: { xs: '100%', sm: 490 }, width: '100%' }}>
             <Typography variant="h6" sx={{ fontWeight: 500, mb: 2 }}>
                 Реєстрація
             </Typography>
             {/* Add registration form elements here */}
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Typography sx={{ fontWeight: 400, fontSize: 18, color: '#3F6563', mr: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                <Typography sx={{ fontWeight: 400, fontSize: 18, color: '#3F6563', mr: { sm: 1 }, mb: { xs: 1, sm: 0 } }}>
                     Вже маєте обліковий запис?
                 </Typography>
                 <Button onClick={changeFlow} sx={{ textDecoration: 'underline', color: '#3F6563' }}>
