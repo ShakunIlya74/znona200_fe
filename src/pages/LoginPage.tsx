@@ -5,10 +5,33 @@ import { useNavigate } from 'react-router-dom';
 import ZnoLogo from '../source/header/logo_zno.svg';
 import SapImage from '../source/login/sap.svg';
 import TelegramLogo from '../source/footer/telegram_white.svg';
+import { SendLoginData } from '../services/AuthService';
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
+    const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [passwordEmptyError, setPasswordEmptyError] = useState<boolean>(false);
+    const [emailEmptyError, setEmailEmptyError] = useState<boolean>(false);
+    const [wrongCredentialsError, setWrongCredentialsError] = useState<boolean>(false);
     const [isNewUser, setIsNewUser] = useState(window.location.pathname !== '/login');
+
+    // const SubmitLoginData = () => {
+    //     // send login data to backend
+    //     // verify that user exists and that password is correct
+    //     SendLoginData(email, password).then((response) => {
+    //       // // redirect to digest Page
+    //       if (response.success) {
+    //         props.setLoggedIn(true);
+    //       }
+    //       else {
+    //         setWrongCredentialsError(true);
+    //         props.setLoggedIn(false);
+    //       }
+    //     });
+    //   };
+
 
     const changeFlow = () => {
         setIsNewUser(!isNewUser);
