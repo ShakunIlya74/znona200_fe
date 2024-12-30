@@ -28,9 +28,10 @@ const MainInfo: React.FC = () => {
       <Box
         sx={{
           display: { xs: 'none', md: 'block' },
-          flex: '0 0 20%',
+          flex: '1 1 auto',
           maxWidth: '20%',
           width: '100%',
+          flexGrow: 3,
         }}
       />
 
@@ -38,9 +39,8 @@ const MainInfo: React.FC = () => {
       <Box
         id='main-content-info'
         sx={{
-          flex: '0 0 30%', // Fixed width: 30%
-          maxWidth: '30%',
-          width: '100%',
+          flex: '0 0 auto',
+          width: { xs: '100%', md: '600px' },
           textAlign: { xs: 'center', md: 'left' },
           mb: { xs: 4, md: 0 },
           padding: { xs: '10px 0', md: '20px 0' },
@@ -180,14 +180,16 @@ const MainInfo: React.FC = () => {
       {/* Image Section */}
       <Box
         sx={{
-          flex: '0 0 50%', // Fixed width: 30%
+          flex: '1 1 auto',
           maxWidth: '50%',
           width: '100%',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           mb: { xs: 4, md: 0 },
-          padding: { xs: '10px 0', md: '20px 0' },
+          mr: { xs: 0, md: 4 },
+          flexGrow: 1,
+          // padding: { xs: '10px 0', md: '20px 0' },
         }}
       >
         <Box
@@ -196,6 +198,7 @@ const MainInfo: React.FC = () => {
             width: '100%',
             height: 'auto',
             maxWidth: '100%',
+            mr: { xs: 0, md: 4 },
           }}
           src={students}
           alt="students"
