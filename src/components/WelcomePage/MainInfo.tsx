@@ -21,22 +21,30 @@ const MainInfo: React.FC = () => {
         backgroundColor: '#cce8e6',
         width: '100%',
         flexGrow: 1,
-        padding: { xs: '20px', md: '40px' }, // Optional: Add some padding if needed
+        padding: { xs: '20px', md: '40px' },
       }}
     >
+      {/* Free Space */}
+      <Box
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          flex: '0 0 20%',
+          maxWidth: '20%',
+          width: '100%',
+        }}
+      />
+
       {/* Content Section */}
       <Box
         id='main-content-info'
         sx={{
-          flex: 1,
-          width: { xs: '100%', md: '25%' },
+          flex: '0 0 30%', // Fixed width: 30%
+          maxWidth: '30%',
+          width: '100%',
           textAlign: { xs: 'center', md: 'left' },
           mb: { xs: 4, md: 0 },
           padding: { xs: '10px 0', md: '20px 0' },
-          margin: { xs: '0 auto', md: '0 20px 0 40px' },
-          // Shift slightly to the right on medium and larger screens
-          position: 'relative',
-          left: { xs: 0, md: '5%' },
+          margin: { xs: '0 auto', md: '0' },
         }}
       >
         {/* Title */}
@@ -45,10 +53,14 @@ const MainInfo: React.FC = () => {
           sx={{
             fontWeight: 700,
             color: '#063231',
-            mb: 1.5, // Reduced margin bottom
+            mb: 1.5,
           }}
         >
-          Готуємо до ЗНО <Box component="span" sx={{ backgroundColor: '#FFFFFF', px: 0.5 }}>10 років</Box> i знаємо про підготовку все
+          Готуємо до ЗНО{' '}
+          <Box component="span" sx={{ backgroundColor: '#FFFFFF', px: 0.5 }}>
+            10 років
+          </Box>{' '}
+          i знаємо про підготовку все
         </Typography>
 
         {/* Subtitle */}
@@ -56,7 +68,7 @@ const MainInfo: React.FC = () => {
           variant="subtitle1"
           sx={{
             color: '#3F6563',
-            mb: 3, // Reduced margin bottom
+            mb: 3,
           }}
         >
           Тобі потрібно лише стати одним із наших учнів, а ми допоможемо з усім іншим.
@@ -75,8 +87,8 @@ const MainInfo: React.FC = () => {
             alignItems: 'center',
             justifyContent: { xs: 'center', md: 'flex-start' },
             textAlign: 'center',
-            mb: 1.5, // Reduced margin bottom
-            gap: 1.5, // Reduced gap
+            mb: 1.5,
+            gap: 1.5,
             width: '100%',
           }}
         >
@@ -88,7 +100,7 @@ const MainInfo: React.FC = () => {
                 fontFamily: 'lato, sans-serif',
                 fontStyle: 'normal',
                 fontWeight: 700,
-                fontSize: { xs: '30px', md: '45px' }, // Responsive font size
+                fontSize: { xs: '30px', md: '45px' },
                 color: '#18181B',
                 display: 'flex',
                 alignItems: 'center',
@@ -111,7 +123,7 @@ const MainInfo: React.FC = () => {
 
           {/* Divider */}
           <Box sx={{ my: 0 }}>
-            <Box component="img" sx={{ width: 'auto', height: '50%'}} src={divider} alt="divider" />
+            <Box component="img" sx={{ width: '2px', height: '30px' }} src={divider} alt="divider" />
           </Box>
 
           {/* Second Stat */}
@@ -168,22 +180,36 @@ const MainInfo: React.FC = () => {
       {/* Image Section */}
       <Box
         sx={{
-          flex: 1,
-          maxWidth: { xs: '80%', md: '35%' }, // Adjusted for better balance
+          flex: '0 0 50%', // Fixed width: 30%
+          maxWidth: '50%',
+          width: '100%',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          width: { xs: '100%', md: '35%' }, // Adjusted width
-          mb: { xs: 4, md: 0 }, // Optional: margin bottom for mobile
+          mb: { xs: 4, md: 0 },
+          padding: { xs: '10px 0', md: '20px 0' },
         }}
       >
         <Box
           component="img"
-          sx={{ width: '100%', height: 'auto' }}
+          sx={{
+            width: '100%',
+            height: 'auto',
+            maxWidth: '100%',
+          }}
           src={students}
           alt="students"
         />
       </Box>
+      {/* Free Space */}
+      {/* <Box
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          flex: '0 0 20%',
+          maxWidth: '20%',
+          width: '100%',
+        }}
+      /> */}
     </Box>
   );
 };
