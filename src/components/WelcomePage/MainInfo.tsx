@@ -85,14 +85,13 @@ const MainInfo: React.FC = () => {
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: { xs: 'center', md: 'flex-start' },
+            justifyContent: 'space-between',
             textAlign: 'center',
             mb: 1.5,
-            gap: 1.5,
+            gap: 0.5,
             width: '100%',
           }}
         >
-          {/* First Stat */}
           <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
             <Typography
               variant="h4"
@@ -114,7 +113,7 @@ const MainInfo: React.FC = () => {
                 color: '#757877',
                 display: 'flex',
                 alignItems: 'center',
-                ml: 0.5,
+                ml: 2,
               }}
             >
               учнів
@@ -123,7 +122,7 @@ const MainInfo: React.FC = () => {
 
           {/* Divider */}
           <Box sx={{ my: 0 }}>
-            <Box component="img" sx={{ width: '2px', height: '30px' }} src={divider} alt="divider" />
+            <Box component="img" sx={{ width: 'auto', height: '50%' }} src={divider} alt="divider" />
           </Box>
 
           {/* Second Stat */}
@@ -147,7 +146,7 @@ const MainInfo: React.FC = () => {
               variant="subtitle2"
               sx={{
                 color: '#757877',
-                ml: 0.5,
+                ml: 2,
                 display: 'flex',
                 alignItems: 'center',
                 lineHeight: '1.2',
@@ -156,6 +155,9 @@ const MainInfo: React.FC = () => {
               НМТ 2022-2023 <br /> двістібальників
             </Typography>
           </Box>
+          <Box sx={{ my: 0 }}>
+            {/* free space */}
+            </Box>
         </Box>
 
         {/* Contact Icons */}
@@ -182,6 +184,7 @@ const MainInfo: React.FC = () => {
         sx={{
           flex: '1 1 auto',
           maxWidth: '50%',
+          minWidth: '30%',
           width: '100%',
           display: 'flex',
           justifyContent: 'center',
@@ -204,15 +207,6 @@ const MainInfo: React.FC = () => {
           alt="students"
         />
       </Box>
-      {/* Free Space */}
-      {/* <Box
-        sx={{
-          display: { xs: 'none', md: 'block' },
-          flex: '0 0 20%',
-          maxWidth: '20%',
-          width: '100%',
-        }}
-      /> */}
     </Box>
   );
 };

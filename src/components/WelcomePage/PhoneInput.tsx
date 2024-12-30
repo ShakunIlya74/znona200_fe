@@ -32,9 +32,9 @@ const PhoneInput: React.FC = () => {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
+          alignItems: 'flex-start', // Changed from 'center' to 'flex-start'
           maxWidth: 500,
-          margin: '0 auto',
+          // margin: '0 auto', // Removed to align items to the left
           padding: 2,
         }}
       >
