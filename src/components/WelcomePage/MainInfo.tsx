@@ -29,7 +29,7 @@ const MainInfo: React.FC = () => {
         sx={{
           display: { xs: 'none', md: 'block' },
           flex: '1 1 auto',
-          maxWidth: '20%',
+          maxWidth: '10%',
           width: '100%',
           flexGrow: 3,
         }}
@@ -68,14 +68,13 @@ const MainInfo: React.FC = () => {
           variant="subtitle1"
           sx={{
             color: '#3F6563',
-            mb: 3,
           }}
         >
           Тобі потрібно лише стати одним із наших учнів, а ми допоможемо з усім іншим.
         </Typography>
 
         {/* Phone Input */}
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ }}>
           <PhoneInput />
         </Box>
 
@@ -87,7 +86,7 @@ const MainInfo: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             textAlign: 'center',
-            mb: 1.5,
+            // mb: 1.5,
             gap: 0.5,
             width: '100%',
           }}

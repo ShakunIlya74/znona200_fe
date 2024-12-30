@@ -35,7 +35,7 @@ const PhoneInput: React.FC = () => {
           alignItems: 'flex-start', // Changed from 'center' to 'flex-start'
           maxWidth: 500,
           // margin: '0 auto', // Removed to align items to the left
-          padding: 2,
+          // padding: 2,
         }}
       >
         {/* Header Text */}
@@ -43,7 +43,6 @@ const PhoneInput: React.FC = () => {
           variant="subtitle1"
           sx={{
             // display: isFocused ? 'none' : 'block',
-            marginBottom: 1,
             color: '#063231',
             textAlign: 'left',
           }}
@@ -147,12 +146,13 @@ const PhoneInput: React.FC = () => {
         variant="body2"
         sx={{
           textAlign: 'center',
-          marginTop: 2,
           color: '#757877',
           fontSize: '14px',
+          mt: 0.5,
+          mb: 1,
         }}
       >
-        *Для зручного способу зв'язку рекомендуємо вказувати номер, прив'язаний до Telegram.
+        * Для зручного способу зв'язку рекомендуємо вказувати номер, прив'язаний до Telegram.
       </Typography>
 
       {/* PopUp Component */}
