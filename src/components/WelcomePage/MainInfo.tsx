@@ -18,22 +18,25 @@ const MainInfo: React.FC = () => {
         flexDirection: { xs: 'column-reverse', md: 'row' },
         alignItems: 'center',
         justifyContent: 'center',
-        // padding: { xs: '40px 20px', md: '80px 40px' },
         backgroundColor: '#cce8e6',
         width: '100%',
         flexGrow: 1,
+        padding: { xs: '20px', md: '40px' }, // Optional: Add some padding if needed
       }}
     >
       {/* Content Section */}
       <Box
+        id='main-content-info'
         sx={{
           flex: 1,
-          // maxWidth: { xs: '100%', md: '20%' },
-          width: '30%',
+          width: { xs: '100%', md: '25%' },
           textAlign: { xs: 'center', md: 'left' },
           mb: { xs: 4, md: 0 },
-          padding: { xs: '20px 0', md: '40px 0' },
-          margin: { xs: '0 20px', md: '0 40px' },
+          padding: { xs: '10px 0', md: '20px 0' },
+          margin: { xs: '0 auto', md: '0 20px 0 40px' },
+          // Shift slightly to the right on medium and larger screens
+          position: 'relative',
+          left: { xs: 0, md: '5%' },
         }}
       >
         {/* Title */}
@@ -42,10 +45,10 @@ const MainInfo: React.FC = () => {
           sx={{
             fontWeight: 700,
             color: '#063231',
-            mb: 2,
+            mb: 1.5, // Reduced margin bottom
           }}
         >
-          Готуємо до ЗНО <Box component="span" sx={{ backgroundColor: '#FFFFFF', px: 1 }}>10 років</Box> i знаємо про підготовку все
+          Готуємо до ЗНО <Box component="span" sx={{ backgroundColor: '#FFFFFF', px: 0.5 }}>10 років</Box> i знаємо про підготовку все
         </Typography>
 
         {/* Subtitle */}
@@ -53,14 +56,14 @@ const MainInfo: React.FC = () => {
           variant="subtitle1"
           sx={{
             color: '#3F6563',
-            mb: 4,
+            mb: 3, // Reduced margin bottom
           }}
         >
           Тобі потрібно лише стати одним із наших учнів, а ми допоможемо з усім іншим.
         </Typography>
 
         {/* Phone Input */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 3 }}>
           <PhoneInput />
         </Box>
 
@@ -70,10 +73,10 @@ const MainInfo: React.FC = () => {
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: { xs: 'center', md: 'flex-start' },
             textAlign: 'center',
-            mb: 2,
-            gap: 2,
+            mb: 1.5, // Reduced margin bottom
+            gap: 1.5, // Reduced gap
             width: '100%',
           }}
         >
@@ -85,10 +88,10 @@ const MainInfo: React.FC = () => {
                 fontFamily: 'lato, sans-serif',
                 fontStyle: 'normal',
                 fontWeight: 700,
-                fontSize: '45px',
+                fontSize: { xs: '30px', md: '45px' }, // Responsive font size
                 color: '#18181B',
                 display: 'flex',
-              alignItems: 'center',
+                alignItems: 'center',
               }}
             >
               5000+
@@ -99,7 +102,7 @@ const MainInfo: React.FC = () => {
                 color: '#757877',
                 display: 'flex',
                 alignItems: 'center',
-                ml: 1,
+                ml: 0.5,
               }}
             >
               учнів
@@ -107,8 +110,8 @@ const MainInfo: React.FC = () => {
           </Box>
 
           {/* Divider */}
-          <Box sx={{ my: 2 }}>
-            <Box component="img" sx={{ width: 'auto', height: '50%' }} src={divider} alt="divider" />
+          <Box sx={{ my: 0 }}>
+            <Box component="img" sx={{ width: 'auto', height: '50%'}} src={divider} alt="divider" />
           </Box>
 
           {/* Second Stat */}
@@ -119,8 +122,8 @@ const MainInfo: React.FC = () => {
                 fontFamily: 'lato, sans-serif',
                 fontStyle: 'normal',
                 fontWeight: 700,
-                fontSize: '45px',
-                lineHeight: '52px',
+                fontSize: { xs: '30px', md: '45px' },
+                lineHeight: '1',
                 color: '#18181B',
                 display: 'flex',
                 alignItems: 'center',
@@ -132,19 +135,19 @@ const MainInfo: React.FC = () => {
               variant="subtitle2"
               sx={{
                 color: '#757877',
-                ml: 1,
+                ml: 0.5,
                 display: 'flex',
                 alignItems: 'center',
+                lineHeight: '1.2',
               }}
             >
               НМТ 2022-2023 <br /> двістібальників
             </Typography>
-            
           </Box>
         </Box>
 
         {/* Contact Icons */}
-        <Box sx={{ mt: 4, display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' }, gap: 2 }}>
+        <Box sx={{ mt: 3, display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' }, gap: 1 }}>
           <IconButton
             color="primary"
             onClick={() => window.open('https://t.me/znooonaa200', '_blank')}
@@ -166,16 +169,17 @@ const MainInfo: React.FC = () => {
       <Box
         sx={{
           flex: 1,
-          maxWidth: { xs: '100%', md: '140%' },
+          maxWidth: { xs: '80%', md: '35%' }, // Adjusted for better balance
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          width: '40%',
+          width: { xs: '100%', md: '35%' }, // Adjusted width
+          mb: { xs: 4, md: 0 }, // Optional: margin bottom for mobile
         }}
       >
         <Box
           component="img"
-          sx={{ width: '90%', maxWidth: '140%', minWidth: '40%', height: 'auto' }}
+          sx={{ width: '100%', height: 'auto' }}
           src={students}
           alt="students"
         />
