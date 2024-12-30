@@ -44,7 +44,7 @@ const WelcomeHeader: React.FC = () => {
 
   return (
     <>
-      <AppBar position="static" sx={{ backgroundColor: '#FFFFFF', boxShadow: 'none' }}>
+      <AppBar position="sticky" sx={{ backgroundColor: '#FFFFFF', boxShadow: 'none' }}>
         <Toolbar sx={{ justifyContent: 'space-between', padding: '0 20px' }}>
           {/* Logo */}
           <Box component={Link} to="/" sx={{ display: 'flex', alignItems: 'center' }}>

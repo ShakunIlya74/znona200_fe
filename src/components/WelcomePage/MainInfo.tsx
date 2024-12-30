@@ -18,8 +18,8 @@ const MainInfo: React.FC = () => {
         flexDirection: { xs: 'column-reverse', md: 'row' },
         alignItems: 'center',
         justifyContent: 'center',
-        padding: { xs: '40px 20px', md: '80px 40px' },
-        backgroundColor: '#f5f5f5',
+        // padding: { xs: '40px 20px', md: '80px 40px' },
+        backgroundColor: '#cce8e6',
         width: '100%',
         flexGrow: 1,
       }}
@@ -28,9 +28,12 @@ const MainInfo: React.FC = () => {
       <Box
         sx={{
           flex: 1,
-          maxWidth: { xs: '100%', md: '50%' },
+          // maxWidth: { xs: '100%', md: '20%' },
+          width: '30%',
           textAlign: { xs: 'center', md: 'left' },
           mb: { xs: 4, md: 0 },
+          padding: { xs: '20px 0', md: '40px 0' },
+          margin: { xs: '0 20px', md: '0 40px' },
         }}
       >
         {/* Title */}
@@ -65,36 +68,78 @@ const MainInfo: React.FC = () => {
         <Box
           sx={{
             display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
+            flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: isMobile ? 'center' : 'flex-start',
+            justifyContent: 'center',
             textAlign: 'center',
-            mb: { xs: 2, md: 0 },
+            mb: 2,
+            gap: 2,
+            width: '100%',
           }}
         >
           {/* First Stat */}
-          <Box sx={{ flex: 1, mb: { xs: 2, md: 0 } }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#063231' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontFamily: 'lato, sans-serif',
+                fontStyle: 'normal',
+                fontWeight: 700,
+                fontSize: '45px',
+                color: '#18181B',
+                display: 'flex',
+              alignItems: 'center',
+              }}
+            >
               5000+
             </Typography>
-            <Typography variant="subtitle2" sx={{ color: '#757877' }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                color: '#757877',
+                display: 'flex',
+                alignItems: 'center',
+                ml: 1,
+              }}
+            >
               учнів
             </Typography>
           </Box>
 
           {/* Divider */}
-          <Box sx={{ flex: 1, my: { xs: 2, md: 0 } }}>
-            <img src={divider} alt="divider" style={{ width: '80%', maxWidth: '200px' }} />
+          <Box sx={{ my: 2 }}>
+            <Box component="img" sx={{ width: 'auto', height: '50%' }} src={divider} alt="divider" />
           </Box>
 
           {/* Second Stat */}
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#063231' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontFamily: 'lato, sans-serif',
+                fontStyle: 'normal',
+                fontWeight: 700,
+                fontSize: '45px',
+                lineHeight: '52px',
+                color: '#18181B',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
               208
             </Typography>
-            <Typography variant="subtitle2" sx={{ color: '#757877' }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                color: '#757877',
+                ml: 1,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
               НМТ 2022-2023 <br /> двістібальників
             </Typography>
+            
           </Box>
         </Box>
 
@@ -121,13 +166,18 @@ const MainInfo: React.FC = () => {
       <Box
         sx={{
           flex: 1,
-          maxWidth: { xs: '100%', md: '50%' },
+          maxWidth: { xs: '100%', md: '140%' },
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
         }}
       >
-        <img src={students} alt="students" style={{ width: '100%', maxWidth: '500px', height: 'auto' }} />
+        <Box
+          component="img"
+          sx={{ width: '100%', maxWidth: '140%', minWidth: '60%', height: 'auto' }}
+          src={students}
+          alt="students"
+        />
       </Box>
     </Box>
   );

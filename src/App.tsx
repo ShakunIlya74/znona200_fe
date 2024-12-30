@@ -1,6 +1,6 @@
 // src/App.tsx
 import React, { useEffect } from 'react';
-import Container from '@mui/material/Container';
+import { Box } from '@mui/material'; // Add this import
 import { CssBaseline } from '@mui/material';
 import { createBrowserRouter, RouterProvider, Route, Navigate } from 'react-router-dom';
 
@@ -52,10 +52,11 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <Container maxWidth={false}>
+    // Replace Container with Box
+    <Box sx={{ width: '100vw', height: '100vh',}}>
       <CssBaseline />
       <RouterProvider router={router} />
-    </Container>
+    </Box>
   );
 };
 

@@ -47,8 +47,6 @@ const LoginPage: React.FC = () => {
                 display: 'flex',
                 height: '100vh',
                 width: '100%',
-                position: 'absolute',
-                top: 0,
                 flexDirection: { xs: 'column', md: 'row' },
                 backgroundColor: '#CCE8E6',
             }}
