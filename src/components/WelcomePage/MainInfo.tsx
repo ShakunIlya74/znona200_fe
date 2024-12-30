@@ -170,11 +170,12 @@ const MainInfo: React.FC = () => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
+          width: '40%',
         }}
       >
         <Box
           component="img"
-          sx={{ width: '100%', maxWidth: '140%', minWidth: '60%', height: 'auto' }}
+          sx={{ width: '90%', maxWidth: '140%', minWidth: '40%', height: 'auto' }}
           src={students}
           alt="students"
         />

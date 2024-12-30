@@ -42,9 +42,10 @@ const PhoneInput: React.FC = () => {
         <Typography
           variant="subtitle1"
           sx={{
-            display: isFocused ? 'none' : 'block',
+            // display: isFocused ? 'none' : 'block',
             marginBottom: 1,
             color: '#063231',
+            textAlign: 'left',
           }}
         >
           Номер телефону:
@@ -69,11 +70,12 @@ const PhoneInput: React.FC = () => {
           </InputAdornment>
 
           {/* Phone Input */}
-          <TextField
+            <TextField
             fullWidth
             variant="standard"
             placeholder={isFocused ? '(00) 000-0000' : 'Введіть номер телефону'}
             value={phone}
+            autoComplete="off"
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(phone.length > 0)}
             onChange={(e) => {
@@ -83,27 +85,48 @@ const PhoneInput: React.FC = () => {
               const cleaned = e.target.value.replace(/\D/g, '');
               let formatted = cleaned;
               if (cleaned.length > 3 && cleaned.length <= 6) {
-                formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
+              formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
               } else if (cleaned.length > 6) {
-                formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(
-                  2,
-                  5
-                )}-${cleaned.slice(5, 9)}`;
+              formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(
+                2,
+                5
+              )}-${cleaned.slice(5, 9)}`;
               }
               setPhone(formatted);
             }}
             sx={{
               '& .MuiInputBase-root': {
-                fontSize: '16px',
+              fontSize: '18px',
               },
               '& .MuiInput-underline:before': {
-                borderBottom: 'none',
+              borderBottom: 'none',
               },
               '& .MuiInput-underline:after': {
-                borderBottom: 'none',
+              borderBottom: 'none',
               },
             }}
-          />
+            />
+          {/* Submit Button */}
+          <Box sx={{ width: '50%', ml:1 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={handleRegisterClick}
+              disabled={isLoading}
+              sx={{
+                height: '45px',
+                borderRadius: 2,
+                fontWeight: 700,
+                textTransform: 'none',
+                '&:hover': {
+                    backgroundColor: '#004D40',
+                  },
+              }}
+            >
+              {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Запис на курс'}
+            </Button>
+          </Box>
         </Box>
 
         {/* Error Message */}
@@ -116,24 +139,7 @@ const PhoneInput: React.FC = () => {
           </Typography>
         )}
 
-        {/* Submit Button */}
-        <Box sx={{ width: '100%', marginTop: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={handleRegisterClick}
-            disabled={isLoading}
-            sx={{
-              height: '45px',
-              borderRadius: 2,
-              fontWeight: 700,
-              textTransform: 'none',
-            }}
-          >
-            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Запис на курс'}
-          </Button>
-        </Box>
+
       </Box>
 
       {/* Additional Info */}
