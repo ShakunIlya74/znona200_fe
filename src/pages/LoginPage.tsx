@@ -7,7 +7,12 @@ import SapImage from '../source/login/sap.svg';
 import TelegramLogo from '../source/footer/telegram_white.svg';
 import { SendLoginData } from '../services/AuthService';
 
-const LoginPage: React.FC = () => {
+interface FlowProps {
+    changeFlow: () => void;
+}
+
+
+export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => void }) {
     const navigate = useNavigate();
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
@@ -17,20 +22,138 @@ const LoginPage: React.FC = () => {
     const [wrongCredentialsError, setWrongCredentialsError] = useState<boolean>(false);
     const [isNewUser, setIsNewUser] = useState(window.location.pathname !== '/login');
 
-    // const SubmitLoginData = () => {
-    //     // send login data to backend
-    //     // verify that user exists and that password is correct
-    //     SendLoginData(email, password).then((response) => {
-    //       // // redirect to digest Page
-    //       if (response.success) {
-    //         props.setLoggedIn(true);
-    //       }
-    //       else {
-    //         setWrongCredentialsError(true);
-    //         props.setLoggedIn(false);
-    //       }
-    //     });
-    //   };
+    const SubmitLoginData = () => {
+        // send login data to backend
+        // verify that user exists and that password is correct
+        SendLoginData(email, password).then((response) => {
+            // // redirect to digest Page
+            if (response.success) {
+                props.setLoggedIn(true);
+            }
+            else {
+                setWrongCredentialsError(true);
+                props.setLoggedIn(false);
+            }
+        });
+    };
+
+    const Login: React.FC<FlowProps> = ({ changeFlow }) => {
+        const navigate = useNavigate();
+        const [isRemember, setIsRemember] = useState(false);
+        const [isSubmitting, setIsSubmitting] = useState(false);
+
+
+
+        return (
+            <Box sx={{
+                maxWidth: { xs: '100%', sm: '80%', md: '140%' }, width: '100%', mx: 1,
+
+            }}>
+
+                <Typography variant="h6" sx={{ fontWeight: 200, mb: 2 }}>
+                    Нумо починати!
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                    <Typography sx={{ fontWeight: 400, fontSize: 18, color: '#3F6563', mr: { sm: 1 }, mb: { xs: 1, sm: 0 } }}>
+                        Немає облікового запису?
+                    </Typography>
+                    <Button
+                        onClick={() => {
+                            window.open('https://t.me/yaryna_yaromii', '_blank');
+                            changeFlow();
+                        }}
+                        sx={{ textDecoration: 'underline', color: '#3F6563' }}
+                    >
+                        Звʼяжіться з адміністратором
+                    </Button>
+                </Box>
+
+                {/* Telegram Login Button */}
+                <Button
+                    variant="contained"
+                    startIcon={<img src={TelegramLogo} alt="Telegram" style={{ width: 18, height: 18 }} />}
+                    fullWidth
+                    sx={{
+                        backgroundColor: '#229ED9',
+                        borderRadius: '8px',
+                        height: '45px',
+                        mb: 2,
+                        textTransform: 'none',
+                        '&:hover': { backgroundColor: '#1b85c4' },
+                    }}
+                >
+                    Увійти за допомогою Telegram
+                </Button>
+
+                {/* OR Separator */}
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Box sx={{ flexGrow: 1, height: '1px', backgroundColor: '#E1E3E2', mr: 1 }} />
+                    <Typography sx={{ color: '#757877' }}>або</Typography>
+                    <Box sx={{ flexGrow: 1, height: '1px', backgroundColor: '#E1E3E2', ml: 1 }} />
+                </Box>
+
+                {/* Login Form */}
+                <Box
+                    component="form"
+                    sx={{
+                        backgroundColor: '#FFFFFF',
+                        padding: { xs: 2, md: 3 },
+                        borderRadius: 2,
+                        boxShadow: '0px 10px 110px 1px rgba(59, 59, 59, 0.08)',
+                    }}
+                >
+                    <Typography sx={{ mb: 1 }}>Електронна пошта</Typography>
+                    <TextField
+                        fullWidth
+                        variant="outlined"
+                        placeholder="znona200@gmail.com"
+                        sx={{ mb: 2 }}
+                    />
+                    <Typography sx={{ mb: 1 }}>Пароль</Typography>
+                    <TextField
+                        fullWidth
+                        variant="outlined"
+                        type="password"
+                        placeholder="**********"
+                        sx={{ mb: 2 }}
+                    />
+                </Box>
+
+                {/* Remember Me and Forgot Password */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                    <FormControlLabel
+                        control={<Checkbox checked={isRemember} onChange={() => setIsRemember(!isRemember)} />}
+                        label="Запам'ятати мене"
+                        sx={{ mb: { xs: 1, sm: 0 } }}
+                    />
+                    <Button
+                        onClick={() => navigate('/password-restore')}
+                        sx={{ textDecoration: 'underline', color: '#063231' }}
+                    >
+                        Забули свій пароль?
+                    </Button>
+                </Box>
+
+                {/* Submit Button */}
+                <Button
+                    variant="contained"
+                    fullWidth
+                    onClick={() => SubmitLoginData()}
+                    sx={{
+                        backgroundColor: '#006A68',
+                        mt: 3,
+                        height: '45px',
+                        borderRadius: '8px',
+                        fontWeight: '800',
+                        textTransform: 'none',
+                    }}
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Увійти'}
+                </Button>
+            </Box>
+        );
+    };
 
 
     const changeFlow = () => {
@@ -123,124 +246,6 @@ const LoginPage: React.FC = () => {
     );
 };
 
-interface FlowProps {
-    changeFlow: () => void;
-}
-
-const Login: React.FC<FlowProps> = ({ changeFlow }) => {
-    const navigate = useNavigate();
-    const [isRemember, setIsRemember] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    return (
-        <Box sx={{ maxWidth: { xs: '100%', sm: '80%', md: '140%' }, width: '100%', mx: 1,
-        
-        }}>
-
-            <Typography variant="h6" sx={{ fontWeight: 200, mb: 2 }}>
-                Нумо починати!
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <Typography sx={{ fontWeight: 400, fontSize: 18, color: '#3F6563', mr: { sm: 1 }, mb: { xs: 1, sm: 0 } }}>
-                    Немає облікового запису?
-                </Typography>
-                <Button
-                    onClick={() => {
-                        window.open('https://t.me/yaryna_yaromii', '_blank');
-                        changeFlow();
-                    }}
-                    sx={{ textDecoration: 'underline', color: '#3F6563' }}
-                >
-                    Звʼяжіться з адміністратором
-                </Button>
-            </Box>
-
-            {/* Telegram Login Button */}
-            <Button
-                variant="contained"
-                startIcon={<img src={TelegramLogo} alt="Telegram" style={{ width: 18, height: 18 }} />}
-                fullWidth
-                sx={{
-                    backgroundColor: '#229ED9',
-                    borderRadius: '8px',
-                    height: '45px',
-                    mb: 2,
-                    textTransform: 'none',
-                    '&:hover': { backgroundColor: '#1b85c4' },
-                }}
-            >
-                Увійти за допомогою Telegram
-            </Button>
-
-            {/* OR Separator */}
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Box sx={{ flexGrow: 1, height: '1px', backgroundColor: '#E1E3E2', mr: 1 }} />
-                <Typography sx={{ color: '#757877' }}>або</Typography>
-                <Box sx={{ flexGrow: 1, height: '1px', backgroundColor: '#E1E3E2', ml: 1 }} />
-            </Box>
-
-            {/* Login Form */}
-            <Box
-                component="form"
-                sx={{
-                    backgroundColor: '#FFFFFF',
-                    padding: { xs: 2, md: 3 },
-                    borderRadius: 2,
-                    boxShadow: '0px 10px 110px 1px rgba(59, 59, 59, 0.08)',
-                }}
-            >
-                <Typography sx={{ mb: 1 }}>Електронна пошта</Typography>
-                <TextField
-                    fullWidth
-                    variant="outlined"
-                    placeholder="znona200@gmail.com"
-                    sx={{ mb: 2 }}
-                />
-                <Typography sx={{ mb: 1 }}>Пароль</Typography>
-                <TextField
-                    fullWidth
-                    variant="outlined"
-                    type="password"
-                    placeholder="**********"
-                    sx={{ mb: 2 }}
-                />
-            </Box>
-
-            {/* Remember Me and Forgot Password */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <FormControlLabel
-                    control={<Checkbox checked={isRemember} onChange={() => setIsRemember(!isRemember)} />}
-                    label="Запам'ятати мене"
-                    sx={{ mb: { xs: 1, sm: 0 } }}
-                />
-                <Button
-                    onClick={() => navigate('/password-restore')}
-                    sx={{ textDecoration: 'underline', color: '#063231' }}
-                >
-                    Забули свій пароль?
-                </Button>
-            </Box>
-
-            {/* Submit Button */}
-            <Button
-                variant="contained"
-                fullWidth
-                sx={{
-                    backgroundColor: '#006A68',
-                    mt: 3,
-                    height: '45px',
-                    borderRadius: '8px',
-                    fontWeight: '800',
-                    textTransform: 'none',
-                }}
-                disabled={isSubmitting}
-            >
-                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Увійти'}
-            </Button>
-        </Box>
-    );
-};
-
 const Register: React.FC<FlowProps> = ({ changeFlow }) => {
     // Placeholder for the Register component
     return (
@@ -262,4 +267,3 @@ const Register: React.FC<FlowProps> = ({ changeFlow }) => {
     );
 };
 
-export default LoginPage;
