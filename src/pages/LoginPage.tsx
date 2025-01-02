@@ -22,6 +22,14 @@ export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => v
     const [wrongCredentialsError, setWrongCredentialsError] = useState<boolean>(false);
     const [isNewUser, setIsNewUser] = useState(window.location.pathname !== '/login');
 
+    const changeFlow = () => {
+        setIsNewUser(!isNewUser);
+    };
+
+    useEffect(() => {
+        setIsNewUser(window.location.pathname !== '/login');
+    }, [window.location.pathname]);
+
     const SubmitLoginData = () => {
         // send login data to backend
         // verify that user exists and that password is correct
@@ -155,14 +163,27 @@ export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => v
         );
     };
 
-
-    const changeFlow = () => {
-        setIsNewUser(!isNewUser);
+    const Register: React.FC<FlowProps> = ({ changeFlow }) => {
+        // Placeholder for the Register component
+        return (
+            <Box sx={{ maxWidth: { xs: '100%', sm: 490 }, width: '100%' }}>
+                <Typography variant="h6" sx={{ fontWeight: 500, mb: 2 }}>
+                    Реєстрація
+                </Typography>
+                {/* Add registration form elements here */}
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                    <Typography sx={{ fontWeight: 400, fontSize: 18, color: '#3F6563', mr: { sm: 1 }, mb: { xs: 1, sm: 0 } }}>
+                        Вже маєте обліковий запис?
+                    </Typography>
+                    <Button onClick={changeFlow} sx={{ textDecoration: 'underline', color: '#3F6563' }}>
+                        Увійдіть
+                    </Button>
+                </Box>
+                {/* Add additional registration UI elements as needed */}
+            </Box>
+        );
     };
 
-    useEffect(() => {
-        setIsNewUser(window.location.pathname !== '/login');
-    }, [window.location.pathname]);
 
     return (
         <Box
@@ -242,27 +263,6 @@ export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => v
                     {isNewUser ? <Register changeFlow={changeFlow} /> : <Login changeFlow={changeFlow} />}
                 </Box>
             </Box>
-        </Box>
-    );
-};
-
-const Register: React.FC<FlowProps> = ({ changeFlow }) => {
-    // Placeholder for the Register component
-    return (
-        <Box sx={{ maxWidth: { xs: '100%', sm: 490 }, width: '100%' }}>
-            <Typography variant="h6" sx={{ fontWeight: 500, mb: 2 }}>
-                Реєстрація
-            </Typography>
-            {/* Add registration form elements here */}
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <Typography sx={{ fontWeight: 400, fontSize: 18, color: '#3F6563', mr: { sm: 1 }, mb: { xs: 1, sm: 0 } }}>
-                    Вже маєте обліковий запис?
-                </Typography>
-                <Button onClick={changeFlow} sx={{ textDecoration: 'underline', color: '#3F6563' }}>
-                    Увійдіть
-                </Button>
-            </Box>
-            {/* Add additional registration UI elements as needed */}
         </Box>
     );
 };
