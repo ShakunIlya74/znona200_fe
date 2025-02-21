@@ -2,6 +2,7 @@
 import React from 'react';
 import { Box, Container } from '@mui/material';
 import MainInfo from '../components/WelcomePage/MainInfo';
+import About from '../components/WelcomePage/About';
 // import Header from 'components/header/Header';
 // import MainInfo from 'components/mainInfo/MainInfo';
 // import About from 'components/about/About';
@@ -25,7 +26,7 @@ const WelcomePage: React.FC = () => {
         }}
       >
         <MainInfo />
-        {/* <About /> */}
+        <About />
         {/* <Team />
         <Reviews />
         <Prices />
