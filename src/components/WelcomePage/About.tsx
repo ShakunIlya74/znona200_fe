@@ -154,7 +154,7 @@ const About: React.FC = () => {
                     <Box
                         sx={{
                             flex: '1 1 auto',
-                            maxWidth: '20%',
+                            maxWidth: '40%',
                             minWidth: '10%',
                             width: '100%',
                             display: 'flex',
@@ -184,7 +184,7 @@ const About: React.FC = () => {
                 <Box
                     sx={{
                         display: 'flex',
-                        flexDirection: { xs: 'column', md: 'row-reverse' },
+                        flexDirection: { xs: 'column', md: 'row' },
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 2,
@@ -194,7 +194,7 @@ const About: React.FC = () => {
                     <Box
                         sx={{
                             flex: '1 1 auto',
-                            maxWidth: '20%',
+                            maxWidth: '40%',
                             minWidth: '10%',
                             width: '100%',
                             display: 'flex',
@@ -234,22 +234,6 @@ const About: React.FC = () => {
                         <InfoBlock number={info[7].number} title={info[7].title} text={info[7].text} />
                     </Box>
                 </Box>
-                <Box
-                        id="grid2"
-                        sx={{
-                            width: '60%',
-                            display: 'grid',
-                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
-                            gridTemplateRows: 'repeat(2, auto)',
-                            gap: 2,
-                        }}
-                    >
-                        <InfoBlock number={info[4].number} title={info[4].title} text={info[4].text} />
-                        <InfoBlock number={info[5].number} title={info[5].title} text={info[5].text} />
-                        <InfoBlock number={info[6].number} title={info[6].title} text={info[6].text} />
-                        <InfoBlock number={info[7].number} title={info[7].title} text={info[7].text} />
-                    </Box>
-
             </Box>
         </Box>
     );

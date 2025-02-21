@@ -71,7 +71,7 @@ const App: React.FC = () => {
 
   return (
     // Container is replaced with Box, todo: check for cons
-    <Box sx={{ width: '100vw', height: '100vh', }}>
+    <Box sx={{ width: '100%', height: '100%', }}>
       <CssBaseline />
       <RouterProvider router={router} />
     </Box>
