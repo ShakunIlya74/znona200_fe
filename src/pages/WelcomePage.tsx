@@ -26,7 +26,7 @@ const WelcomePage: React.FC = () => {
         }}
       >
         <MainInfo />
-        <About />
+        {/* <About /> */}
         {/* <Team />
         <Reviews />
         <Prices />

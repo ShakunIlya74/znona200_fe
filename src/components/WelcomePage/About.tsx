@@ -19,12 +19,9 @@ const InfoBlock: React.FC<InfoBlockProps> = ({ number, title, text }) => {
     return (
         <Box
             sx={{
-                border: '1px solid',
-                borderColor: 'grey.300',
-                borderRadius: 2,
-                p: 2,
-                minWidth: 200,
-                m: 1,
+                // minWidth: 0
+                // p: 2,
+                // m: 1,
             }}
         >
             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
@@ -114,70 +111,146 @@ const About: React.FC = () => {
     ];
 
     return (
-        <Box id="about" sx={{ backgroundColor: '#f2f1f2', width: '100%', flexGrow: 1,
-            padding: { xs: '20px', md: '0px' }, }}>
+        <Box id="about" sx={{
+            backgroundColor: '#f2f1f2', flexGrow: 1,
+
+        }}>
             {/* Title */}
-            <Box sx={{ mx: 'auto', mb: 4, ml: { xs: 0, md: 10 }, }}>
+            <Box sx={{ mb: 4 }}>
                 <Typography variant="h3" align="left" sx={{ fontWeight: 'bold', fontSize: '44px' }}>
                     Про курси
                 </Typography>
-            </Box>
-            {/* First Block */}
-            <Box
-                sx={{
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: { xs: 'column', md: 'row' },
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 4,
-                    gap: 2,
-                }}
-            >
+
+
+                {/* First Block */}
                 <Box
                     sx={{
-                        display: 'grid',
-                        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-                        gridTemplateRows: 'repeat(2, auto)',
-                        gap: 2,
-                    }}
-                >
-                    <InfoBlock number={info[0].number} title={info[0].title} text={info[0].text} />
-                    <InfoBlock number={info[1].number} title={info[1].title} text={info[1].text} />
-                    <InfoBlock number={info[2].number} title={info[2].title} text={info[2].text} />
-                    <InfoBlock number={info[3].number} title={info[3].title} text={info[3].text} />
-                </Box>
-            
-                {/* <Box
-                    sx={{
-                        flex: '1 1 auto',
-                        maxWidth: '80%',
-                        minWidth: '30%',
-                        width: '100%',
+                        boxSizing: 'border-box',
+                        mx: 'auto',
                         display: 'flex',
-                        justifyContent: 'center',
+                        flexDirection: { xs: 'column', md: 'row' },
                         alignItems: 'center',
-                        mb: { xs: 4, md: 0 },
-                        mr: { xs: 0, md: 4 },
-                        flexGrow: 1,
-                        // padding: { xs: '10px 0', md: '20px 0' },
+                        justifyContent: 'center',
+                        mb: 4,
+                        pr: { xs: 0, md: 10 },
                     }}
                 >
                     <Box
-                        component="img"
+                        id="grid1"
                         sx={{
-                            width: '100%',
-                            height: 'auto',
-                            maxWidth: '100%',
-                            mr: { xs: 0, md: 4 },
+                            width: '60%',
+                            display: 'grid',
+                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
+                            gridTemplateRows: 'repeat(2, auto)',
+                            gap: 2,
                         }}
-                        src={sapiens}
-                        alt="students"
-                    />
-                </Box> */}
+                    >
+                        <InfoBlock number={info[0].number} title={info[0].title} text={info[0].text} />
+                        <InfoBlock number={info[1].number} title={info[1].title} text={info[1].text} />
+                        <InfoBlock number={info[2].number} title={info[2].title} text={info[2].text} />
+                        <InfoBlock number={info[3].number} title={info[3].title} text={info[3].text} />
+                    </Box>
+
+                    <Box
+                        sx={{
+                            flex: '1 1 auto',
+                            maxWidth: '20%',
+                            minWidth: '10%',
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            mb: { xs: 4, md: 0 },
+                            mr: { xs: 0, md: 0 },
+                            flexGrow: 1,
+                            // padding: { xs: '10px 0', md: '20px 0' },
+                        }}
+                    >
+                        <Box
+                            component="img"
+                            sx={{
+                                width: '100%',
+                                height: 'auto',
+                                maxWidth: '100%',
+                                mr: { xs: 0, md: 0 },
+                            }}
+                            src={sapiens}
+                            alt="sapiens"
+                        />
+                    </Box>
+
+                </Box>
+                {/* Second Block */}
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', md: 'row-reverse' },
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2,
+                        width: '100%',
+                    }}
+                >
+                    <Box
+                        sx={{
+                            flex: '1 1 auto',
+                            maxWidth: '20%',
+                            minWidth: '10%',
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            mb: { xs: 4, md: 0 },
+                            mr: { xs: 0, md: 0 },
+                            flexGrow: 1,
+                            // padding: { xs: '10px 0', md: '20px 0' },
+                        }}
+                    >
+                        <Box
+                            component="img"
+                            sx={{
+                                width: '100%',
+                                height: 'auto',
+                                maxWidth: '100%',
+                                mr: { xs: 0, md: 0 },
+                            }}
+                            src={sapiens2}
+                            alt="sapiens2"
+                        />
+                    </Box>
+                    <Box
+                        id="grid2"
+                        sx={{
+                            width: '60%',
+                            display: 'grid',
+                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
+                            gridTemplateRows: 'repeat(2, auto)',
+                            gap: 2,
+                        }}
+                    >
+                        <InfoBlock number={info[4].number} title={info[4].title} text={info[4].text} />
+                        <InfoBlock number={info[5].number} title={info[5].title} text={info[5].text} />
+                        <InfoBlock number={info[6].number} title={info[6].title} text={info[6].text} />
+                        <InfoBlock number={info[7].number} title={info[7].title} text={info[7].text} />
+                    </Box>
+                </Box>
+                <Box
+                        id="grid2"
+                        sx={{
+                            width: '60%',
+                            display: 'grid',
+                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
+                            gridTemplateRows: 'repeat(2, auto)',
+                            gap: 2,
+                        }}
+                    >
+                        <InfoBlock number={info[4].number} title={info[4].title} text={info[4].text} />
+                        <InfoBlock number={info[5].number} title={info[5].title} text={info[5].text} />
+                        <InfoBlock number={info[6].number} title={info[6].title} text={info[6].text} />
+                        <InfoBlock number={info[7].number} title={info[7].title} text={info[7].text} />
+                    </Box>
+
             </Box>
-
-
         </Box>
     );
 };
@@ -186,49 +259,8 @@ export default About;
 
 
 
-            // {/* Second Block */}
-            // <Box
-            //     sx={{
-            //         display: 'flex',
-            //         flexDirection: { xs: 'column', md: 'row-reverse' },
-            //         alignItems: 'center',
-            //         justifyContent: 'center',
-            //         gap: 2,
-            //         width: '100%',
-            //     }}
-            // >
-            //     <Box sx={{ flexShrink: 0 }}>
-            //         <Box
-            //             component="img"
-            //             src={sapiens2}
-            //             alt="sapiens2"
-            //             sx={{ width: '100%', maxWidth: 400 }}
-            //         />
-            //     </Box>
-            //     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            //         <Box
-            //             sx={{
-            //                 display: 'flex',
-            //                 flexDirection: { xs: 'column', sm: 'row' },
-            //                 alignItems: 'center',
-            //                 justifyContent: 'center',
-            //                 gap: 2,
-            //             }}
-            //         >
-            //             <InfoBlock number={info[4].number} title={info[4].title} text={info[4].text} />
-            //             <InfoBlock number={info[5].number} title={info[5].title} text={info[5].text} />
-            //         </Box>
-            //         <Box
-            //             sx={{
-            //                 display: 'flex',
-            //                 flexDirection: { xs: 'column', sm: 'row' },
-            //                 alignItems: 'center',
-            //                 justifyContent: 'center',
-            //                 gap: 2,
-            //             }}
-            //         >
-            //             <InfoBlock number={info[6].number} title={info[6].title} text={info[6].text} />
-            //             <InfoBlock number={info[7].number} title={info[7].title} text={info[7].text} />
-            //         </Box>
-            //     </Box>
-            // </Box>
+
+
+
+
+

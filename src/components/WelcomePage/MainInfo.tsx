@@ -19,21 +19,21 @@ const MainInfo: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#cce8e6',
-        width: '100%',
+        // width: '100%',
         flexGrow: 1,
         padding: { xs: '20px', md: '0px' },
       }}
     >
       {/* Free Space */}
-      {/* <Box
+      <Box
         sx={{
           display: { xs: 'none', md: 'block' },
           flex: '1 1 auto',
           maxWidth: '10%',
-          width: '100%',
+          // width: '100%',
           flexGrow: 3,
         }}
-      /> */}
+      />
 
       {/* Content Section */}
       <Box
