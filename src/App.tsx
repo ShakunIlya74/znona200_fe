@@ -12,7 +12,7 @@ import UserMenuPage from './pages/UserMenuPage';
 import { GetSessionData } from './services/AuthService';
 
 // Mock authentication status (replace with real auth logic)
-const isAuthenticated = false; // Set to `true` for logged-in state
+const isAuthenticated = true; // Set to `true` for logged-in state
 
 const withLayout = (Component: React.ComponentType) => () => (
   <>
@@ -61,7 +61,7 @@ const App: React.FC = () => {
     },
     {
       path: '/menu',
-      element: isAuthenticated ? <UserMenuPage /> : <Navigate to="/login" replace />,
+      element: isAuthenticated ? withLayout(UserMenuPage)() : <Navigate to="/login" replace />,
     },
     {
       path: '*',

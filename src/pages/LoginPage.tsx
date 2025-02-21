@@ -6,6 +6,7 @@ import ZnoLogo from '../source/header/logo_zno.svg';
 import SapImage from '../source/login/sap.svg';
 import TelegramLogo from '../source/footer/telegram_white.svg';
 import { SendLoginData } from '../services/AuthService';
+import { Link } from 'react-router-dom';
 
 interface FlowProps {
     changeFlow: () => void;
@@ -148,6 +149,8 @@ export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => v
 
                 {/* Submit Button */}
                 <Button
+                    component={Link}
+                    to="/menu"
                     variant="contained"
                     fullWidth
                     onClick={() => SubmitLoginData()}
