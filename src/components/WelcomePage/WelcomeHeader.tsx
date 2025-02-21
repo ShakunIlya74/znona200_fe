@@ -45,15 +45,15 @@ const WelcomeHeader: React.FC = () => {
   return (
     <>
       <AppBar position="sticky" sx={{ backgroundColor: '#FFFFFF', boxShadow: 'none' }}>
-        <Toolbar sx={{ justifyContent: 'space-between', padding: '0 20px' }}>
+        <Toolbar sx={{ justifyContent: 'space-between', padding: '2% 20%', paddingX: { xs: '5%', md: '5%' } }}>
           {/* Logo */}
           <Box component={Link} to="/" sx={{ display: 'flex', alignItems: 'center' }}>
-            <img src={ZnoLogo} alt="Logo ZNO" style={{ height: '40px' }} />
+            <img src={ZnoLogo} alt="Logo ZNO" style={{ height: '50px' }} />
           </Box>
 
           {/* Desktop Menu */}
           {!isMobile && (
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mr: 3 }}>
               {menus.map((menu) => (
                 <Button
                   key={menu.to}
@@ -62,7 +62,7 @@ const WelcomeHeader: React.FC = () => {
                   sx={{
                     color: '#3F6563',
                     textTransform: 'none',
-                    fontSize: '16px',
+                    fontSize: '20px',
                     marginLeft: '20px',
                     '&:hover': {
                       backgroundColor: 'transparent',
@@ -73,7 +73,6 @@ const WelcomeHeader: React.FC = () => {
                   {menu.text}
                 </Button>
               ))}
-
               {/* Action Buttons */}
               <Button
                 component={Link}
@@ -84,14 +83,14 @@ const WelcomeHeader: React.FC = () => {
                   color: '#006A68',
                   borderColor: '#006A68',
                   textTransform: 'none',
-                  fontWeight: 600,
+                  // fontSize removed from here
                   '&:hover': {
                     borderColor: '#006A68',
                     backgroundColor: '#E0F7FA',
                   },
                 }}
               >
-                Увійти
+                <Typography sx={{ fontSize: '20px' }}>Увійти</Typography>
               </Button>
               <Button
                 component={Link}
@@ -102,13 +101,13 @@ const WelcomeHeader: React.FC = () => {
                   backgroundColor: '#006A68',
                   color: '#FFFFFF',
                   textTransform: 'none',
-                  fontWeight: 600,
+                  // fontSize removed from here
                   '&:hover': {
                     backgroundColor: '#004D40',
                   },
                 }}
               >
-                Запис на курс
+                <Typography sx={{ fontSize: '20px' }}>Запис на курс</Typography>
               </Button>
             </Box>
           )}
@@ -170,7 +169,7 @@ const WelcomeHeader: React.FC = () => {
                 color: '#006A68',
                 borderColor: '#006A68',
                 textTransform: 'none',
-                fontWeight: 600,
+                // fontSize removed from here
                 mb: 2,
                 '&:hover': {
                   borderColor: '#006A68',
@@ -178,7 +177,7 @@ const WelcomeHeader: React.FC = () => {
                 },
               }}
             >
-              Увійти
+              <Typography sx={{ fontSize: '24px' }}>Увійти</Typography>
             </Button>
             <Button
               component={Link}
@@ -189,13 +188,13 @@ const WelcomeHeader: React.FC = () => {
                 backgroundColor: '#006A68',
                 color: '#FFFFFF',
                 textTransform: 'none',
-                fontWeight: 600,
+                // fontSize removed from here
                 '&:hover': {
                   backgroundColor: '#004D40',
                 },
               }}
             >
-              Запис на курс
+              <Typography sx={{ fontSize: '18px' }}>Запис на курс</Typography>
             </Button>
           </Box>
         </Box>

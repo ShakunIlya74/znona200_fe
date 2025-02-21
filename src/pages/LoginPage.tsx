@@ -115,6 +115,8 @@ export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => v
                         fullWidth
                         variant="outlined"
                         placeholder="znona200@gmail.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         sx={{ mb: 2 }}
                     />
                     <Typography sx={{ mb: 1 }}>Пароль</Typography>
@@ -123,6 +125,8 @@ export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => v
                         variant="outlined"
                         type="password"
                         placeholder="**********"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         sx={{ mb: 2 }}
                     />
                 </Box>

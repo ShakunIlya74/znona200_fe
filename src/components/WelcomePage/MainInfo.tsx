@@ -21,11 +21,11 @@ const MainInfo: React.FC = () => {
         backgroundColor: '#cce8e6',
         width: '100%',
         flexGrow: 1,
-        padding: { xs: '20px', md: '40px' },
+        padding: { xs: '20px', md: '0px' },
       }}
     >
       {/* Free Space */}
-      <Box
+      {/* <Box
         sx={{
           display: { xs: 'none', md: 'block' },
           flex: '1 1 auto',
@@ -33,7 +33,7 @@ const MainInfo: React.FC = () => {
           width: '100%',
           flexGrow: 3,
         }}
-      />
+      /> */}
 
       {/* Content Section */}
       <Box

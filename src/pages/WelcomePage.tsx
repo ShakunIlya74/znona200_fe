@@ -19,14 +19,14 @@ const WelcomePage: React.FC = () => {
       <Box
         sx={{
           flex: 1,
-          paddingY: { xs: 4, md: 8 },
+          paddingY: { xs: 4, md: 0},
           // width: '100vw',
           // overflow: 'auto', // Adds scrollbars only if content overflows
         }}
       >
         <MainInfo />
-        {/* <About />
-        <Team />
+        {/* <About /> */}
+        {/* <Team />
         <Reviews />
         <Prices />
         <FAQ /> */}
