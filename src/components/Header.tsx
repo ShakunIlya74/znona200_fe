@@ -1,19 +1,22 @@
-import { AppBar, Box, Container, Drawer, IconButton, Toolbar, Typography, useMediaQuery, useTheme } from "@mui/material";
+import {
+  AppBar,
+  Box,
+  Drawer,
+  IconButton,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+  useTheme,
+  List,
+  ListItem,
+  ListItemText
+} from "@mui/material";
 import { useEffect, useState } from "react";
-
-import packageJson from "../../package.json";
-import { GetSessionData } from "../services/AuthService";
+import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import { Outlet } from 'react-router-dom';
 
-const adminOnlyEndpoints = [
-  // set admin only endpoints here
-  'admin',
-]
-
 function Header() {
-
-
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -22,57 +25,115 @@ function Header() {
     setDrawerOpen(open);
   };
 
+  // Content inside the drawer (used by both permanent and temporary drawers)
+  const drawerContent = (
+    <Box
+      sx={{
+        width: 350,
+        backgroundColor: '#f4f4f3',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        paddingTop: '20px',
+      }}
+      role="presentation"
+    >
+
+
+      {/* <List>
+        {['Тести', 'Вибори', 'Мінілейн', 'Конспекти', 'Статистика'].map((text) => (
+          <ListItem component="div" button key={text}>
+            <ListItemText primary={text} />
+          </ListItem>
+        ))}
+      </List> */}
+    </Box>
+  );
+
   return (
     <>
+      {/* TOP APP BAR */}
       <AppBar
         position="sticky"
         sx={{ backgroundColor: '#FFFFFF', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}
       >
         <Toolbar
           sx={{
-        justifyContent: 'space-between',
-        padding: '2% 20%',
-        paddingX: { xs: '5%', md: '5%' },
-        backgroundColor: '#f4f4f3'
+            justifyContent: 'space-between',
+            padding: '2% 20%',
+            paddingX: { xs: '5%', md: '5%' },
+            backgroundColor: '#f4f4f3',
           }}
         >
-          {/* Desktop Menu */}
           <Typography
-        variant="h6"
-        sx={{ fontSize: '36px', flexGrow: 1, color: '#5b5f5e' }}
+            variant="h6"
+            sx={{ fontSize: '36px', flexGrow: 1, color: '#5b5f5e', pl: { xs: 0, md: 40 } }}
           >
-        Тести
+            Тести
           </Typography>
+
+          {/* Hamburger icon for mobile */}
+          {isMobile && (
+            <IconButton onClick={toggleDrawer(true)}>
+              <MenuIcon />
+            </IconButton>
+          )}
         </Toolbar>
       </AppBar>
 
-
-
-      {/* Mobile Drawer */}
-      <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
-        <Box
+      {/* PERMANENT DRAWER (visible on larger screens) */}
+      {!isMobile && (
+        <Drawer
+          variant="permanent"
           sx={{
-            width: 250,
-            backgroundColor: '#CCE8E6',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '20px',
+            width: 350,
+            // flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: 350,
+              boxSizing: 'border-box',
+              backgroundColor: '#f4f4f3',
+              boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.1)'
+            },
           }}
-          role="presentation"
+          open
         >
-          {/* Close Icon */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <IconButton onClick={toggleDrawer(false)}>
-              <CloseIcon />
-            </IconButton>
+          {/* The top toolbar spacer ensures content is below the AppBar */}
+          <Box >
+            {drawerContent}
           </Box>
-        </Box>
+        </Drawer>
+      )}
+
+      {/* TEMPORARY DRAWER (for mobile) */}
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={toggleDrawer(false)}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: 250,
+          },
+        }}
+      >
+        {drawerContent}
       </Drawer>
 
-      <Outlet />
+      {/* MAIN CONTENT AREA */}
+      <Box
+        id='main-content'
+        component="main"
+        sx={{
+          flexGrow: 1,
+          // If not mobile, offset main content by the drawer width
+          pl: { xs: 0, md: 350 },
+        }}
+      >
+        <Outlet />
+      </Box>
     </>
-  )
+  );
 }
 
-export default Header
+export default Header;
