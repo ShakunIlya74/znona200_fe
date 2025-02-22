@@ -29,7 +29,7 @@ function Header() {
   const drawerContent = (
     <Box
       sx={{
-        width: 350,
+        width: '350px',
         backgroundColor: '#f4f4f3',
         height: '100%',
         display: 'flex',
@@ -86,10 +86,10 @@ function Header() {
         <Drawer
           variant="permanent"
           sx={{
-            width: 350,
+            width: '350px',
             // flexShrink: 0,
             '& .MuiDrawer-paper': {
-              width: 350,
+              width: '350px',
               boxSizing: 'border-box',
               backgroundColor: '#f4f4f3',
               boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.1)'
@@ -122,13 +122,7 @@ function Header() {
 
       {/* MAIN CONTENT AREA */}
       <Box
-        id='main-content'
-        component="main"
-        sx={{
-          flexGrow: 1,
-          // If not mobile, offset main content by the drawer width
-          pl: { xs: 0, md: 350 },
-        }}
+        id="main-content"
       >
         <Outlet />
       </Box>
