@@ -9,7 +9,7 @@ const UserMenuPage: React.FC = () => {
       alignItems: 'left'
     }}>
       <Box sx={{ display: 'flex', flexDirection: 'row', width: '100%', height: '100%' }}>
-        
+
       
         <Box sx={{ minWidth: {md:'350px', xs: 0}, height: '100%', backgroundColor: 'white' }}>
         </Box>
@@ -20,7 +20,7 @@ const UserMenuPage: React.FC = () => {
             backgroundColor: 'red'
           }}>
             <Typography variant="h4" gutterBottom>
-              All components are rendered here
+              Default menu page, should be probably redirected to vebinars
             </Typography>
           </Box>
         </Box>

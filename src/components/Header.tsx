@@ -9,12 +9,21 @@ import {
   useTheme,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  ListItemButton
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-import { Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
+import ZnoLogo from '../source/header/logo_zno.svg';
+import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
+import VideoCameraFrontOutlinedIcon from '@mui/icons-material/VideoCameraFrontOutlined';
+import VoiceChatOutlinedIcon from '@mui/icons-material/VoiceChatOutlined';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+import QueryStatsOutlinedIcon from '@mui/icons-material/QueryStatsOutlined';
+import ContactPhoneOutlinedIcon from '@mui/icons-material/ContactPhoneOutlined';
+import Diversity1OutlinedIcon from '@mui/icons-material/Diversity1Outlined';
 
 function Header() {
   const theme = useTheme();
@@ -29,24 +38,84 @@ function Header() {
   const drawerContent = (
     <Box
       sx={{
-        width: '350px',
         backgroundColor: '#f4f4f3',
-        height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        paddingTop: '20px',
+        
       }}
       role="presentation"
     >
+      <Box component={Link} to="/" sx={{ display: 'flex', alignItems: 'center', 
+        justifyContent: 'center', paddingY: '60px', }}>
+        <img src={ZnoLogo} alt="Logo ZNO" style={{ height: '40px' }} />
+      </Box>
 
+      <List sx={{ pl: '50px' }}>
+        <ListItem component="div" disablePadding>
+          <ListItemButton>
+        <ReceiptLongOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
+        <ListItemText
+          primary="Тести"
+          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+        />
+          </ListItemButton>
+        </ListItem>
+        <ListItem component="div" disablePadding>
+          <ListItemButton>
+        <VideoCameraFrontOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
+        <ListItemText
+          primary="Вебінари"
+          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+        />
+          </ListItemButton>
+        </ListItem>
+        <ListItem component="div" disablePadding>
+          <ListItemButton>
+        <VoiceChatOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
+        <ListItemText
+          primary="Мінілекції"
+          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+        />
+          </ListItemButton>
+        </ListItem>
+        <ListItem component="div" disablePadding>
+          <ListItemButton>
+        <ArticleOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
+        <ListItemText
+          primary="Конспекти"
+          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+        />
+          </ListItemButton>
+        </ListItem>
+        <ListItem component="div" disablePadding>
+          <ListItemButton>
+        <QueryStatsOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
+        <ListItemText
+          primary="Статистика"
+          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+        />
+          </ListItemButton>
+        </ListItem>
+        <ListItem component="div" disablePadding>
+          <ListItemButton>
+        <ContactPhoneOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
+        <ListItemText
+          primary="Запити"
+          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+        />
+          </ListItemButton>
+        </ListItem>
+        <ListItem component="div" disablePadding>
+          <ListItemButton>
+        <Diversity1OutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
+        <ListItemText
+          primary="Групи"
+          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+        />
+          </ListItemButton>
+        </ListItem>
+      </List>
 
-      {/* <List>
-        {['Тести', 'Вибори', 'Мінілейн', 'Конспекти', 'Статистика'].map((text) => (
-          <ListItem component="div" button key={text}>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
-      </List> */}
     </Box>
   );
 
@@ -98,7 +167,7 @@ function Header() {
           open
         >
           {/* The top toolbar spacer ensures content is below the AppBar */}
-          <Box >
+          <Box sx={{ alignItems: 'center', }}>
             {drawerContent}
           </Box>
         </Drawer>
