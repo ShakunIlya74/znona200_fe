@@ -239,12 +239,12 @@ function Header() {
       </Drawer>
 
       {/* MAIN CONTENT AREA */}
-      <Box
+      {/* <Box
         id="main-content"
         sx={{backgroundColor: 'red', }}
       >
         <Outlet />
-      </Box>
+      </Box> */}
     </>
   );
 }
