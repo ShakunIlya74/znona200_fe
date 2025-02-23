@@ -10,6 +10,8 @@ import LoginPage from './pages/LoginPage';
 import WelcomePage from './pages/WelcomePage';
 import UserMenuPage from './pages/UserMenuPage';
 import { GetSessionData } from './services/AuthService';
+import TestsPage from './pages/TestsPage';
+import LessonsPage from './pages/LessonsPage';
 
 // Mock authentication status (replace with real auth logic)
 const isAuthenticated = true; // Set to `true` for logged-in state
@@ -62,6 +64,14 @@ const App: React.FC = () => {
     {
       path: '/menu',
       element: isAuthenticated ? withLayout(UserMenuPage)() : <Navigate to="/login" replace />,
+    },
+    {
+      path: '/tests',
+      element: isAuthenticated ? withLayout(TestsPage)() : <Navigate to="/login" replace />,
+    },
+    {
+      path: '/webinars',
+      element: isAuthenticated ? withLayout(LessonsPage)() : <Navigate to="/login" replace />,
     },
     {
       path: '*',

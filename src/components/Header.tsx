@@ -15,7 +15,7 @@ import {
 import { useEffect, useState } from "react";
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import ZnoLogo from '../source/header/logo_zno.svg';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import VideoCameraFrontOutlinedIcon from '@mui/icons-material/VideoCameraFrontOutlined';
@@ -29,6 +29,17 @@ function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // New state to store the selected menu button id (only one active at a time)
+  const location = useLocation();
+  const deriveMenuFromPath = (pathname: string) => {
+    // Split the pathname and use the first segment after '/'
+    const path = pathname.split('/')[1];
+    // Return derived menu value; if empty, default to "tests"
+    return path || "tests";
+  }
+
+  const [selectedMenu, setSelectedMenu] = useState(() => deriveMenuFromPath(location.pathname));
 
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open);
@@ -52,9 +63,14 @@ function Header() {
         <img src={ZnoLogo} alt="Logo ZNO" style={{ height: '40px' }} />
       </Box>
 
-      <List sx={{}}>
+      <List id='menu-buttons' sx={{}}>
         <ListItem component="div" disablePadding>
-          <ListItemButton>
+          <ListItemButton
+            component={Link}
+            to="/tests"
+            onClick={() => setSelectedMenu("tests")}
+            sx={{ backgroundColor: selectedMenu === "tests" ? "#FFFFFF" : "inherit" }}
+          >
             <ReceiptLongOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
             <ListItemText
               primary="Тести"
@@ -63,8 +79,13 @@ function Header() {
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
-          <ListItemButton>
-            <VideoCameraFrontOutlinedIcon sx={{ mr: 2,ml: '50px',  fontSize: '24px' }} />
+          <ListItemButton
+            component={Link}
+            to="/webinars"
+            onClick={() => setSelectedMenu("webinars")}
+            sx={{ backgroundColor: selectedMenu === "webinars" ? "#FFFFFF" : "inherit" }}
+          >
+            <VideoCameraFrontOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
             <ListItemText
               primary="Вебінари"
               primaryTypographyProps={{ sx: { fontSize: '24px' } }}
@@ -72,7 +93,10 @@ function Header() {
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
-          <ListItemButton>
+          <ListItemButton
+            onClick={() => setSelectedMenu("miniLectures")}
+            sx={{ backgroundColor: selectedMenu === "miniLectures" ? "#FFFFFF" : "inherit" }}
+          >
             <VoiceChatOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
             <ListItemText
               primary="Мінілекції"
@@ -81,8 +105,11 @@ function Header() {
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
-          <ListItemButton>
-            <ArticleOutlinedIcon sx={{ mr: 2, ml: '50px',  fontSize: '24px' }} />
+          <ListItemButton
+            onClick={() => setSelectedMenu("notes")}
+            sx={{ backgroundColor: selectedMenu === "notes" ? "#FFFFFF" : "inherit" }}
+          >
+            <ArticleOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
             <ListItemText
               primary="Конспекти"
               primaryTypographyProps={{ sx: { fontSize: '24px' } }}
@@ -90,8 +117,11 @@ function Header() {
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
-          <ListItemButton>
-            <QueryStatsOutlinedIcon sx={{ mr: 2, ml: '50px',  fontSize: '24px' }} />
+          <ListItemButton
+            onClick={() => setSelectedMenu("statistics")}
+            sx={{ backgroundColor: selectedMenu === "statistics" ? "#FFFFFF" : "inherit" }}
+          >
+            <QueryStatsOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
             <ListItemText
               primary="Статистика"
               primaryTypographyProps={{ sx: { fontSize: '24px' } }}
@@ -99,8 +129,11 @@ function Header() {
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
-          <ListItemButton>
-            <ContactPhoneOutlinedIcon sx={{ mr: 2, ml: '50px',  fontSize: '24px' }} />
+          <ListItemButton
+            onClick={() => setSelectedMenu("queries")}
+            sx={{ backgroundColor: selectedMenu === "queries" ? "#FFFFFF" : "inherit" }}
+          >
+            <ContactPhoneOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
             <ListItemText
               primary="Запити"
               primaryTypographyProps={{ sx: { fontSize: '24px' } }}
@@ -108,8 +141,11 @@ function Header() {
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
-          <ListItemButton>
-            <Diversity1OutlinedIcon sx={{ mr: 2, ml: '50px',  fontSize: '24px' }} />
+          <ListItemButton
+            onClick={() => setSelectedMenu("groups")}
+            sx={{ backgroundColor: selectedMenu === "groups" ? "#FFFFFF" : "inherit" }}
+          >
+            <Diversity1OutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
             <ListItemText
               primary="Групи"
               primaryTypographyProps={{ sx: { fontSize: '24px' } }}
@@ -194,6 +230,7 @@ function Header() {
       {/* MAIN CONTENT AREA */}
       <Box
         id="main-content"
+        sx={{backgroundColor: 'red', }}
       >
         <Outlet />
       </Box>
