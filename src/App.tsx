@@ -18,8 +18,50 @@ const isAuthenticated = true; // Set to `true` for logged-in state
 
 const withLayout = (Component: React.ComponentType) => () => (
   <>
-    <Header />
-    <Component />
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', backroundcolor: '#f4f4f3' }}>
+      <Header />
+      <Box sx={{ flex: 1, height: '100%', }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: '#f4f4f3',
+            flex: 1, // Allow this container to grow and fill the available space
+            height: '100%', // Use the full height of the viewport
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              width: '100%',
+              flex: 1,
+            }}
+          >
+            <Box
+              sx={{
+                minWidth: { md: '350px', xs: 0 },
+                // Use flex "none" if you don’t want this side panel to grow
+                flex: 'none',
+                backgroundColor: 'white',
+              }}
+            >
+              {/* Side content goes here */}
+            </Box>
+            <Box
+              sx={{
+                width: '100%',
+                p: 5,
+                flex: 1, // This area fills the rest of the space
+              }}
+            >
+              <Component />
+            </Box>
+          </Box>
+        </Box>
+
+      </Box>
+    </Box>
   </>
 );
 
@@ -59,7 +101,7 @@ const App: React.FC = () => {
     },
     {
       path: '/login',
-      element: <LoginPage  setLoggedIn={setLoggedIn} />,
+      element: <LoginPage setLoggedIn={setLoggedIn} />,
     },
     {
       path: '/menu',

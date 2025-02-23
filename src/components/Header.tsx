@@ -25,6 +25,17 @@ import QueryStatsOutlinedIcon from '@mui/icons-material/QueryStatsOutlined';
 import ContactPhoneOutlinedIcon from '@mui/icons-material/ContactPhoneOutlined';
 import Diversity1OutlinedIcon from '@mui/icons-material/Diversity1Outlined';
 
+// Add the dictionary for menu titles
+const menuTitles: Record<string, string> = {
+  tests: "Тести",
+  webinars: "Вебінари",
+  miniLectures: "Мінілекції",
+  notes: "Конспекти",
+  statistics: "Статистика",
+  queries: "Запити",
+  groups: "Групи"
+};
+
 function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -172,11 +183,11 @@ function Header() {
             backgroundColor: '#f4f4f3',
           }}
         >
-          <Typography
+          <Typography id='page-title'
             variant="h6"
             sx={{ fontSize: '36px', flexGrow: 1, color: '#5b5f5e', pl: { xs: 0, md: 40 } }}
           >
-            Тести
+            {menuTitles[selectedMenu]}
           </Typography>
 
           {/* Hamburger icon for mobile */}
