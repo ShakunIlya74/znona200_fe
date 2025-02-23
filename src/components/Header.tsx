@@ -41,77 +41,79 @@ function Header() {
         backgroundColor: '#f4f4f3',
         display: 'flex',
         flexDirection: 'column',
-        
+
       }}
       role="presentation"
     >
-      <Box component={Link} to="/" sx={{ display: 'flex', alignItems: 'center', 
-        justifyContent: 'center', paddingY: '60px', }}>
+      <Box component={Link} to="/" sx={{
+        display: 'flex', alignItems: 'center',
+        justifyContent: 'center', paddingY: '60px',
+      }}>
         <img src={ZnoLogo} alt="Logo ZNO" style={{ height: '40px' }} />
       </Box>
 
-      <List sx={{ pl: '50px' }}>
+      <List sx={{}}>
         <ListItem component="div" disablePadding>
           <ListItemButton>
-        <ReceiptLongOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
-        <ListItemText
-          primary="Тести"
-          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
-        />
+            <ReceiptLongOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
+            <ListItemText
+              primary="Тести"
+              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+            />
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton>
-        <VideoCameraFrontOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
-        <ListItemText
-          primary="Вебінари"
-          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
-        />
+            <VideoCameraFrontOutlinedIcon sx={{ mr: 2,ml: '50px',  fontSize: '24px' }} />
+            <ListItemText
+              primary="Вебінари"
+              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+            />
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton>
-        <VoiceChatOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
-        <ListItemText
-          primary="Мінілекції"
-          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
-        />
+            <VoiceChatOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
+            <ListItemText
+              primary="Мінілекції"
+              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+            />
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton>
-        <ArticleOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
-        <ListItemText
-          primary="Конспекти"
-          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
-        />
+            <ArticleOutlinedIcon sx={{ mr: 2, ml: '50px',  fontSize: '24px' }} />
+            <ListItemText
+              primary="Конспекти"
+              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+            />
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton>
-        <QueryStatsOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
-        <ListItemText
-          primary="Статистика"
-          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
-        />
+            <QueryStatsOutlinedIcon sx={{ mr: 2, ml: '50px',  fontSize: '24px' }} />
+            <ListItemText
+              primary="Статистика"
+              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+            />
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton>
-        <ContactPhoneOutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
-        <ListItemText
-          primary="Запити"
-          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
-        />
+            <ContactPhoneOutlinedIcon sx={{ mr: 2, ml: '50px',  fontSize: '24px' }} />
+            <ListItemText
+              primary="Запити"
+              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+            />
           </ListItemButton>
         </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton>
-        <Diversity1OutlinedIcon sx={{ mr: 2, fontSize: '24px' }} />
-        <ListItemText
-          primary="Групи"
-          primaryTypographyProps={{ sx: { fontSize: '24px' } }}
-        />
+            <Diversity1OutlinedIcon sx={{ mr: 2, ml: '50px',  fontSize: '24px' }} />
+            <ListItemText
+              primary="Групи"
+              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+            />
           </ListItemButton>
         </ListItem>
       </List>
