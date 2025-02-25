@@ -40,7 +40,7 @@ const withLayout = (Component: React.ComponentType) => () => (
           >
             <Box
               sx={{
-                minWidth: { md: '350px', xs: 0 },
+                minWidth: { md: '275px', xs: 0 },
                 // Use flex "none" if you don’t want this side panel to grow
                 flex: 'none',
                 backgroundColor: 'white',

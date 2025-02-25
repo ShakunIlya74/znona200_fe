@@ -36,6 +36,8 @@ const menuTitles: Record<string, string> = {
   groups: "Групи"
 };
 
+const BUTTON_FONT_SIZE = '18px';
+
 function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -69,9 +71,9 @@ function Header() {
     >
       <Box component={Link} to="/" sx={{
         display: 'flex', alignItems: 'center',
-        justifyContent: 'center', paddingY: '60px',
+        justifyContent: 'center', pt: '40px',pb: '60px'
       }}>
-        <img src={ZnoLogo} alt="Logo ZNO" style={{ height: '40px' }} />
+        <img src={ZnoLogo} alt="Logo ZNO" style={{ height: '30px' }} />
       </Box>
 
       <List id='menu-buttons' sx={{}}>
@@ -82,10 +84,10 @@ function Header() {
             onClick={() => setSelectedMenu("tests")}
             sx={{ backgroundColor: selectedMenu === "tests" ? "#FFFFFF" : "inherit" }}
           >
-            <ReceiptLongOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
+            <ReceiptLongOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
               primary="Тести"
-              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+              primaryTypographyProps={{ sx: { fontSize: BUTTON_FONT_SIZE } }}
             />
           </ListItemButton>
         </ListItem>
@@ -96,10 +98,10 @@ function Header() {
             onClick={() => setSelectedMenu("webinars")}
             sx={{ backgroundColor: selectedMenu === "webinars" ? "#FFFFFF" : "inherit" }}
           >
-            <VideoCameraFrontOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
+            <VideoCameraFrontOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
               primary="Вебінари"
-              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+              primaryTypographyProps={{ sx: { fontSize: BUTTON_FONT_SIZE } }}
             />
           </ListItemButton>
         </ListItem>
@@ -108,10 +110,10 @@ function Header() {
             onClick={() => setSelectedMenu("miniLectures")}
             sx={{ backgroundColor: selectedMenu === "miniLectures" ? "#FFFFFF" : "inherit" }}
           >
-            <VoiceChatOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
+            <VoiceChatOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
               primary="Мінілекції"
-              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+              primaryTypographyProps={{ sx: { fontSize: BUTTON_FONT_SIZE } }}
             />
           </ListItemButton>
         </ListItem>
@@ -120,10 +122,10 @@ function Header() {
             onClick={() => setSelectedMenu("notes")}
             sx={{ backgroundColor: selectedMenu === "notes" ? "#FFFFFF" : "inherit" }}
           >
-            <ArticleOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
+            <ArticleOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
               primary="Конспекти"
-              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+              primaryTypographyProps={{ sx: { fontSize: BUTTON_FONT_SIZE } }}
             />
           </ListItemButton>
         </ListItem>
@@ -132,10 +134,10 @@ function Header() {
             onClick={() => setSelectedMenu("statistics")}
             sx={{ backgroundColor: selectedMenu === "statistics" ? "#FFFFFF" : "inherit" }}
           >
-            <QueryStatsOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
+            <QueryStatsOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
               primary="Статистика"
-              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+              primaryTypographyProps={{ sx: { fontSize: BUTTON_FONT_SIZE } }}
             />
           </ListItemButton>
         </ListItem>
@@ -144,10 +146,10 @@ function Header() {
             onClick={() => setSelectedMenu("queries")}
             sx={{ backgroundColor: selectedMenu === "queries" ? "#FFFFFF" : "inherit" }}
           >
-            <ContactPhoneOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
+            <ContactPhoneOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
               primary="Запити"
-              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+              primaryTypographyProps={{ sx: { fontSize: BUTTON_FONT_SIZE } }}
             />
           </ListItemButton>
         </ListItem>
@@ -156,10 +158,10 @@ function Header() {
             onClick={() => setSelectedMenu("groups")}
             sx={{ backgroundColor: selectedMenu === "groups" ? "#FFFFFF" : "inherit" }}
           >
-            <Diversity1OutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: '24px' }} />
+            <Diversity1OutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
               primary="Групи"
-              primaryTypographyProps={{ sx: { fontSize: '24px' } }}
+              primaryTypographyProps={{ sx: { fontSize: BUTTON_FONT_SIZE } }}
             />
           </ListItemButton>
         </ListItem>
@@ -185,7 +187,7 @@ function Header() {
         >
           <Typography id='page-title'
             variant="h6"
-            sx={{ fontSize: '36px', flexGrow: 1, color: '#5b5f5e', pl: { xs: 0, md: 40 } }}
+            sx={{ fontSize: '28px', flexGrow: 1, color: '#5b5f5e', pl: { xs: 0, md: 40 } }}
           >
             {menuTitles[selectedMenu]}
           </Typography>
@@ -204,10 +206,10 @@ function Header() {
         <Drawer
           variant="permanent"
           sx={{
-            width: '350px',
+            width: '275px',
             // flexShrink: 0,
             '& .MuiDrawer-paper': {
-              width: '350px',
+              width: '275px',
               boxSizing: 'border-box',
               backgroundColor: '#f4f4f3',
               boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.1)'
