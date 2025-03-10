@@ -13,6 +13,7 @@ import { GetSessionData } from './services/AuthService';
 import TestsPage from './pages/TestsPage';
 import LessonsPage from './pages/LessonsPage';
 import ProtectedRoute from './routes/ProtectedRoute';
+import SettingsPage from './pages/settings/SettingsPage';
 
 const withLayout = (Component: React.ComponentType) => () => (
   <>
@@ -101,6 +102,10 @@ const App: React.FC = () => {
         {
           path: 'menu',
           element: withLayout(UserMenuPage)(),
+        },
+        {
+          path: 'settings',
+          element: withLayout(SettingsPage)(),
         },
         {
           path: 'tests',

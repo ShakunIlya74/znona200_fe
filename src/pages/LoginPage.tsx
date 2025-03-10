@@ -29,7 +29,7 @@ export default function LoginPage() {
         Logout();
     }, []);
 
-    const Login: React.FC<FlowProps> = ({ changeFlow}) => {
+    const Login: React.FC<FlowProps> = ({ changeFlow }) => {
         const navigate = useNavigate();
         const [isRemember, setIsRemember] = useState(false);
         const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,6 +41,7 @@ export default function LoginPage() {
         const [wrongCredentialsError, setWrongCredentialsError] = useState<boolean>(false);
 
         const submitLoginData = () => {
+            setIsSubmitting(true);
             // send login data to backend
             // verify that user exists and that password is correct
             SendLoginData(email, password).then((response) => {
@@ -48,13 +49,15 @@ export default function LoginPage() {
                 if (response.success) {
                     setLoggedIn(true);
                     // redirect to menu
-                    console.log('redirecting to menu'); 
+                    console.log('redirecting to menu');
                     navigate('/menu');
                 }
                 else {
                     setWrongCredentialsError(true);
                     setLoggedIn(false);
+                    
                 }
+                setIsSubmitting(false);
             });
         };
 
@@ -135,6 +138,8 @@ export default function LoginPage() {
                         onChange={(e) => setPassword(e.target.value)}
                         sx={{ mb: 2 }}
                     />
+                    {wrongCredentialsError && (
+                        <Typography sx={{ color: 'red', mt: -1, mb: -2 }}>Неправильні дані для входу в кабінет.</Typography>)}
                 </Box>
 
                 {/* Remember Me and Forgot Password */}
@@ -270,7 +275,7 @@ export default function LoginPage() {
                             sx={{ width: '100%', maxWidth: '140%', minWidth: '60%', height: 'auto' }}
                             src={ZnoLogo} alt="Logo ZNO" />
                     </Box>
-                    {isNewUser ? <Register changeFlow={changeFlow}  /> : <Login changeFlow={changeFlow}/>}
+                    {isNewUser ? <Register changeFlow={changeFlow} /> : <Login changeFlow={changeFlow} />}
                 </Box>
             </Box>
         </Box>

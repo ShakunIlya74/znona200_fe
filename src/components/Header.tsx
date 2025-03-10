@@ -10,12 +10,14 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemButton
+  ListItemButton,
+  Menu,
+  MenuItem
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import ZnoLogo from '../source/header/logo_zno.svg';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import VideoCameraFrontOutlinedIcon from '@mui/icons-material/VideoCameraFrontOutlined';
@@ -24,12 +26,18 @@ import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
 import QueryStatsOutlinedIcon from '@mui/icons-material/QueryStatsOutlined';
 import ContactPhoneOutlinedIcon from '@mui/icons-material/ContactPhoneOutlined';
 import Diversity1OutlinedIcon from '@mui/icons-material/Diversity1Outlined';
+import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
+import ExpandLessOutlinedIcon from '@mui/icons-material/ExpandLessOutlined';
+import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import packageJson from '../../package.json';
-import { GetSessionData } from "../services/AuthService";
+import { GetSessionData, Logout } from "../services/AuthService";
 
 // Add the dictionary for menu titles
 const menuTitles: Record<string, string> = {
+  menu: "Вітаємо!",
+  settings: "Налаштування",
   tests: "Тести",
   webinars: "Вебінари",
   miniLectures: "Мінілекції",
@@ -42,13 +50,18 @@ const menuTitles: Record<string, string> = {
 const BUTTON_FONT_SIZE = '18px';
 
 function Header() {
+  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [settingDropOpen, setSettingDropOpen] = useState(false);
   const [userName, setUserName] = useState<string>('');
   const [userSurname, setUserSurname] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [profilePicture, setProfilePicture] = useState<string>('');
+  
+  // Reference for the profile menu anchor
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // New state to store the selected menu button id (only one active at a time)
   const location = useLocation();
@@ -111,6 +124,24 @@ Do essential checks:
 
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open);
+  };
+  
+  // Handle logout functionality
+  const handleLogout = () => {
+    // Clear local storage/session
+    localStorage.clear();
+    // Redirect to login page or home page
+    Logout();
+    navigate('/login');
+    setSettingDropOpen(false);
+  };
+  
+  // Handle settings navigation
+  const handleSettings = () => {
+    // Navigate to settings page
+    navigate('/settings');
+    setSelectedMenu("settings");
+    setSettingDropOpen(false);
   };
 
   // Content inside the drawer (used by both permanent and temporary drawers)
@@ -247,6 +278,112 @@ Do essential checks:
             {menuTitles[selectedMenu]}
           </Typography>
 
+          {/* User profile */}
+          <Box
+            ref={profileMenuRef}
+            onClick={() => setSettingDropOpen(!settingDropOpen)}
+            // make area clickable
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              cursor: 'pointer',
+            }}
+          >
+            {profilePicture ? (
+              <img
+                src={profilePicture}
+                alt="Profile"
+                style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  width: '45px',
+                  height: '45px',
+                  borderRadius: '50%',
+                  backgroundColor: '#016a68',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontWeight: 'bold',
+                  fontSize: '20px',
+                }}
+              >
+                {userName && userSurname ? `${userName[0]}${userSurname[0]}` : ''}
+              </Box>
+            )}
+            <Typography
+              variant="body1"
+              sx={{ fontSize: '18px', color: '#5b5f5e' }}
+            >
+              {userName} {userSurname}
+            </Typography>
+            <Box sx={{ color: '#5b5f5e', mt: '5px' }}>
+            {settingDropOpen ? <ExpandLessOutlinedIcon /> : <ExpandMoreOutlinedIcon />}
+            </Box>
+          </Box>
+          
+          {/* Profile Dropdown Menu */}
+            <Menu
+            anchorEl={profileMenuRef.current}
+            open={settingDropOpen}
+            onClose={() => setSettingDropOpen(false)}
+            slotProps={{
+              paper: {
+              elevation: 3,
+              sx: {
+                mt: 1.5,
+                backgroundColor: '#f4f4f3',
+                borderRadius: '10px',
+                minWidth: '180px',
+                overflow: 'visible',
+                '&:before': {
+                content: '""',
+                display: 'block',
+                position: 'absolute',
+                top: -10,
+                right: 20,
+                width: 20,
+                height: 20,
+                bgcolor: '#f4f4f3',
+                transform: 'rotate(45deg)',
+                zIndex: 0,
+                },
+              },
+              },
+            }}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+            <MenuItem 
+              onClick={handleSettings}
+              sx={{ 
+              fontSize: '16px', 
+              py: 1.5, 
+              color: '#5b5f5e',
+              '&:hover': { backgroundColor: '#e6e6e5' }
+              }}
+            >
+              <SettingsOutlinedIcon sx={{ mr: 1 }} />
+              Налаштування
+            </MenuItem>
+            <MenuItem 
+              onClick={handleLogout}
+              sx={{ 
+              fontSize: '16px', 
+              py: 1.5, 
+              color: '#5b5f5e',
+              '&:hover': { backgroundColor: '#e6e6e5' }
+              }}
+            >
+              <LogoutOutlinedIcon sx={{ mr: 1 }} />
+              Вийти
+            </MenuItem>
+            </Menu>
+
           {/* Hamburger icon for mobile */}
           {isMobile && (
             <IconButton onClick={toggleDrawer(true)}>
@@ -256,7 +393,7 @@ Do essential checks:
         </Toolbar>
       </AppBar>
 
-      {/* PERMANENT DRAWER (visible on larger screens) */}
+      {/* PERMANENT vertical drawer (visible on larger screens) */}
       {!isMobile && (
         <Drawer
           variant="permanent"

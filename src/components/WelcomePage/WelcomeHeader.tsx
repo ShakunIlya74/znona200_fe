@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -19,6 +19,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import { Link } from 'react-router-dom';
 import ZnoLogo from '../../source/header/logo_zno.svg';
+import { GetSessionData } from '../../services/AuthService';
 
 interface MenuItem {
   text: string;
@@ -28,7 +29,17 @@ interface MenuItem {
 const WelcomeHeader: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    const sessionData = GetSessionData();
+        sessionData.then(res => {
+          if (res.is_logged_in) {
+            setIsAuthenticated(true);
+          }
+        });
+    }, []);
 
   const menus: MenuItem[] = [
     { text: 'Про курс', to: 'about' },
@@ -74,41 +85,60 @@ const WelcomeHeader: React.FC = () => {
                 </Button>
               ))}
               {/* Action Buttons */}
-              <Button
-                component={Link}
-                to="/login"
-                variant="outlined"
-                sx={{
+                {isAuthenticated ? (
+                <Button
+                  component={Link}
+                  to="/menu"
+                  variant="contained"
+                  sx={{
                   ml: 3,
-                  color: '#006A68',
-                  borderColor: '#006A68',
-                  textTransform: 'none',
-                  // fontSize removed from here
-                  '&:hover': {
-                    borderColor: '#006A68',
-                    backgroundColor: '#E0F7FA',
-                  },
-                }}
-              >
-                <Typography sx={{ fontSize: '20px' }}>Увійти</Typography>
-              </Button>
-              <Button
-                component={Link}
-                to="/register"
-                variant="contained"
-                sx={{
-                  ml: 2,
                   backgroundColor: '#006A68',
                   color: '#FFFFFF',
                   textTransform: 'none',
-                  // fontSize removed from here
                   '&:hover': {
                     backgroundColor: '#004D40',
                   },
-                }}
-              >
-                <Typography sx={{ fontSize: '20px' }}>Запис на курс</Typography>
-              </Button>
+                  }}
+                >
+                  <Typography sx={{ fontSize: '20px' }}>Мій кабінет</Typography>
+                </Button>
+                ) : (
+                <>
+                  <Button
+                  component={Link}
+                  to="/login"
+                  variant="outlined"
+                  sx={{
+                    ml: 3,
+                    color: '#006A68',
+                    borderColor: '#006A68',
+                    textTransform: 'none',
+                    '&:hover': {
+                    borderColor: '#006A68',
+                    backgroundColor: '#E0F7FA',
+                    },
+                  }}
+                  >
+                  <Typography sx={{ fontSize: '20px' }}>Увійти</Typography>
+                  </Button>
+                  <Button
+                  component={Link}
+                  to="/register"
+                  variant="contained"
+                  sx={{
+                    ml: 2,
+                    backgroundColor: '#006A68',
+                    color: '#FFFFFF',
+                    textTransform: 'none',
+                    '&:hover': {
+                    backgroundColor: '#004D40',
+                    },
+                  }}
+                  >
+                  <Typography sx={{ fontSize: '20px' }}>Запис на курс</Typography>
+                  </Button>
+                </>
+                )}
             </Box>
           )}
 
