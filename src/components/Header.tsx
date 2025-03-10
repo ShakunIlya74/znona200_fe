@@ -25,6 +25,9 @@ import QueryStatsOutlinedIcon from '@mui/icons-material/QueryStatsOutlined';
 import ContactPhoneOutlinedIcon from '@mui/icons-material/ContactPhoneOutlined';
 import Diversity1OutlinedIcon from '@mui/icons-material/Diversity1Outlined';
 
+import packageJson from '../../package.json';
+import { GetSessionData } from "../services/AuthService";
+
 // Add the dictionary for menu titles
 const menuTitles: Record<string, string> = {
   tests: "Тести",
@@ -42,6 +45,10 @@ function Header() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [userName, setUserName] = useState<string>('');
+  const [userSurname, setUserSurname] = useState<string>('');
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [profilePicture, setProfilePicture] = useState<string>('');
 
   // New state to store the selected menu button id (only one active at a time)
   const location = useLocation();
@@ -53,6 +60,54 @@ function Header() {
   }
 
   const [selectedMenu, setSelectedMenu] = useState(() => deriveMenuFromPath(location.pathname));
+
+
+  /*
+Consider this useEffect as an entry point to the app for logged in users
+Do essential checks:
+  1. Check for version updates - delete cached files if required
+  2. Check for admin rights - allow display of admin options
+*/
+  useEffect(() => {
+    // check version before doing anything
+    let version = localStorage.getItem('version');
+    console.log('latest: ' + packageJson.version);
+    console.log('current: ' + version);
+    if (version != packageJson.version) {
+      if ('caches' in window) {
+        window.caches.keys().then((names) => {
+          // Delete all the cache files
+          names.forEach(name => {
+            caches.delete(name);
+            console.log('deleting ' + name);
+          })
+        });
+
+        // Makes sure the page reloads. Changes are only visible after you refresh.
+        window.location.reload();
+      }
+
+      localStorage.clear();
+      localStorage.setItem('version', packageJson.version);
+    }
+
+    const sessionData = GetSessionData();
+
+    sessionData.then(res => {
+      // example how to get additional data
+      // const conferenceList = GetConferenceList();
+      // conferenceList.then((res: ConferenceListResponse) => {
+      //   if (res.success) {
+      //     setConferenceList(res.conferences.reverse());
+      //   }
+      // });
+
+      setUserName(res.full_name.split(' ')[0]);
+      setUserSurname(res.full_name.split(' ')[1]);
+      setIsAdmin(res.is_admin);
+      setProfilePicture(res.profile_picture);
+    });
+  }, []);
 
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open);
@@ -71,7 +126,7 @@ function Header() {
     >
       <Box component={Link} to="/" sx={{
         display: 'flex', alignItems: 'center',
-        justifyContent: 'center', pt: '40px',pb: '60px'
+        justifyContent: 'center', pt: '40px', pb: '60px'
       }}>
         <img src={ZnoLogo} alt="Logo ZNO" style={{ height: '30px' }} />
       </Box>
