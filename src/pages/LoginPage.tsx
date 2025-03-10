@@ -5,22 +5,15 @@ import { useNavigate } from 'react-router-dom';
 import ZnoLogo from '../source/header/logo_zno.svg';
 import SapImage from '../source/login/sap.svg';
 import TelegramLogo from '../source/footer/telegram_white.svg';
-import { SendLoginData } from '../services/AuthService';
+import { Logout, SendLoginData } from '../services/AuthService';
 import { Link } from 'react-router-dom';
 
 interface FlowProps {
     changeFlow: () => void;
 }
 
-
-export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => void }) {
+export default function LoginPage() {
     const navigate = useNavigate();
-    const [email, setEmail] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const [passwordVisible, setPasswordVisible] = useState(false);
-    const [passwordEmptyError, setPasswordEmptyError] = useState<boolean>(false);
-    const [emailEmptyError, setEmailEmptyError] = useState<boolean>(false);
-    const [wrongCredentialsError, setWrongCredentialsError] = useState<boolean>(false);
     const [isNewUser, setIsNewUser] = useState(window.location.pathname !== '/login');
 
     const changeFlow = () => {
@@ -31,27 +24,39 @@ export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => v
         setIsNewUser(window.location.pathname !== '/login');
     }, [window.location.pathname]);
 
-    const SubmitLoginData = () => {
-        // send login data to backend
-        // verify that user exists and that password is correct
-        SendLoginData(email, password).then((response) => {
-            // // redirect to digest Page
-            if (response.success) {
-                props.setLoggedIn(true);
-            }
-            else {
-                setWrongCredentialsError(true);
-                props.setLoggedIn(false);
-            }
-        });
-    };
+    useEffect(() => {
+        // reset cookies
+        Logout();
+    }, []);
 
-    const Login: React.FC<FlowProps> = ({ changeFlow }) => {
+    const Login: React.FC<FlowProps> = ({ changeFlow}) => {
         const navigate = useNavigate();
         const [isRemember, setIsRemember] = useState(false);
         const [isSubmitting, setIsSubmitting] = useState(false);
+        const [email, setEmail] = useState<string>('');
+        const [password, setPassword] = useState<string>('');
+        const [loggedIn, setLoggedIn] = useState<boolean>(false);
+        const [passwordEmptyError, setPasswordEmptyError] = useState<boolean>(false);
+        const [emailEmptyError, setEmailEmptyError] = useState<boolean>(false);
+        const [wrongCredentialsError, setWrongCredentialsError] = useState<boolean>(false);
 
-
+        const submitLoginData = () => {
+            // send login data to backend
+            // verify that user exists and that password is correct
+            SendLoginData(email, password).then((response) => {
+                // // redirect to digest Page
+                if (response.success) {
+                    setLoggedIn(true);
+                    // redirect to menu
+                    console.log('redirecting to menu'); 
+                    navigate('/menu');
+                }
+                else {
+                    setWrongCredentialsError(true);
+                    setLoggedIn(false);
+                }
+            });
+        };
 
         return (
             <Box sx={{
@@ -134,11 +139,11 @@ export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => v
 
                 {/* Remember Me and Forgot Password */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                    <FormControlLabel
+                    {/* <FormControlLabel
                         control={<Checkbox checked={isRemember} onChange={() => setIsRemember(!isRemember)} />}
                         label="Запам'ятати мене"
                         sx={{ mb: { xs: 1, sm: 0 } }}
-                    />
+                    /> */}
                     <Button
                         onClick={() => navigate('/password-restore')}
                         sx={{ textDecoration: 'underline', color: '#063231' }}
@@ -149,11 +154,9 @@ export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => v
 
                 {/* Submit Button */}
                 <Button
-                    component={Link}
-                    to="/menu"
                     variant="contained"
                     fullWidth
-                    onClick={() => SubmitLoginData()}
+                    onClick={() => submitLoginData()}
                     sx={{
                         backgroundColor: '#006A68',
                         mt: 3,
@@ -267,7 +270,7 @@ export default function LoginPage(props: { setLoggedIn: (loggedIn: boolean) => v
                             sx={{ width: '100%', maxWidth: '140%', minWidth: '60%', height: 'auto' }}
                             src={ZnoLogo} alt="Logo ZNO" />
                     </Box>
-                    {isNewUser ? <Register changeFlow={changeFlow} /> : <Login changeFlow={changeFlow} />}
+                    {isNewUser ? <Register changeFlow={changeFlow}  /> : <Login changeFlow={changeFlow}/>}
                 </Box>
             </Box>
         </Box>

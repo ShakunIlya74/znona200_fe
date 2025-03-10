@@ -1,8 +1,8 @@
 // src/App.tsx
 import React, { useEffect, useState } from 'react';
-import { Box } from '@mui/material'; // Add this import
+import { Box } from '@mui/material';
 import { CssBaseline } from '@mui/material';
-import { createBrowserRouter, RouterProvider, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 
 import Header from './components/Header';
 import WelcomeHeader from './components/WelcomePage/WelcomeHeader';
@@ -12,9 +12,7 @@ import UserMenuPage from './pages/UserMenuPage';
 import { GetSessionData } from './services/AuthService';
 import TestsPage from './pages/TestsPage';
 import LessonsPage from './pages/LessonsPage';
-
-// Mock authentication status (replace with real auth logic)
-const isAuthenticated = true; // Set to `true` for logged-in state
+import ProtectedRoute from './routes/ProtectedRoute';
 
 const withLayout = (Component: React.ComponentType) => () => (
   <>
@@ -26,8 +24,8 @@ const withLayout = (Component: React.ComponentType) => () => (
             display: 'flex',
             flexDirection: 'column',
             backgroundColor: '#f4f4f3',
-            flex: 1, // Allow this container to grow and fill the available space
-            height: '100%', // Use the full height of the viewport
+            flex: 1,
+            height: '100%',
           }}
         >
           <Box
@@ -41,7 +39,6 @@ const withLayout = (Component: React.ComponentType) => () => (
             <Box
               sx={{
                 minWidth: { md: '275px', xs: 0 },
-                // Use flex "none" if you don’t want this side panel to grow
                 flex: 'none',
                 backgroundColor: 'white',
               }}
@@ -52,14 +49,13 @@ const withLayout = (Component: React.ComponentType) => () => (
               sx={{
                 width: '100%',
                 p: 5,
-                flex: 1, // This area fills the rest of the space
+                flex: 1,
               }}
             >
               <Component />
             </Box>
           </Box>
         </Box>
-
       </Box>
     </Box>
   </>
@@ -71,8 +67,6 @@ const withWelcomeLayout = (Component: React.ComponentType) => () => (
     <Component />
   </>
 );
-
-
 
 const App: React.FC = () => {
   const [state, setState] = useState({
@@ -90,10 +84,6 @@ const App: React.FC = () => {
     document.title = 'ZnoNa200';
   }, []);
 
-  const setLoggedIn = (loggedIn: boolean) => {
-    setState({ loggedIn: loggedIn, loading: state.loading });
-  }
-
   const router = createBrowserRouter([
     {
       path: '/',
@@ -101,19 +91,26 @@ const App: React.FC = () => {
     },
     {
       path: '/login',
-      element: <LoginPage setLoggedIn={setLoggedIn} />,
+      element: <LoginPage />,
     },
+    // Protected routes of the app
     {
-      path: '/menu',
-      element: isAuthenticated ? withLayout(UserMenuPage)() : <Navigate to="/login" replace />,
-    },
-    {
-      path: '/tests',
-      element: isAuthenticated ? withLayout(TestsPage)() : <Navigate to="/login" replace />,
-    },
-    {
-      path: '/webinars',
-      element: isAuthenticated ? withLayout(LessonsPage)() : <Navigate to="/login" replace />,
+      path: '/',
+      element: <ProtectedRoute />,
+      children: [
+        {
+          path: 'menu',
+          element: withLayout(UserMenuPage)(),
+        },
+        {
+          path: 'tests',
+          element: withLayout(TestsPage)(),
+        },
+        {
+          path: 'webinars',
+          element: withLayout(LessonsPage)(),
+        },
+      ],
     },
     {
       path: '*',
@@ -122,7 +119,6 @@ const App: React.FC = () => {
   ]);
 
   return (
-    // Container is replaced with Box, todo: check for cons
     <Box sx={{ width: '100%', height: '100%', }}>
       <CssBaseline />
       <RouterProvider router={router} />
