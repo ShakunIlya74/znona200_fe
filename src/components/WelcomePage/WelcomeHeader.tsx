@@ -34,12 +34,12 @@ const WelcomeHeader: React.FC = () => {
 
   useEffect(() => {
     const sessionData = GetSessionData();
-        sessionData.then(res => {
-          if (res.is_logged_in) {
-            setIsAuthenticated(true);
-          }
-        });
-    }, []);
+    sessionData.then(res => {
+      if (res.is_logged_in) {
+        setIsAuthenticated(true);
+      }
+    });
+  }, []);
 
   const menus: MenuItem[] = [
     { text: 'Про курс', to: 'about' },
@@ -85,60 +85,60 @@ const WelcomeHeader: React.FC = () => {
                 </Button>
               ))}
               {/* Action Buttons */}
-                {isAuthenticated ? (
+              {isAuthenticated ? (
                 <Button
                   component={Link}
                   to="/menu"
                   variant="contained"
                   sx={{
-                  ml: 3,
-                  backgroundColor: '#006A68',
-                  color: '#FFFFFF',
-                  textTransform: 'none',
-                  '&:hover': {
-                    backgroundColor: '#004D40',
-                  },
-                  }}
-                >
-                  <Typography sx={{ fontSize: '20px' }}>Мій кабінет</Typography>
-                </Button>
-                ) : (
-                <>
-                  <Button
-                  component={Link}
-                  to="/login"
-                  variant="outlined"
-                  sx={{
                     ml: 3,
-                    color: '#006A68',
-                    borderColor: '#006A68',
-                    textTransform: 'none',
-                    '&:hover': {
-                    borderColor: '#006A68',
-                    backgroundColor: '#E0F7FA',
-                    },
-                  }}
-                  >
-                  <Typography sx={{ fontSize: '20px' }}>Увійти</Typography>
-                  </Button>
-                  <Button
-                  component={Link}
-                  to="/register"
-                  variant="contained"
-                  sx={{
-                    ml: 2,
                     backgroundColor: '#006A68',
                     color: '#FFFFFF',
                     textTransform: 'none',
                     '&:hover': {
-                    backgroundColor: '#004D40',
+                      backgroundColor: '#004D40',
                     },
                   }}
+                >
+                  <Typography sx={{ fontSize: '20px' }}>Мій кабінет</Typography>
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    component={Link}
+                    to="/login"
+                    variant="outlined"
+                    sx={{
+                      ml: 3,
+                      color: '#006A68',
+                      borderColor: '#006A68',
+                      textTransform: 'none',
+                      '&:hover': {
+                        borderColor: '#006A68',
+                        backgroundColor: '#E0F7FA',
+                      },
+                    }}
                   >
-                  <Typography sx={{ fontSize: '20px' }}>Запис на курс</Typography>
+                    <Typography sx={{ fontSize: '20px' }}>Увійти</Typography>
+                  </Button>
+                  <Button
+                    component={Link}
+                    to="/register"
+                    variant="contained"
+                    sx={{
+                      ml: 2,
+                      backgroundColor: '#006A68',
+                      color: '#FFFFFF',
+                      textTransform: 'none',
+                      '&:hover': {
+                        backgroundColor: '#004D40',
+                      },
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '20px' }}>Запис на курс</Typography>
                   </Button>
                 </>
-                )}
+              )}
             </Box>
           )}
 
@@ -229,9 +229,9 @@ const WelcomeHeader: React.FC = () => {
           </Box>
         </Box>
       </Drawer>
-      <Outlet /> 
+      <Outlet />
     </>
-    
+
   );
 };
 
