@@ -38,6 +38,7 @@ import { GetSessionData, Logout } from "../services/AuthService";
 const menuTitles: Record<string, string> = {
   menu: "Вітаємо!",
   settings: "Налаштування",
+  library: "Бібліотека",
   tests: "Тести",
   webinars: "Вебінари",
   miniLectures: "Мінілекції",
@@ -163,6 +164,20 @@ Do essential checks:
       </Box>
 
       <List id='menu-buttons' sx={{}}>
+      <ListItem component="div" disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/library"
+            onClick={() => setSelectedMenu("library")}
+            sx={{ backgroundColor: selectedMenu === "library" ? "#FFFFFF" : "inherit" }}
+          >
+            <ReceiptLongOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
+            <ListItemText
+              primary="Бібліотека"
+              primaryTypographyProps={{ sx: { fontSize: BUTTON_FONT_SIZE } }}
+            />
+          </ListItemButton>
+        </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton
             component={Link}

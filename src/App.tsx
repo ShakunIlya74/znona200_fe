@@ -14,6 +14,7 @@ import TestsPage from './pages/TestsPage';
 import LessonsPage from './pages/LessonsPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import SettingsPage from './pages/settings/SettingsPage';
+import LibraryPage from './pages/LibraryPage';
 
 const withLayout = (Component: React.ComponentType) => () => (
   <>
@@ -106,6 +107,10 @@ const App: React.FC = () => {
         {
           path: 'settings',
           element: withLayout(SettingsPage)(),
+        },
+        {
+          path: 'library',
+          element: withLayout(LibraryPage)(),
         },
         {
           path: 'tests',
