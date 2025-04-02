@@ -41,7 +41,7 @@ const menuTitles: Record<string, string> = {
   library: "Бібліотека",
   tests: "Тести",
   webinars: "Вебінари",
-  miniLectures: "Мінілекції",
+  minilections: "Мінілекції",
   notes: "Конспекти",
   statistics: "Статистика",
   queries: "Запити",
@@ -55,7 +55,7 @@ const pathToMenuMap: Record<string, string> = {
   'library': 'library',
   'tests': 'tests',
   'webinars': 'webinars',
-  'mini-lectures': 'miniLectures',
+  'minilections': 'minilections',
   'notes': 'notes',
   'statistics': 'statistics',
   'queries': 'queries',
@@ -235,9 +235,9 @@ function Header() {
         <ListItem component="div" disablePadding>
           <ListItemButton
             component={Link}
-            to="/mini-lectures"
+            to="/minilections"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "miniLectures" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "minilections" ? "#FFFFFF" : "inherit" }}
           >
             <VoiceChatOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText

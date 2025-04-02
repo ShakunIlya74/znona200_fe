@@ -17,8 +17,7 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { GetLessonsData, GetFolderLessons } from '../services/LessonService';
-import { declinateWord } from './utils/utils';
+import { GetMiniLectionsData, GetFolderMiniLections } from '../services/MiniLectionService';
 import LoadingDots from '../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -27,25 +26,24 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 interface FolderObject {
   folder_name: string;
   folder_id: number;
-  elements_count: number;
 }
 
-interface LessonsData {
+interface MiniLectionsData {
   success: boolean;
   folder_dicts?: FolderObject[];
 }
 
-interface LessonCardMeta {
-  lesson_name: string;
-  lesson_id: number;
+interface MiniLectionCardMeta {
+  minilection_name: string;
+  minilection_id: number;
 }
 
-interface FolderLessons {
+interface FolderMiniLections {
   success: boolean;
-  lesson_dicts?: LessonCardMeta[];
+  minilection_dicts?: MiniLectionCardMeta[];
 }
 
-const LessonsPage: React.FC = () => {
+const MinilectionsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
@@ -56,14 +54,14 @@ const LessonsPage: React.FC = () => {
   const [folderList, setFolderList] = useState<FolderObject[]>([]);
   const [openFolderId, setOpenFolderId] = useState<number | null>(null);
   const [previousFolderId, setPreviousFolderId] = useState<number | null>(null);
-  const [folderLessons, setFolderLessons] = useState<LessonCardMeta[]>([]);
+  const [folderMiniLections, setFolderMiniLections] = useState<MiniLectionCardMeta[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [folderLoading, setFolderLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
   // Create refs for scrolling and sticky behavior
   const folderRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
-  const lessonListRef = useRef<HTMLDivElement>(null);
+  const miniLectionListRef = useRef<HTMLDivElement>(null);
 
   // Initialize refs for each folder
   useEffect(() => {
@@ -74,12 +72,12 @@ const LessonsPage: React.FC = () => {
     });
   }, [folderList]);
 
-  // load initial lessons folders
+  // load initial mini-lections folders
   useEffect(() => {
-    const loadLessonsData = async () => {
+    const loadMiniLectionsData = async () => {
       setLoading(true);
       try {
-        const res = await GetLessonsData() as LessonsData;
+        const res = await GetMiniLectionsData() as MiniLectionsData;
         if (res.success && res.folder_dicts) {
           setFolderList(res.folder_dicts);
         } else {
@@ -93,7 +91,7 @@ const LessonsPage: React.FC = () => {
       }
     };
 
-    loadLessonsData();
+    loadMiniLectionsData();
   }, []);
 
   // Helper function to scroll to a folder
@@ -135,31 +133,31 @@ const LessonsPage: React.FC = () => {
     // Remember previous folder before changing to the new one
     setPreviousFolderId(openFolderId);
     
-    // Set the new folder as open and start loading its lessons
+    // Set the new folder as open and start loading its mini-lections
     setOpenFolderId(folderId);
     setFolderLoading(true);
-    setFolderLessons([]);
+    setFolderMiniLections([]);
     
     try {
-      const response = await GetFolderLessons(folderId) as FolderLessons;
-      if (response.success && response.lesson_dicts) {
-        setFolderLessons(response.lesson_dicts);
+      const response = await GetFolderMiniLections(folderId) as FolderMiniLections;
+      if (response.success && response.minilection_dicts) {
+        setFolderMiniLections(response.minilection_dicts);
       } else {
-        setError('Failed to load lessons for this folder');
-        setFolderLessons([]);
+        setError('Failed to load mini-lections for this folder');
+        setFolderMiniLections([]);
       }
     } catch (err) {
       console.error(err);
-      setError('An error occurred while loading lessons');
-      setFolderLessons([]);
+      setError('An error occurred while loading mini-lections');
+      setFolderMiniLections([]);
     } finally {
       setFolderLoading(false);
     }
   };
 
-  const handleLessonClick = (lessonId: number, lessonName: string) => {
-    console.log(`Lesson clicked: ${lessonName} (ID: ${lessonId})`);
-    // Add your navigation or lesson handling logic here
+  const handleMiniLectionClick = (miniLectionId: number, miniLectionName: string) => {
+    console.log(`Mini-lection clicked: ${miniLectionName} (ID: ${miniLectionId})`);
+    // Add your navigation or mini-lection handling logic here
   };
 
   return (
@@ -213,20 +211,10 @@ const LessonsPage: React.FC = () => {
                       variant="h6" 
                       sx={{ 
                         fontWeight: 600, 
-                        fontSize: '1.1rem',
-                        mb: 0.5
+                        fontSize: '1.1rem'
                       }}
                     >
                       {folder.folder_name}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        color: theme.palette.text.secondary,
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      На цьому етапі доступно {declinateWord(folder.elements_count, 'урок')}.
                     </Typography>
                   </CardContent>
                   <IconButton 
@@ -258,7 +246,7 @@ const LessonsPage: React.FC = () => {
                 unmountOnExit
               >
                 <Box 
-                  ref={lessonListRef}
+                  ref={miniLectionListRef}
                   sx={{ 
                     mt: 0, 
                     mb: 2, 
@@ -285,12 +273,12 @@ const LessonsPage: React.FC = () => {
                       <Box sx={{ py: 3, px: 2, display: 'flex', justifyContent: 'center' }}>
                         <LoadingDots />
                       </Box>
-                    ) : folderLessons.length > 0 ? (
+                    ) : folderMiniLections.length > 0 ? (
                       <List disablePadding>
-                        {folderLessons.map((lesson, index, array) => (
-                          <React.Fragment key={lesson.lesson_id}>
+                        {folderMiniLections.map((miniLection, index, array) => (
+                          <React.Fragment key={miniLection.minilection_id}>
                             <ListItemButton
-                              onClick={() => handleLessonClick(lesson.lesson_id, lesson.lesson_name)}
+                              onClick={() => handleMiniLectionClick(miniLection.minilection_id, miniLection.minilection_name)}
                               sx={{ 
                                 py: 1.5, 
                                 px: 3,
@@ -318,7 +306,7 @@ const LessonsPage: React.FC = () => {
                               <ListItemText 
                                 primary={
                                   <Typography sx={{ fontWeight: 500 }}>
-                                    {lesson.lesson_name}
+                                    {miniLection.minilection_name}
                                   </Typography>
                                 } 
                               />
@@ -343,7 +331,7 @@ const LessonsPage: React.FC = () => {
                           color: theme.palette.text.secondary
                         }}
                       >
-                        No lessons available for this folder.
+                        No mini-lections available for this folder.
                       </Typography>
                     )}
                   </Paper>
@@ -357,4 +345,4 @@ const LessonsPage: React.FC = () => {
   );
 };
 
-export default LessonsPage;
+export default MinilectionsPage;

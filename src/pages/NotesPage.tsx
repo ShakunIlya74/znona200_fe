@@ -17,8 +17,7 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { GetLessonsData, GetFolderLessons } from '../services/LessonService';
-import { declinateWord } from './utils/utils';
+import { GetNotesData, GetFolderNotes } from '../services/NoteService';
 import LoadingDots from '../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -27,25 +26,24 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 interface FolderObject {
   folder_name: string;
   folder_id: number;
-  elements_count: number;
 }
 
-interface LessonsData {
+interface NotesData {
   success: boolean;
   folder_dicts?: FolderObject[];
 }
 
-interface LessonCardMeta {
-  lesson_name: string;
-  lesson_id: number;
+interface NoteCardMeta {
+  note_name: string;
+  note_id: number;
 }
 
-interface FolderLessons {
+interface FolderNotes {
   success: boolean;
-  lesson_dicts?: LessonCardMeta[];
+  note_dicts?: NoteCardMeta[];
 }
 
-const LessonsPage: React.FC = () => {
+const NotesPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
@@ -56,14 +54,14 @@ const LessonsPage: React.FC = () => {
   const [folderList, setFolderList] = useState<FolderObject[]>([]);
   const [openFolderId, setOpenFolderId] = useState<number | null>(null);
   const [previousFolderId, setPreviousFolderId] = useState<number | null>(null);
-  const [folderLessons, setFolderLessons] = useState<LessonCardMeta[]>([]);
+  const [folderNotes, setFolderNotes] = useState<NoteCardMeta[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [folderLoading, setFolderLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
   // Create refs for scrolling and sticky behavior
   const folderRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
-  const lessonListRef = useRef<HTMLDivElement>(null);
+  const noteListRef = useRef<HTMLDivElement>(null);
 
   // Initialize refs for each folder
   useEffect(() => {
@@ -74,12 +72,12 @@ const LessonsPage: React.FC = () => {
     });
   }, [folderList]);
 
-  // load initial lessons folders
+  // load initial notes folders
   useEffect(() => {
-    const loadLessonsData = async () => {
+    const loadNotesData = async () => {
       setLoading(true);
       try {
-        const res = await GetLessonsData() as LessonsData;
+        const res = await GetNotesData() as NotesData;
         if (res.success && res.folder_dicts) {
           setFolderList(res.folder_dicts);
         } else {
@@ -93,7 +91,7 @@ const LessonsPage: React.FC = () => {
       }
     };
 
-    loadLessonsData();
+    loadNotesData();
   }, []);
 
   // Helper function to scroll to a folder
@@ -135,31 +133,31 @@ const LessonsPage: React.FC = () => {
     // Remember previous folder before changing to the new one
     setPreviousFolderId(openFolderId);
     
-    // Set the new folder as open and start loading its lessons
+    // Set the new folder as open and start loading its notes
     setOpenFolderId(folderId);
     setFolderLoading(true);
-    setFolderLessons([]);
+    setFolderNotes([]);
     
     try {
-      const response = await GetFolderLessons(folderId) as FolderLessons;
-      if (response.success && response.lesson_dicts) {
-        setFolderLessons(response.lesson_dicts);
+      const response = await GetFolderNotes(folderId) as FolderNotes;
+      if (response.success && response.note_dicts) {
+        setFolderNotes(response.note_dicts);
       } else {
-        setError('Failed to load lessons for this folder');
-        setFolderLessons([]);
+        setError('Failed to load notes for this folder');
+        setFolderNotes([]);
       }
     } catch (err) {
       console.error(err);
-      setError('An error occurred while loading lessons');
-      setFolderLessons([]);
+      setError('An error occurred while loading notes');
+      setFolderNotes([]);
     } finally {
       setFolderLoading(false);
     }
   };
 
-  const handleLessonClick = (lessonId: number, lessonName: string) => {
-    console.log(`Lesson clicked: ${lessonName} (ID: ${lessonId})`);
-    // Add your navigation or lesson handling logic here
+  const handleNoteClick = (noteId: number, noteName: string) => {
+    console.log(`Note clicked: ${noteName} (ID: ${noteId})`);
+    // Add your navigation or note handling logic here
   };
 
   return (
@@ -213,20 +211,10 @@ const LessonsPage: React.FC = () => {
                       variant="h6" 
                       sx={{ 
                         fontWeight: 600, 
-                        fontSize: '1.1rem',
-                        mb: 0.5
+                        fontSize: '1.1rem'
                       }}
                     >
                       {folder.folder_name}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        color: theme.palette.text.secondary,
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      На цьому етапі доступно {declinateWord(folder.elements_count, 'урок')}.
                     </Typography>
                   </CardContent>
                   <IconButton 
@@ -258,7 +246,7 @@ const LessonsPage: React.FC = () => {
                 unmountOnExit
               >
                 <Box 
-                  ref={lessonListRef}
+                  ref={noteListRef}
                   sx={{ 
                     mt: 0, 
                     mb: 2, 
@@ -285,12 +273,12 @@ const LessonsPage: React.FC = () => {
                       <Box sx={{ py: 3, px: 2, display: 'flex', justifyContent: 'center' }}>
                         <LoadingDots />
                       </Box>
-                    ) : folderLessons.length > 0 ? (
+                    ) : folderNotes.length > 0 ? (
                       <List disablePadding>
-                        {folderLessons.map((lesson, index, array) => (
-                          <React.Fragment key={lesson.lesson_id}>
+                        {folderNotes.map((note, index, array) => (
+                          <React.Fragment key={note.note_id}>
                             <ListItemButton
-                              onClick={() => handleLessonClick(lesson.lesson_id, lesson.lesson_name)}
+                              onClick={() => handleNoteClick(note.note_id, note.note_name)}
                               sx={{ 
                                 py: 1.5, 
                                 px: 3,
@@ -318,7 +306,7 @@ const LessonsPage: React.FC = () => {
                               <ListItemText 
                                 primary={
                                   <Typography sx={{ fontWeight: 500 }}>
-                                    {lesson.lesson_name}
+                                    {note.note_name}
                                   </Typography>
                                 } 
                               />
@@ -343,7 +331,7 @@ const LessonsPage: React.FC = () => {
                           color: theme.palette.text.secondary
                         }}
                       >
-                        No lessons available for this folder.
+                        No notes available for this folder.
                       </Typography>
                     )}
                   </Paper>
@@ -357,4 +345,4 @@ const LessonsPage: React.FC = () => {
   );
 };
 
-export default LessonsPage;
+export default NotesPage;

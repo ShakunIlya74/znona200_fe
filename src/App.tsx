@@ -12,6 +12,8 @@ import UserMenuPage from './pages/UserMenuPage';
 import { GetSessionData } from './services/AuthService';
 import TestsPage from './pages/TestsPage';
 import LessonsPage from './pages/LessonsPage';
+import MinilectionsPage from './pages/MinilectionsPage';
+import NotesPage from './pages/NotesPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import SettingsPage from './pages/settings/SettingsPage';
 import LibraryPage from './pages/LibraryPage';
@@ -102,6 +104,14 @@ const App: React.FC = () => {
         {
           path: 'webinars',
           element: withLayout(LessonsPage)(),
+        },
+        {
+          path: 'minilections',
+          element: withLayout(MinilectionsPage)(),
+        },
+        {
+          path: 'notes',
+          element: withLayout(NotesPage)(),
         },
       ],
     },
