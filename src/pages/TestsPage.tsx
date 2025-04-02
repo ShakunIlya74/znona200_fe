@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   Box, 
   Typography, 
@@ -11,7 +11,8 @@ import {
   Divider,
   Collapse,
   IconButton,
-  ListItemButton
+  ListItemButton,
+  Paper
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -48,6 +49,19 @@ const TestsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [folderLoading, setFolderLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Create refs for scrolling and sticky behavior
+  const folderRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
+  const testListRef = useRef<HTMLDivElement>(null);
+
+  // Initialize refs for each folder
+  useEffect(() => {
+    folderList.forEach(folder => {
+      if (!folderRefs.current[folder.folder_id]) {
+        folderRefs.current[folder.folder_id] = React.createRef();
+      }
+    });
+  }, [folderList]);
 
   // load initial tests folders
   useEffect(() => {
@@ -70,6 +84,19 @@ const TestsPage: React.FC = () => {
 
     loadTestsData();
   }, []);
+
+  // Scroll to opened folder
+  useEffect(() => {
+    if (openFolderId !== null && folderRefs.current[openFolderId]?.current) {
+      // Small delay to ensure the collapse animation has started
+      setTimeout(() => {
+        folderRefs.current[openFolderId]?.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 100);
+    }
+  }, [openFolderId]);
 
   const handleFolderClick = async (folderId: number) => {
     // If clicking the already open folder, close it
@@ -114,8 +141,24 @@ const TestsPage: React.FC = () => {
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {folderList.map((folder) => (
-            <Box key={folder.folder_id}>
-              <Card>
+            <Box 
+              key={folder.folder_id}
+              ref={folderRefs.current[folder.folder_id] || (folderRefs.current[folder.folder_id] = React.createRef())}
+              sx={{
+                position: 'relative',
+                // Add z-index to make sure the sticky folder appears above other content
+                zIndex: openFolderId === folder.folder_id ? 2 : 1
+              }}
+            >
+              <Card
+                sx={{
+                  position: openFolderId === folder.folder_id ? 'sticky' : 'static',
+                  top: 0,
+                  zIndex: 3,
+                  width: '100%',
+                  boxShadow: openFolderId === folder.folder_id ? 2 : 1,
+                }}
+              >
                 <CardActionArea 
                   onClick={() => handleFolderClick(folder.folder_id)}
                   sx={{ 
@@ -151,28 +194,46 @@ const TestsPage: React.FC = () => {
                 timeout="auto"
                 unmountOnExit
               >
-                <Box sx={{ pl: 2, pr: 2, mt: 1, mb: 2, borderLeft: '2px solid', borderColor: 'grey.300' }}>
-                  {folderLoading ? (
-                    <Box sx={{ py: 2 }}>
-                      <LoadingDots />
-                    </Box>
-                  ) : folderTests.length > 0 ? (
-                    <List disablePadding>
-                      {folderTests.map((test, index, array) => (
-                        <React.Fragment key={test.test_id}>
-                          <ListItemButton
-                            onClick={() => handleTestClick(test.test_id, test.test_name)}
-                            sx={{ py: 1.5 }}
-                          >
-                            <ListItemText primary={test.test_name} />
-                          </ListItemButton>
-                          {index < array.length - 1 && <Divider component="li" />}
-                        </React.Fragment>
-                      ))}
-                    </List>
-                  ) : (
-                    <Typography sx={{ py: 2 }}>No tests available for this folder.</Typography>
-                  )}
+                <Box 
+                  ref={testListRef}
+                  sx={{ 
+                    mt: 1, 
+                    mb: 2, 
+                    borderLeft: '2px solid', 
+                    borderColor: 'grey.300',
+                    position: 'relative',
+                  }}
+                >
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      backgroundColor: 'white',
+                      borderRadius: 1,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {folderLoading ? (
+                      <Box sx={{ py: 2, px: 2 }}>
+                        <LoadingDots />
+                      </Box>
+                    ) : folderTests.length > 0 ? (
+                      <List disablePadding>
+                        {folderTests.map((test, index, array) => (
+                          <React.Fragment key={test.test_id}>
+                            <ListItemButton
+                              onClick={() => handleTestClick(test.test_id, test.test_name)}
+                              sx={{ py: 1.5, px: 2 }}
+                            >
+                              <ListItemText primary={test.test_name} />
+                            </ListItemButton>
+                            {index < array.length - 1 && <Divider component="li" />}
+                          </React.Fragment>
+                        ))}
+                      </List>
+                    ) : (
+                      <Typography sx={{ py: 2, px: 2 }}>No tests available for this folder.</Typography>
+                    )}
+                  </Paper>
                 </Box>
               </Collapse>
             </Box>
