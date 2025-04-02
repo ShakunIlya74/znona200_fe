@@ -12,7 +12,8 @@ import {
   Collapse,
   IconButton,
   ListItemButton,
-  Paper
+  Paper,
+  alpha
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -168,24 +169,32 @@ const TestsPage: React.FC = () => {
       ) : error ? (
         <Typography color="error">{error}</Typography>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {folderList.map((folder) => (
             <Box 
               key={folder.folder_id}
               ref={folderRefs.current[folder.folder_id] || (folderRefs.current[folder.folder_id] = React.createRef())}
               sx={{
                 position: 'relative',
-                // Add z-index to make sure the sticky folder appears above other content
                 zIndex: openFolderId === folder.folder_id ? 2 : 1
               }}
             >
               <Card
                 sx={{
                   position: openFolderId === folder.folder_id ? 'sticky' : 'static',
-                  top: HEADER_OFFSET, // Apply the same header offset to the sticky position
+                  top: HEADER_OFFSET,
                   zIndex: 3,
                   width: '100%',
-                  boxShadow: openFolderId === folder.folder_id ? 2 : 1,
+                  borderRadius: '16px', // Increased border radius for more modern look
+                  boxShadow: openFolderId === folder.folder_id 
+                    ? `0px 2px 8px ${alpha(theme.palette.common.black, 0.08)}` 
+                    : `0px 1px 3px ${alpha(theme.palette.common.black, 0.05)}`, // Lighter shadow
+                  border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`, // Lighter border
+                  transition: 'all 0.2s ease-in-out', // Smooth transition for hover effects
+                  '&:hover': {
+                    boxShadow: `0px 4px 12px ${alpha(theme.palette.common.black, 0.1)}`,
+                    transform: 'translateY(-2px)'
+                  }
                 }}
               >
                 <CardActionArea 
@@ -194,12 +203,29 @@ const TestsPage: React.FC = () => {
                     display: 'flex', 
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    pr: 2 
+                    pr: 2,
+                    borderRadius: '16px', // Match card border radius
+                    py: 0.5 // Add a bit more vertical padding
                   }}
                 >
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography variant="h6">{folder.folder_name}</Typography>
-                    <Typography variant="body2">
+                  <CardContent sx={{ flexGrow: 1, py: 2 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontWeight: 600, 
+                        fontSize: '1.1rem',
+                        mb: 0.5
+                      }}
+                    >
+                      {folder.folder_name}
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: theme.palette.text.secondary,
+                        fontSize: '0.9rem'
+                      }}
+                    >
                       На цьому етапі доступно {declinateWord(folder.elements_count, 'тест')}.
                     </Typography>
                   </CardContent>
@@ -209,6 +235,14 @@ const TestsPage: React.FC = () => {
                       handleFolderClick(folder.folder_id);
                     }}
                     size="small"
+                    sx={{
+                      backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                      color: theme.palette.primary.main,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                      },
+                      transition: 'all 0.2s'
+                    }}
                   >
                     {openFolderId === folder.folder_id 
                       ? <ExpandLessIcon /> 
@@ -226,23 +260,26 @@ const TestsPage: React.FC = () => {
                 <Box 
                   ref={testListRef}
                   sx={{ 
-                    mt: 1, 
+                    mt: 1.5, 
                     mb: 2, 
                     borderLeft: '2px solid', 
-                    borderColor: 'grey.300',
+                    borderColor: alpha(theme.palette.primary.main, 0.2),
+                    borderRadius: '0 0 16px 16px',
+                    ml: 2,
                     position: 'relative',
                   }}
                 >
                   <Paper 
                     elevation={0} 
                     sx={{ 
-                      backgroundColor: 'white',
-                      borderRadius: 1,
-                      overflow: 'hidden'
+                      backgroundColor: theme.palette.background.paper,
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
                     }}
                   >
                     {folderLoading ? (
-                      <Box sx={{ py: 2, px: 2 }}>
+                      <Box sx={{ py: 3, px: 2, display: 'flex', justifyContent: 'center' }}>
                         <LoadingDots />
                       </Box>
                     ) : folderTests.length > 0 ? (
@@ -251,16 +288,45 @@ const TestsPage: React.FC = () => {
                           <React.Fragment key={test.test_id}>
                             <ListItemButton
                               onClick={() => handleTestClick(test.test_id, test.test_name)}
-                              sx={{ py: 1.5, px: 2 }}
+                              sx={{ 
+                                py: 1.5, 
+                                px: 3,
+                                transition: 'all 0.15s ease',
+                                '&:hover': {
+                                  backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                                }
+                              }}
                             >
-                              <ListItemText primary={test.test_name} />
+                              <ListItemText 
+                                primary={
+                                  <Typography sx={{ fontWeight: 500 }}>
+                                    {test.test_name}
+                                  </Typography>
+                                } 
+                              />
                             </ListItemButton>
-                            {index < array.length - 1 && <Divider component="li" />}
+                            {index < array.length - 1 && (
+                              <Divider 
+                                component="li" 
+                                sx={{ 
+                                  borderColor: alpha(theme.palette.divider, 0.5)
+                                }} 
+                              />
+                            )}
                           </React.Fragment>
                         ))}
                       </List>
                     ) : (
-                      <Typography sx={{ py: 2, px: 2 }}>No tests available for this folder.</Typography>
+                      <Typography 
+                        sx={{ 
+                          py: 3, 
+                          px: 3, 
+                          textAlign: 'center',
+                          color: theme.palette.text.secondary
+                        }}
+                      >
+                        No tests available for this folder.
+                      </Typography>
                     )}
                   </Paper>
                 </Box>
