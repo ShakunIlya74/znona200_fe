@@ -19,6 +19,8 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { GetTestsData, GetFolderTests } from '../services/TestService';
 import { declinateWord } from './utils/utils';
 import LoadingDots from '../components/tools/LoadingDots';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 // Define folder object type
 interface FolderObject {
@@ -43,6 +45,13 @@ interface FolderTests {
 }
 
 const TestsPage: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  
+  // Dynamic header offset based on screen size
+  const HEADER_OFFSET = isMobile ? 50 : isMedium ? 70 : 100;
+
   const [folderList, setFolderList] = useState<FolderObject[]>([]);
   const [openFolderId, setOpenFolderId] = useState<number | null>(null);
   const [previousFolderId, setPreviousFolderId] = useState<number | null>(null);
@@ -54,8 +63,6 @@ const TestsPage: React.FC = () => {
   // Create refs for scrolling and sticky behavior
   const folderRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
   const testListRef = useRef<HTMLDivElement>(null);
-  // Header height estimate - adjust if needed based on your actual header height
-  const HEADER_OFFSET = 100; 
 
   // Initialize refs for each folder
   useEffect(() => {

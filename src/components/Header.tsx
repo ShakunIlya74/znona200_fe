@@ -50,7 +50,7 @@ const menuTitles: Record<string, string> = {
 
 // Map of paths to menu identifiers
 const pathToMenuMap: Record<string, string> = {
-  '': 'tests', // Default path
+  'menu': 'menu',
   'settings': 'settings',
   'library': 'library',
   'tests': 'tests',
@@ -64,6 +64,12 @@ const pathToMenuMap: Record<string, string> = {
 
 const BUTTON_FONT_SIZE = '18px';
 
+const HEADER_HEIGHT = {
+  xs: '50px',  // Small/mobile screens
+  sm: '70px',  // Medium screens
+  md: '100px', // Large screens
+};
+
 function Header() {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -74,13 +80,13 @@ function Header() {
   const [userSurname, setUserSurname] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [profilePicture, setProfilePicture] = useState<string>('');
-  
+
   // Reference for the profile menu anchor
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // Get the current location
   const location = useLocation();
-  
+
   // Function to derive menu from path
   const deriveMenuFromPath = (pathname: string) => {
     // Extract the first segment after '/'
@@ -147,7 +153,7 @@ function Header() {
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open);
   };
-  
+
   // Handle logout functionality
   const handleLogout = () => {
     // Clear local storage/session
@@ -157,7 +163,7 @@ function Header() {
     navigate('/login');
     setSettingDropOpen(false);
   };
-  
+
   // Handle settings navigation
   const handleSettings = () => {
     // Navigate to settings page
@@ -184,7 +190,7 @@ function Header() {
       </Box>
 
       <List id='menu-buttons' sx={{}}>
-      <ListItem component="div" disablePadding>
+        <ListItem component="div" disablePadding>
           <ListItemButton
             component={Link}
             to="/library"
@@ -306,14 +312,37 @@ function Header() {
       {/* TOP APP BAR */}
       <AppBar
         position="sticky"
-        sx={{ backgroundColor: '#FFFFFF', boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)' }}
+        sx={{
+          backgroundColor: '#FFFFFF',
+          boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+          top: 0, // Ensure it sticks at the top
+          height: {
+            xs: HEADER_HEIGHT.xs,
+            sm: HEADER_HEIGHT.sm,
+            md: HEADER_HEIGHT.md,
+          }
+        }}
       >
         <Toolbar
           sx={{
             justifyContent: 'space-between',
-            padding: '2% 20%',
-            paddingX: { xs: '5%', md: '5%' },
+            // Replace percentage padding with dynamic height-based padding
+            padding: {
+              xs: '0 5%',
+              sm: '0 5%',
+              md: '0 5%',
+            },
+            height: {
+              xs: HEADER_HEIGHT.xs,
+              sm: HEADER_HEIGHT.sm,
+              md: HEADER_HEIGHT.md,
+            },
             backgroundColor: '#f4f4f3',
+            minHeight: {
+              xs: HEADER_HEIGHT.xs,
+              sm: HEADER_HEIGHT.sm,
+              md: HEADER_HEIGHT.md,
+            },
           }}
         >
           <Typography id='page-title'
@@ -367,67 +396,67 @@ function Header() {
               {userName} {userSurname}
             </Typography>
             <Box sx={{ color: '#5b5f5e', mt: '5px' }}>
-            {settingDropOpen ? <ExpandLessOutlinedIcon /> : <ExpandMoreOutlinedIcon />}
+              {settingDropOpen ? <ExpandLessOutlinedIcon /> : <ExpandMoreOutlinedIcon />}
             </Box>
           </Box>
-          
+
           {/* Profile Dropdown Menu */}
-            <Menu
+          <Menu
             anchorEl={profileMenuRef.current}
             open={settingDropOpen}
             onClose={() => setSettingDropOpen(false)}
             slotProps={{
               paper: {
-              elevation: 3,
-              sx: {
-                mt: 1.5,
-                backgroundColor: '#f4f4f3',
-                borderRadius: '10px',
-                minWidth: '180px',
-                overflow: 'visible',
-                '&:before': {
-                content: '""',
-                display: 'block',
-                position: 'absolute',
-                top: -10,
-                right: 20,
-                width: 20,
-                height: 20,
-                bgcolor: '#f4f4f3',
-                transform: 'rotate(45deg)',
-                zIndex: 0,
+                elevation: 3,
+                sx: {
+                  mt: 1.5,
+                  backgroundColor: '#f4f4f3',
+                  borderRadius: '10px',
+                  minWidth: '180px',
+                  overflow: 'visible',
+                  '&:before': {
+                    content: '""',
+                    display: 'block',
+                    position: 'absolute',
+                    top: -10,
+                    right: 20,
+                    width: 20,
+                    height: 20,
+                    bgcolor: '#f4f4f3',
+                    transform: 'rotate(45deg)',
+                    zIndex: 0,
+                  },
                 },
-              },
               },
             }}
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-            >
-            <MenuItem 
+          >
+            <MenuItem
               onClick={handleSettings}
-              sx={{ 
-              fontSize: '16px', 
-              py: 1.5, 
-              color: '#5b5f5e',
-              '&:hover': { backgroundColor: '#e6e6e5' }
+              sx={{
+                fontSize: '16px',
+                py: 1.5,
+                color: '#5b5f5e',
+                '&:hover': { backgroundColor: '#e6e6e5' }
               }}
             >
               <SettingsOutlinedIcon sx={{ mr: 1 }} />
               Налаштування
             </MenuItem>
-            <MenuItem 
+            <MenuItem
               onClick={handleLogout}
-              sx={{ 
-              fontSize: '16px', 
-              py: 1.5, 
-              color: '#5b5f5e',
-              '&:hover': { backgroundColor: '#e6e6e5' }
+              sx={{
+                fontSize: '16px',
+                py: 1.5,
+                color: '#5b5f5e',
+                '&:hover': { backgroundColor: '#e6e6e5' }
               }}
             >
               <LogoutOutlinedIcon sx={{ mr: 1 }} />
               Вийти
             </MenuItem>
-            </Menu>
+          </Menu>
 
           {/* Hamburger icon for mobile */}
           {isMobile && (

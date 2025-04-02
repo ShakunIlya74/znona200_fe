@@ -18,49 +18,28 @@ import LibraryPage from './pages/LibraryPage';
 
 const withLayout = (Component: React.ComponentType) => () => (
   <>
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', backroundcolor: '#f4f4f3' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f4f4f3' }}>
       <Header />
-      <Box sx={{ flex: 1, height: '100%', }}>
+      <Box sx={{ display: 'flex', flex: 1 }}>
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: '#f4f4f3',
-            flex: 1,
-            height: '100%',
-            minHeight: '100vh', // Ensures minimum height is the viewport height
+            minWidth: { md: '275px', xs: 0 },
+            display: { xs: 'none', md: 'block' },
+            flex: 'none',
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              width: '100%',
-              flex: 1,
-            }}
-          >
-            <Box
-              sx={{
-          minWidth: { md: '275px', xs: 0 },
-          flex: 'none',
-          backgroundColor: 'white',
-              }}
-            >
-              {/* Side content goes here */}
-            </Box>
-            <Box
-              sx={{
-          width: '100%',
-          p: 5,
-          flex: 1,
-          backgroundColor: '#f4f4f3', // Adding background color here as well
-          display: 'flex',
-          flexDirection: 'column',
-              }}
-            >
-              <Component />
-            </Box>
-          </Box>
+          {/* This box acts as spacer for the permanent drawer */}
+        </Box>
+        <Box
+          sx={{
+            width: '100%',
+            p: 5,
+            flex: 1,
+            backgroundColor: '#f4f4f3',
+            paddingBottom: 10, // Extra padding at bottom to ensure everything is visible
+          }}
+        >
+          <Component />
         </Box>
       </Box>
     </Box>
