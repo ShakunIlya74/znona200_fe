@@ -28,6 +28,7 @@ const withLayout = (Component: React.ComponentType) => () => (
             backgroundColor: '#f4f4f3',
             flex: 1,
             height: '100%',
+            minHeight: '100vh', // Ensures minimum height is the viewport height
           }}
         >
           <Box
@@ -40,18 +41,21 @@ const withLayout = (Component: React.ComponentType) => () => (
           >
             <Box
               sx={{
-                minWidth: { md: '275px', xs: 0 },
-                flex: 'none',
-                backgroundColor: 'white',
+          minWidth: { md: '275px', xs: 0 },
+          flex: 'none',
+          backgroundColor: 'white',
               }}
             >
               {/* Side content goes here */}
             </Box>
             <Box
               sx={{
-                width: '100%',
-                p: 5,
-                flex: 1,
+          width: '100%',
+          p: 5,
+          flex: 1,
+          backgroundColor: '#f4f4f3', // Adding background color here as well
+          display: 'flex',
+          flexDirection: 'column',
               }}
             >
               <Component />

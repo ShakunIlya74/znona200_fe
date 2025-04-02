@@ -1,5 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardContent, CardActionArea, Container } from '@mui/material';
+import { 
+  Box, 
+  Typography, 
+  Card, 
+  CardContent, 
+  CardActionArea, 
+  Container,
+  List,
+  ListItemText,
+  Divider,
+  Collapse,
+  IconButton,
+  ListItemButton
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { GetTestsData, GetFolderTests } from '../services/TestService';
 import { declinateWord } from './utils/utils';
 import LoadingDots from '../components/tools/LoadingDots';
@@ -14,24 +29,24 @@ interface FolderObject {
 interface TestsData {
   success: boolean;
   folder_dicts?: FolderObject[];
-  // Add other properties as needed
 }
 
 interface TestCardMeta {
-    test_name: string;
-    test_id: number;
+  test_name: string;
+  test_id: number;
 }
 
 interface FolderTests {
-    success: boolean;
-    test_dicts?: TestCardMeta[]; // Based on how it's used in handleFolderClick
+  success: boolean;
+  test_dicts?: TestCardMeta[];
 }
 
 const TestsPage: React.FC = () => {
   const [folderList, setFolderList] = useState<FolderObject[]>([]);
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
-  const [folderTests, setFolderTests] = useState<any[]>([]);
+  const [openFolderId, setOpenFolderId] = useState<number | null>(null);
+  const [folderTests, setFolderTests] = useState<TestCardMeta[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [folderLoading, setFolderLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // load initial tests folders
@@ -43,8 +58,6 @@ const TestsPage: React.FC = () => {
         if (res.success && res.folder_dicts) {
           setFolderList(res.folder_dicts);
         } else {
-          // todo: check if redirect is needed
-          //   navigate({pathname: '/logout',});
           setError('Failed to load folders');
         }
       } catch (err) {
@@ -58,9 +71,18 @@ const TestsPage: React.FC = () => {
     loadTestsData();
   }, []);
 
-  const handleFolderClick = async (folderName: string, folderId: number) => {
-    setSelectedFolder(folderName);
-    setLoading(true);
+  const handleFolderClick = async (folderId: number) => {
+    // If clicking the already open folder, close it
+    if (openFolderId === folderId) {
+      setOpenFolderId(null);
+      return;
+    }
+    
+    // Set the new folder as open and start loading its tests
+    setOpenFolderId(folderId);
+    setFolderLoading(true);
+    setFolderTests([]);
+    
     try {
       const response = await GetFolderTests(folderId) as FolderTests;
       if (response.success && response.test_dicts) {
@@ -74,8 +96,13 @@ const TestsPage: React.FC = () => {
       setError('An error occurred while loading tests');
       setFolderTests([]);
     } finally {
-      setLoading(false);
+      setFolderLoading(false);
     }
+  };
+
+  const handleTestClick = (testId: number, testName: string) => {
+    console.log(`Test clicked: ${testName} (ID: ${testId})`);
+    // Add your navigation or test handling logic here
   };
 
   return (
@@ -85,63 +112,71 @@ const TestsPage: React.FC = () => {
       ) : error ? (
         <Typography color="error">{error}</Typography>
       ) : (
-        <Box sx={{}}>
-          {!selectedFolder ? (
-            <>
-              <Box sx={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: 2 
-              }}>
-                {folderList.map((folder) => (
-                  <Card key={folder.folder_id}>
-                    <CardActionArea onClick={() => handleFolderClick(folder.folder_name, folder.folder_id)}>
-                      <CardContent>
-                        <Typography variant="h6">{folder.folder_name}</Typography>
-                        <Typography variant="body2">
-                          На цьому етапі доступно {declinateWord(folder.elements_count, 'тест')}.
-                        </Typography>
-                      </CardContent>
-                    </CardActionArea>
-                  </Card>
-                ))}
-              </Box>
-            </>
-          ) : (
-            <>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="h5" gutterBottom>
-                  Tests for: {selectedFolder}
-                </Typography>
-                <Typography 
-                  variant="body2" 
-                  sx={{ cursor: 'pointer', color: 'primary.main', mb: 2 }}
-                  onClick={() => setSelectedFolder(null)}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {folderList.map((folder) => (
+            <Box key={folder.folder_id}>
+              <Card>
+                <CardActionArea 
+                  onClick={() => handleFolderClick(folder.folder_id)}
+                  sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    pr: 2 
+                  }}
                 >
-                  ← Back to folders
-                </Typography>
-              </Box>
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography variant="h6">{folder.folder_name}</Typography>
+                    <Typography variant="body2">
+                      На цьому етапі доступно {declinateWord(folder.elements_count, 'тест')}.
+                    </Typography>
+                  </CardContent>
+                  <IconButton 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFolderClick(folder.folder_id);
+                    }}
+                    size="small"
+                  >
+                    {openFolderId === folder.folder_id 
+                      ? <ExpandLessIcon /> 
+                      : <ExpandMoreIcon />
+                    }
+                  </IconButton>
+                </CardActionArea>
+              </Card>
               
-              {folderTests.length > 0 ? (
-                <Box sx={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  gap: 2 
-                }}>
-                  {folderTests.map((test) => (
-                    <Card key={test.test_id}>
-                      <CardContent>
-                        <Typography variant="h6">{test.test_name}</Typography>
-                        {/* Add more test details as needed */}
-                      </CardContent>
-                    </Card>
-                  ))}
+              <Collapse 
+                in={openFolderId === folder.folder_id} 
+                timeout="auto"
+                unmountOnExit
+              >
+                <Box sx={{ pl: 2, pr: 2, mt: 1, mb: 2, borderLeft: '2px solid', borderColor: 'grey.300' }}>
+                  {folderLoading ? (
+                    <Box sx={{ py: 2 }}>
+                      <LoadingDots />
+                    </Box>
+                  ) : folderTests.length > 0 ? (
+                    <List disablePadding>
+                      {folderTests.map((test, index, array) => (
+                        <React.Fragment key={test.test_id}>
+                          <ListItemButton
+                            onClick={() => handleTestClick(test.test_id, test.test_name)}
+                            sx={{ py: 1.5 }}
+                          >
+                            <ListItemText primary={test.test_name} />
+                          </ListItemButton>
+                          {index < array.length - 1 && <Divider component="li" />}
+                        </React.Fragment>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography sx={{ py: 2 }}>No tests available for this folder.</Typography>
+                  )}
                 </Box>
-              ) : (
-                <Typography>No tests available for this folder.</Typography>
-              )}
-            </>
-          )}
+              </Collapse>
+            </Box>
+          ))}
         </Box>
       )}
     </Container>
