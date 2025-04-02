@@ -45,6 +45,7 @@ interface FolderTests {
 const TestsPage: React.FC = () => {
   const [folderList, setFolderList] = useState<FolderObject[]>([]);
   const [openFolderId, setOpenFolderId] = useState<number | null>(null);
+  const [previousFolderId, setPreviousFolderId] = useState<number | null>(null);
   const [folderTests, setFolderTests] = useState<TestCardMeta[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [folderLoading, setFolderLoading] = useState<boolean>(false);
@@ -53,6 +54,8 @@ const TestsPage: React.FC = () => {
   // Create refs for scrolling and sticky behavior
   const folderRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
   const testListRef = useRef<HTMLDivElement>(null);
+  // Header height estimate - adjust if needed based on your actual header height
+  const HEADER_OFFSET = 100; 
 
   // Initialize refs for each folder
   useEffect(() => {
@@ -85,25 +88,44 @@ const TestsPage: React.FC = () => {
     loadTestsData();
   }, []);
 
-  // Scroll to opened folder
-  useEffect(() => {
-    if (openFolderId !== null && folderRefs.current[openFolderId]?.current) {
-      // Small delay to ensure the collapse animation has started
+  // Helper function to scroll to a folder
+  const scrollToFolder = (folderId: number) => {
+    if (folderRefs.current[folderId]?.current) {
       setTimeout(() => {
-        folderRefs.current[openFolderId]?.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
+        const folderElement = folderRefs.current[folderId]?.current;
+        if (folderElement) {
+          // Get the element's position relative to the viewport
+          const elementRect = folderElement.getBoundingClientRect();
+          // Scroll with offset to account for header height
+          window.scrollTo({
+            top: window.scrollY + elementRect.top - HEADER_OFFSET,
+            behavior: 'smooth'
+          });
+        }
       }, 100);
     }
-  }, [openFolderId]);
+  };
+
+  // Scroll to opened folder
+  useEffect(() => {
+    if (openFolderId !== null) {
+      scrollToFolder(openFolderId);
+    } else if (previousFolderId !== null) {
+      // If a folder was just closed, scroll to it
+      scrollToFolder(previousFolderId);
+    }
+  }, [openFolderId, previousFolderId]);
 
   const handleFolderClick = async (folderId: number) => {
-    // If clicking the already open folder, close it
+    // If clicking the already open folder, close it and remember which folder was closed
     if (openFolderId === folderId) {
+      setPreviousFolderId(folderId);
       setOpenFolderId(null);
       return;
     }
+    
+    // Remember previous folder before changing to the new one
+    setPreviousFolderId(openFolderId);
     
     // Set the new folder as open and start loading its tests
     setOpenFolderId(folderId);
@@ -153,7 +175,7 @@ const TestsPage: React.FC = () => {
               <Card
                 sx={{
                   position: openFolderId === folder.folder_id ? 'sticky' : 'static',
-                  top: 0,
+                  top: HEADER_OFFSET, // Apply the same header offset to the sticky position
                   zIndex: 3,
                   width: '100%',
                   boxShadow: openFolderId === folder.folder_id ? 2 : 1,
