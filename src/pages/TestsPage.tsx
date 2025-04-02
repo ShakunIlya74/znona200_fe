@@ -189,6 +189,9 @@ const TestsPage: React.FC = () => {
                   boxShadow: openFolderId === folder.folder_id 
                     ? `0px 2px 8px ${alpha(theme.palette.common.black, 0.08)}` 
                     : `0px 1px 3px ${alpha(theme.palette.common.black, 0.05)}`, // Lighter shadow
+                //   borderRadius: openFolderId === folder.folder_id 
+                //     ? '16px 16px 0 0' 
+                //     : '16px', // Adjust border radius when open
                   border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`, // Lighter border
                   transition: 'all 0.2s ease-in-out', // Smooth transition for hover effects
                   '&:hover': {
@@ -260,8 +263,9 @@ const TestsPage: React.FC = () => {
                 <Box 
                   ref={testListRef}
                   sx={{ 
-                    mt: 1.5, 
+                    mt: 0, 
                     mb: 2, 
+                    mr: 1,
                     borderLeft: '2px solid', 
                     borderColor: alpha(theme.palette.primary.main, 0.2),
                     borderRadius: '0 0 16px 16px',
@@ -273,9 +277,11 @@ const TestsPage: React.FC = () => {
                     elevation={0} 
                     sx={{ 
                       backgroundColor: theme.palette.background.paper,
-                      borderRadius: '12px',
+                      borderRadius: '0 0 12px 12px',
                       overflow: 'hidden',
                       border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                      borderTop: 'none',
+                      marginTop: '-1px',
                     }}
                   >
                     {folderLoading ? (
@@ -294,9 +300,24 @@ const TestsPage: React.FC = () => {
                                 transition: 'all 0.15s ease',
                                 '&:hover': {
                                   backgroundColor: alpha(theme.palette.primary.main, 0.04),
-                                }
+                                },
+                                display: 'flex',
+                                gap: 2
                               }}
                             >
+                              <Typography 
+                                sx={{ 
+                                  fontWeight: 600, 
+                                  color: theme.palette.primary.main,
+                                  opacity: 0.8,
+                                  minWidth: '24px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                {index + 1}.
+                              </Typography>
                               <ListItemText 
                                 primary={
                                   <Typography sx={{ fontWeight: 500 }}>
