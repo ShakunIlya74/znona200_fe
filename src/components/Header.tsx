@@ -48,6 +48,20 @@ const menuTitles: Record<string, string> = {
   groups: "Групи"
 };
 
+// Map of paths to menu identifiers
+const pathToMenuMap: Record<string, string> = {
+  '': 'tests', // Default path
+  'settings': 'settings',
+  'library': 'library',
+  'tests': 'tests',
+  'webinars': 'webinars',
+  'mini-lectures': 'miniLectures',
+  'notes': 'notes',
+  'statistics': 'statistics',
+  'queries': 'queries',
+  'groups': 'groups'
+};
+
 const BUTTON_FONT_SIZE = '18px';
 
 function Header() {
@@ -64,24 +78,31 @@ function Header() {
   // Reference for the profile menu anchor
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  // New state to store the selected menu button id (only one active at a time)
+  // Get the current location
   const location = useLocation();
+  
+  // Function to derive menu from path
   const deriveMenuFromPath = (pathname: string) => {
-    // Split the pathname and use the first segment after '/'
+    // Extract the first segment after '/'
     const path = pathname.split('/')[1];
-    // Return derived menu value; if empty, default to "tests"
-    return path || "tests";
-  }
+    // Use the mapping to get the corresponding menu identifier
+    return pathToMenuMap[path] || 'tests'; // Default to 'tests' if no match
+  };
 
+  // Initialize and update selectedMenu based on current path
   const [selectedMenu, setSelectedMenu] = useState(() => deriveMenuFromPath(location.pathname));
 
+  // Update selectedMenu whenever the location changes
+  useEffect(() => {
+    setSelectedMenu(deriveMenuFromPath(location.pathname));
+  }, [location.pathname]);
 
   /*
-Consider this useEffect as an entry point to the app for logged in users
-Do essential checks:
-  1. Check for version updates - delete cached files if required
-  2. Check for admin rights - allow display of admin options
-*/
+  Consider this useEffect as an entry point to the app for logged in users
+  Do essential checks:
+    1. Check for version updates - delete cached files if required
+    2. Check for admin rights - allow display of admin options
+  */
   useEffect(() => {
     // check version before doing anything
     let version = localStorage.getItem('version');
@@ -141,7 +162,6 @@ Do essential checks:
   const handleSettings = () => {
     // Navigate to settings page
     navigate('/settings');
-    setSelectedMenu("settings");
     setSettingDropOpen(false);
   };
 
@@ -168,7 +188,7 @@ Do essential checks:
           <ListItemButton
             component={Link}
             to="/library"
-            onClick={() => setSelectedMenu("library")}
+            onClick={() => setDrawerOpen(false)}
             sx={{ backgroundColor: selectedMenu === "library" ? "#FFFFFF" : "inherit" }}
           >
             <ReceiptLongOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
@@ -182,7 +202,7 @@ Do essential checks:
           <ListItemButton
             component={Link}
             to="/tests"
-            onClick={() => setSelectedMenu("tests")}
+            onClick={() => setDrawerOpen(false)}
             sx={{ backgroundColor: selectedMenu === "tests" ? "#FFFFFF" : "inherit" }}
           >
             <ReceiptLongOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
@@ -196,7 +216,7 @@ Do essential checks:
           <ListItemButton
             component={Link}
             to="/webinars"
-            onClick={() => setSelectedMenu("webinars")}
+            onClick={() => setDrawerOpen(false)}
             sx={{ backgroundColor: selectedMenu === "webinars" ? "#FFFFFF" : "inherit" }}
           >
             <VideoCameraFrontOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
@@ -208,7 +228,9 @@ Do essential checks:
         </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton
-            onClick={() => setSelectedMenu("miniLectures")}
+            component={Link}
+            to="/mini-lectures"
+            onClick={() => setDrawerOpen(false)}
             sx={{ backgroundColor: selectedMenu === "miniLectures" ? "#FFFFFF" : "inherit" }}
           >
             <VoiceChatOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
@@ -220,7 +242,9 @@ Do essential checks:
         </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton
-            onClick={() => setSelectedMenu("notes")}
+            component={Link}
+            to="/notes"
+            onClick={() => setDrawerOpen(false)}
             sx={{ backgroundColor: selectedMenu === "notes" ? "#FFFFFF" : "inherit" }}
           >
             <ArticleOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
@@ -232,7 +256,9 @@ Do essential checks:
         </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton
-            onClick={() => setSelectedMenu("statistics")}
+            component={Link}
+            to="/statistics"
+            onClick={() => setDrawerOpen(false)}
             sx={{ backgroundColor: selectedMenu === "statistics" ? "#FFFFFF" : "inherit" }}
           >
             <QueryStatsOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
@@ -244,7 +270,9 @@ Do essential checks:
         </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton
-            onClick={() => setSelectedMenu("queries")}
+            component={Link}
+            to="/queries"
+            onClick={() => setDrawerOpen(false)}
             sx={{ backgroundColor: selectedMenu === "queries" ? "#FFFFFF" : "inherit" }}
           >
             <ContactPhoneOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
@@ -256,7 +284,9 @@ Do essential checks:
         </ListItem>
         <ListItem component="div" disablePadding>
           <ListItemButton
-            onClick={() => setSelectedMenu("groups")}
+            component={Link}
+            to="/groups"
+            onClick={() => setDrawerOpen(false)}
             sx={{ backgroundColor: selectedMenu === "groups" ? "#FFFFFF" : "inherit" }}
           >
             <Diversity1OutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
