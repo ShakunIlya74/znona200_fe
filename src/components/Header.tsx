@@ -68,10 +68,16 @@ const pathToMenuMap: Record<string, string> = {
 
 const BUTTON_FONT_SIZE = '18px';
 
-const HEADER_HEIGHT = {
+// Export this constant so it can be used in other components
+export const HEADER_HEIGHT = {
   xs: '50px',  // Small/mobile screens
   sm: '70px',  // Medium screens
   md: '100px', // Large screens
+};
+
+// Export a function to calculate the header offset based on breakpoint
+export const getHeaderOffset = (isMobile: boolean, isMedium: boolean): number => {
+  return isMobile ? 50 : isMedium ? 70 : 100;
 };
 
 function Header() {
