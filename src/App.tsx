@@ -18,6 +18,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import SettingsPage from './pages/settings/SettingsPage';
 import LibraryPage from './pages/LibraryPage';
 import TestViewPage from './pages/TestViewPage';
+import LessonViewPage from './pages/LessonViewPage';
 
 const withLayout = (Component: React.ComponentType) => () => (
   <>
@@ -109,6 +110,10 @@ const App: React.FC = () => {
         {
           path: 'webinars',
           element: withLayout(LessonsPage)(),
+        },
+        {
+          path: 'webinar-view/:lfp_sha',
+          element: withLayout(LessonViewPage)(),
         },
         {
           path: 'minilections',

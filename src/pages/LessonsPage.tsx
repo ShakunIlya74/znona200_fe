@@ -21,11 +21,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
-import { GetLessonsData, GetFolderLessons } from '../services/LessonService';
+import { GetLessonsData, GetFolderLessons, LessonCardMeta } from '../services/LessonService';
 import { declinateWord } from './utils/utils';
 import LoadingDots from '../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useNavigate } from 'react-router-dom';
 
 // Define folder object type
 interface FolderObject {
@@ -39,12 +40,6 @@ interface LessonsData {
   folder_dicts?: FolderObject[];
 }
 
-interface LessonCardMeta {
-  lesson_name: string;
-  lesson_id: number;
-  lfp_sha: string;
-}
-
 interface FolderLessons {
   success: boolean;
   lesson_dicts?: LessonCardMeta[];
@@ -52,6 +47,7 @@ interface FolderLessons {
 
 const LessonsPage: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   
@@ -198,9 +194,10 @@ const LessonsPage: React.FC = () => {
     }
   };
 
-  const handleLessonClick = (lessonId: number, lessonName: string) => {
+  const handleLessonClick = (lessonId: number, lessonName: string, lfpSha: string) => {
     console.log(`Lesson clicked: ${lessonName} (ID: ${lessonId})`);
-    // Add your navigation or lesson handling logic here
+    // Navigate to the lesson view page with the lesson's sha parameter
+    navigate(`/webinar-view/${lfpSha}`);
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -402,7 +399,7 @@ const LessonsPage: React.FC = () => {
                           return (
                             <React.Fragment key={lesson.lesson_id}>
                               <ListItemButton
-                                onClick={() => handleLessonClick(lesson.lesson_id, lesson.lesson_name)}
+                                onClick={() => handleLessonClick(lesson.lesson_id, lesson.lesson_name, lesson.lfp_sha)}
                                 sx={{ 
                                   py: 1.5, 
                                   px: 3,
@@ -456,7 +453,7 @@ const LessonsPage: React.FC = () => {
                           color: theme.palette.text.secondary
                         }}
                       >
-                        Немає уроків, що відповідають вашому пошуковому запиту.
+                        Немає вебінарів, що відповідають вашому пошуковому запиту.
                       </Typography>
                     ) : (
                       <Typography 
@@ -467,7 +464,7 @@ const LessonsPage: React.FC = () => {
                           color: theme.palette.text.secondary
                         }}
                       >
-                        No lessons available for this folder.
+                        Немає Вебінраів для цієї папки.
                       </Typography>
                     )}
                   </Paper>

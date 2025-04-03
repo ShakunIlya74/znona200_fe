@@ -10,6 +10,7 @@ export interface TestCardMeta {
   test_name: string;
   test_id: number;
   tfp_sha: string;
+  folder_id?: number;
   // Add any additional fields returned by the API
 }
 
