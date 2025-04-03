@@ -13,10 +13,14 @@ import {
   IconButton,
   ListItemButton,
   Paper,
-  alpha
+  alpha,
+  InputBase,
+  InputAdornment
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import { GetTestsData, GetFolderTests } from '../services/TestService';
 import { declinateWord } from './utils/utils';
 import LoadingDots from '../components/tools/LoadingDots';
@@ -57,6 +61,8 @@ const TestsPage: React.FC = () => {
   const [openFolderId, setOpenFolderId] = useState<number | null>(null);
   const [previousFolderId, setPreviousFolderId] = useState<number | null>(null);
   const [folderTests, setFolderTests] = useState<TestCardMeta[]>([]);
+  const [filteredTests, setFilteredTests] = useState<TestCardMeta[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [folderLoading, setFolderLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +70,7 @@ const TestsPage: React.FC = () => {
   // Create refs for scrolling and sticky behavior
   const folderRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
   const testListRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize refs for each folder
   useEffect(() => {
@@ -95,6 +102,35 @@ const TestsPage: React.FC = () => {
 
     loadTestsData();
   }, []);
+
+  // When folder tests change, reset search and update filtered tests
+  useEffect(() => {
+    setSearchQuery('');
+    setFilteredTests(folderTests);
+  }, [folderTests]);
+
+  // Filter tests when search query changes
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredTests(folderTests);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = folderTests.filter(test => 
+      test.test_name.toLowerCase().includes(query)
+    );
+    setFilteredTests(filtered);
+  }, [searchQuery, folderTests]);
+
+  // Auto-focus search input when a folder is opened
+  useEffect(() => {
+    if (openFolderId !== null && !folderLoading) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 300); // Delay to ensure the transition has completed
+    }
+  }, [openFolderId, folderLoading]);
 
   // Helper function to scroll to a folder
   const scrollToFolder = (folderId: number) => {
@@ -139,19 +175,23 @@ const TestsPage: React.FC = () => {
     setOpenFolderId(folderId);
     setFolderLoading(true);
     setFolderTests([]);
+    setFilteredTests([]);
     
     try {
       const response = await GetFolderTests(folderId) as FolderTests;
       if (response.success && response.test_dicts) {
         setFolderTests(response.test_dicts);
+        setFilteredTests(response.test_dicts);
       } else {
         setError('Failed to load tests for this folder');
         setFolderTests([]);
+        setFilteredTests([]);
       }
     } catch (err) {
       console.error(err);
       setError('An error occurred while loading tests');
       setFolderTests([]);
+      setFilteredTests([]);
     } finally {
       setFolderLoading(false);
     }
@@ -160,6 +200,20 @@ const TestsPage: React.FC = () => {
   const handleTestClick = (testId: number, testName: string) => {
     console.log(`Test clicked: ${testName} (ID: ${testId})`);
     // Add your navigation or test handling logic here
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    searchInputRef.current?.focus();
+  };
+
+  // Find the original index of a test in the unfiltered list
+  const getOriginalIndex = (testId: number) => {
+    return folderTests.findIndex(test => test.test_id === testId);
   };
 
   return (
@@ -189,14 +243,15 @@ const TestsPage: React.FC = () => {
                   boxShadow: openFolderId === folder.folder_id 
                     ? `0px 2px 8px ${alpha(theme.palette.common.black, 0.08)}` 
                     : `0px 1px 3px ${alpha(theme.palette.common.black, 0.05)}`, // Lighter shadow
-                //   borderRadius: openFolderId === folder.folder_id 
-                //     ? '16px 16px 0 0' 
-                //     : '16px', // Adjust border radius when open
                   border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`, // Lighter border
                   transition: 'all 0.2s ease-in-out', // Smooth transition for hover effects
                   '&:hover': {
-                    boxShadow: `0px 4px 12px ${alpha(theme.palette.common.black, 0.1)}`,
-                    transform: 'translateY(-2px)'
+                    boxShadow: openFolderId === folder.folder_id
+                      ? `0px 2px 8px ${alpha(theme.palette.common.black, 0.08)}`
+                      : `0px 4px 12px ${alpha(theme.palette.common.black, 0.1)}`,
+                    transform: openFolderId === folder.folder_id
+                      ? 'none'
+                      : 'translateY(-2px)'
                   }
                 }}
               >
@@ -284,59 +339,124 @@ const TestsPage: React.FC = () => {
                       marginTop: '-1px',
                     }}
                   >
+                    {/* Search Bar */}
+                    <Box 
+                      sx={{ 
+                        p: 1.5, 
+                        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                        backgroundColor: alpha(theme.palette.primary.main, 0.03)
+                      }}
+                    >
+                      <InputBase
+                        inputRef={searchInputRef}
+                        fullWidth
+                        placeholder=""
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        sx={{
+                          backgroundColor: theme.palette.common.white,
+                          borderRadius: '8px',
+                          px: 2,
+                          py: 0.5,
+                          '& .MuiInputBase-input': {
+                            transition: theme.transitions.create('width'),
+                          },
+                          boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.04)}`,
+                          border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                        }}
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <SearchIcon color="action" sx={{ opacity: 0.6 }} />
+                          </InputAdornment>
+                        }
+                        endAdornment={
+                          searchQuery && (
+                            <InputAdornment position="end">
+                              <IconButton 
+                                size="small" 
+                                edge="end" 
+                                onClick={clearSearch}
+                                sx={{ 
+                                  opacity: 0.6,
+                                  '&:hover': { opacity: 1 }
+                                }}
+                              >
+                                <ClearIcon fontSize="small" />
+                              </IconButton>
+                            </InputAdornment>
+                          )
+                        }
+                      />
+                    </Box>
+                    
                     {folderLoading ? (
                       <Box sx={{ py: 3, px: 2, display: 'flex', justifyContent: 'center' }}>
                         <LoadingDots />
                       </Box>
-                    ) : folderTests.length > 0 ? (
+                    ) : filteredTests.length > 0 ? (
                       <List disablePadding>
-                        {folderTests.map((test, index, array) => (
-                          <React.Fragment key={test.test_id}>
-                            <ListItemButton
-                              onClick={() => handleTestClick(test.test_id, test.test_name)}
-                              sx={{ 
-                                py: 1.5, 
-                                px: 3,
-                                transition: 'all 0.15s ease',
-                                '&:hover': {
-                                  backgroundColor: alpha(theme.palette.primary.main, 0.04),
-                                },
-                                display: 'flex',
-                                gap: 2
-                              }}
-                            >
-                              <Typography 
+                        {filteredTests.map((test, index, array) => {
+                          // Get original index for consistent numbering
+                          const originalIndex = getOriginalIndex(test.test_id);
+                          return (
+                            <React.Fragment key={test.test_id}>
+                              <ListItemButton
+                                onClick={() => handleTestClick(test.test_id, test.test_name)}
                                 sx={{ 
-                                  fontWeight: 600, 
-                                  color: theme.palette.primary.main,
-                                  opacity: 0.8,
-                                  minWidth: '24px',
+                                  py: 1.5, 
+                                  px: 3,
+                                  transition: 'all 0.15s ease',
+                                  '&:hover': {
+                                    backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                                  },
                                   display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
+                                  gap: 2
                                 }}
                               >
-                                {index + 1}.
-                              </Typography>
-                              <ListItemText 
-                                primary={
-                                  <Typography sx={{ fontWeight: 500 }}>
-                                    {test.test_name}
-                                  </Typography>
-                                } 
-                              />
-                            </ListItemButton>
-                            {index < array.length - 1 && (
-                              <Divider 
-                                component="li" 
-                                sx={{ 
-                                  borderColor: alpha(theme.palette.divider, 0.5)
-                                }} 
-                              />
-                            )}
-                          </React.Fragment>
-                        ))}
+                                <Typography 
+                                  sx={{ 
+                                    fontWeight: 600, 
+                                    color: theme.palette.primary.main,
+                                    opacity: 0.8,
+                                    minWidth: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  {originalIndex + 1}.
+                                </Typography>
+                                <ListItemText 
+                                  primary={
+                                    <Typography sx={{ fontWeight: 500 }}>
+                                      {test.test_name}
+                                    </Typography>
+                                  } 
+                                />
+                              </ListItemButton>
+                              {index < array.length - 1 && (
+                                <Divider 
+                                  component="li" 
+                                  sx={{ 
+                                    borderColor: alpha(theme.palette.divider, 0.5)
+                                  }} 
+                                />
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
                       </List>
+                    ) : folderTests.length > 0 && searchQuery ? (
+                      <Typography 
+                        sx={{ 
+                          py: 3, 
+                          px: 3, 
+                          textAlign: 'center',
+                          color: theme.palette.text.secondary
+                        }}
+                      >
+                        No tests match your search query.
+                      </Typography>
                     ) : (
                       <Typography 
                         sx={{ 

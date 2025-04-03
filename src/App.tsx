@@ -35,10 +35,10 @@ const withLayout = (Component: React.ComponentType) => () => (
         <Box
           sx={{
             width: '100%',
-            p: 5,
+            p: { xs: 0, md: 5 },
             flex: 1,
             backgroundColor: '#f4f4f3',
-            paddingBottom: 10, // Extra padding at bottom to ensure everything is visible
+            paddingBottom: { xs: 5, md: 10 }, // Reduced padding on small devices
           }}
         >
           <Component />

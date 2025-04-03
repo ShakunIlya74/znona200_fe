@@ -13,10 +13,14 @@ import {
   IconButton,
   ListItemButton,
   Paper,
-  alpha
+  alpha,
+  InputBase,
+  InputAdornment
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import { GetMiniLectionsData, GetFolderMiniLections } from '../services/MiniLectionService';
 import LoadingDots from '../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
@@ -55,6 +59,8 @@ const MinilectionsPage: React.FC = () => {
   const [openFolderId, setOpenFolderId] = useState<number | null>(null);
   const [previousFolderId, setPreviousFolderId] = useState<number | null>(null);
   const [folderMiniLections, setFolderMiniLections] = useState<MiniLectionCardMeta[]>([]);
+  const [filteredMiniLections, setFilteredMiniLections] = useState<MiniLectionCardMeta[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [folderLoading, setFolderLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +68,7 @@ const MinilectionsPage: React.FC = () => {
   // Create refs for scrolling and sticky behavior
   const folderRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
   const miniLectionListRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize refs for each folder
   useEffect(() => {
@@ -93,6 +100,35 @@ const MinilectionsPage: React.FC = () => {
 
     loadMiniLectionsData();
   }, []);
+
+  // When folder minilections change, reset search and update filtered minilections
+  useEffect(() => {
+    setSearchQuery('');
+    setFilteredMiniLections(folderMiniLections);
+  }, [folderMiniLections]);
+
+  // Filter minilections when search query changes
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredMiniLections(folderMiniLections);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = folderMiniLections.filter(minilection => 
+      minilection.minilection_name.toLowerCase().includes(query)
+    );
+    setFilteredMiniLections(filtered);
+  }, [searchQuery, folderMiniLections]);
+
+  // Auto-focus search input when a folder is opened
+  useEffect(() => {
+    if (openFolderId !== null && !folderLoading) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 300); // Delay to ensure the transition has completed
+    }
+  }, [openFolderId, folderLoading]);
 
   // Helper function to scroll to a folder
   const scrollToFolder = (folderId: number) => {
@@ -137,19 +173,23 @@ const MinilectionsPage: React.FC = () => {
     setOpenFolderId(folderId);
     setFolderLoading(true);
     setFolderMiniLections([]);
+    setFilteredMiniLections([]);
     
     try {
       const response = await GetFolderMiniLections(folderId) as FolderMiniLections;
       if (response.success && response.minilection_dicts) {
         setFolderMiniLections(response.minilection_dicts);
+        setFilteredMiniLections(response.minilection_dicts);
       } else {
         setError('Failed to load mini-lections for this folder');
         setFolderMiniLections([]);
+        setFilteredMiniLections([]);
       }
     } catch (err) {
       console.error(err);
       setError('An error occurred while loading mini-lections');
       setFolderMiniLections([]);
+      setFilteredMiniLections([]);
     } finally {
       setFolderLoading(false);
     }
@@ -158,6 +198,20 @@ const MinilectionsPage: React.FC = () => {
   const handleMiniLectionClick = (miniLectionId: number, miniLectionName: string) => {
     console.log(`Mini-lection clicked: ${miniLectionName} (ID: ${miniLectionId})`);
     // Add your navigation or mini-lection handling logic here
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    searchInputRef.current?.focus();
+  };
+
+  // Find the original index of a minilection in the unfiltered list
+  const getOriginalIndex = (miniLectionId: number) => {
+    return folderMiniLections.findIndex(minilection => minilection.minilection_id === miniLectionId);
   };
 
   return (
@@ -190,8 +244,12 @@ const MinilectionsPage: React.FC = () => {
                   border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`, // Lighter border
                   transition: 'all 0.2s ease-in-out', // Smooth transition for hover effects
                   '&:hover': {
-                    boxShadow: `0px 4px 12px ${alpha(theme.palette.common.black, 0.1)}`,
-                    transform: 'translateY(-2px)'
+                    boxShadow: openFolderId === folder.folder_id
+                      ? `0px 2px 8px ${alpha(theme.palette.common.black, 0.08)}`
+                      : `0px 4px 12px ${alpha(theme.palette.common.black, 0.1)}`,
+                    transform: openFolderId === folder.folder_id
+                      ? 'none'
+                      : 'translateY(-2px)'
                   }
                 }}
               >
@@ -269,59 +327,124 @@ const MinilectionsPage: React.FC = () => {
                       marginTop: '-1px',
                     }}
                   >
+                    {/* Search Bar */}
+                    <Box 
+                      sx={{ 
+                        p: 1.5, 
+                        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                        backgroundColor: alpha(theme.palette.primary.main, 0.03)
+                      }}
+                    >
+                      <InputBase
+                        inputRef={searchInputRef}
+                        fullWidth
+                        placeholder=""
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        sx={{
+                          backgroundColor: theme.palette.common.white,
+                          borderRadius: '8px',
+                          px: 2,
+                          py: 0.5,
+                          '& .MuiInputBase-input': {
+                            transition: theme.transitions.create('width'),
+                          },
+                          boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.04)}`,
+                          border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                        }}
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <SearchIcon color="action" sx={{ opacity: 0.6 }} />
+                          </InputAdornment>
+                        }
+                        endAdornment={
+                          searchQuery && (
+                            <InputAdornment position="end">
+                              <IconButton 
+                                size="small" 
+                                edge="end" 
+                                onClick={clearSearch}
+                                sx={{ 
+                                  opacity: 0.6,
+                                  '&:hover': { opacity: 1 }
+                                }}
+                              >
+                                <ClearIcon fontSize="small" />
+                              </IconButton>
+                            </InputAdornment>
+                          )
+                        }
+                      />
+                    </Box>
+                    
                     {folderLoading ? (
                       <Box sx={{ py: 3, px: 2, display: 'flex', justifyContent: 'center' }}>
                         <LoadingDots />
                       </Box>
-                    ) : folderMiniLections.length > 0 ? (
+                    ) : filteredMiniLections.length > 0 ? (
                       <List disablePadding>
-                        {folderMiniLections.map((miniLection, index, array) => (
-                          <React.Fragment key={miniLection.minilection_id}>
-                            <ListItemButton
-                              onClick={() => handleMiniLectionClick(miniLection.minilection_id, miniLection.minilection_name)}
-                              sx={{ 
-                                py: 1.5, 
-                                px: 3,
-                                transition: 'all 0.15s ease',
-                                '&:hover': {
-                                  backgroundColor: alpha(theme.palette.primary.main, 0.04),
-                                },
-                                display: 'flex',
-                                gap: 2
-                              }}
-                            >
-                              <Typography 
+                        {filteredMiniLections.map((miniLection, index, array) => {
+                          // Get original index for consistent numbering
+                          const originalIndex = getOriginalIndex(miniLection.minilection_id);
+                          return (
+                            <React.Fragment key={miniLection.minilection_id}>
+                              <ListItemButton
+                                onClick={() => handleMiniLectionClick(miniLection.minilection_id, miniLection.minilection_name)}
                                 sx={{ 
-                                  fontWeight: 600, 
-                                  color: theme.palette.primary.main,
-                                  opacity: 0.8,
-                                  minWidth: '24px',
+                                  py: 1.5, 
+                                  px: 3,
+                                  transition: 'all 0.15s ease',
+                                  '&:hover': {
+                                    backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                                  },
                                   display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
+                                  gap: 2
                                 }}
                               >
-                                {index + 1}.
-                              </Typography>
-                              <ListItemText 
-                                primary={
-                                  <Typography sx={{ fontWeight: 500 }}>
-                                    {miniLection.minilection_name}
-                                  </Typography>
-                                } 
-                              />
-                            </ListItemButton>
-                            {index < array.length - 1 && (
-                              <Divider 
-                                component="li" 
-                                sx={{ 
-                                  borderColor: alpha(theme.palette.divider, 0.5)
-                                }} 
-                              />
-                            )}
-                          </React.Fragment>
-                        ))}
+                                <Typography 
+                                  sx={{ 
+                                    fontWeight: 600, 
+                                    color: theme.palette.primary.main,
+                                    opacity: 0.8,
+                                    minWidth: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  {originalIndex + 1}.
+                                </Typography>
+                                <ListItemText 
+                                  primary={
+                                    <Typography sx={{ fontWeight: 500 }}>
+                                      {miniLection.minilection_name}
+                                    </Typography>
+                                  } 
+                                />
+                              </ListItemButton>
+                              {index < array.length - 1 && (
+                                <Divider 
+                                  component="li" 
+                                  sx={{ 
+                                    borderColor: alpha(theme.palette.divider, 0.5)
+                                  }} 
+                                />
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
                       </List>
+                    ) : folderMiniLections.length > 0 && searchQuery ? (
+                      <Typography 
+                        sx={{ 
+                          py: 3, 
+                          px: 3, 
+                          textAlign: 'center',
+                          color: theme.palette.text.secondary
+                        }}
+                      >
+                        Немає мінілекцій, що відповідають вашому пошуковому запиту.
+                      </Typography>
                     ) : (
                       <Typography 
                         sx={{ 
