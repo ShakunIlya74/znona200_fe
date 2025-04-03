@@ -21,10 +21,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
-import { GetMiniLectionsData, GetFolderMiniLections } from '../services/MiniLectionService';
+import { GetMiniLectionsData, GetFolderMiniLections, MiniLectionCardMeta } from '../services/MiniLectionService';
 import LoadingDots from '../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useNavigate } from 'react-router-dom';
 
 // Define folder object type
 interface FolderObject {
@@ -37,11 +38,7 @@ interface MiniLectionsData {
   folder_dicts?: FolderObject[];
 }
 
-interface MiniLectionCardMeta {
-  minilection_name: string;
-  minilection_id: number;
-  minilection_sha: string;
-}
+
 
 interface FolderMiniLections {
   success: boolean;
@@ -52,6 +49,7 @@ const MinilectionsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const navigate = useNavigate();
   
   // Dynamic header offset based on screen size
   const HEADER_OFFSET = isMobile ? 50 : isMedium ? 70 : 100;
@@ -196,9 +194,10 @@ const MinilectionsPage: React.FC = () => {
     }
   };
 
-  const handleMiniLectionClick = (miniLectionId: number, miniLectionName: string) => {
-    console.log(`Mini-lection clicked: ${miniLectionName} (ID: ${miniLectionId})`);
-    // Add your navigation or mini-lection handling logic here
+  const handleMiniLectionClick = (miniLection: MiniLectionCardMeta) => {
+    console.log(`Mini-lection clicked: ${miniLection.minilection_name} (ID: ${miniLection.minilection_id})`);
+    // Navigate to the minilection view page using the mfp_sha
+    navigate(`/minilection-view/${miniLection.minilection_sha}`);
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -390,7 +389,7 @@ const MinilectionsPage: React.FC = () => {
                           return (
                             <React.Fragment key={miniLection.minilection_id}>
                               <ListItemButton
-                                onClick={() => handleMiniLectionClick(miniLection.minilection_id, miniLection.minilection_name)}
+                                onClick={() => handleMiniLectionClick(miniLection)}
                                 sx={{ 
                                   py: 1.5, 
                                   px: 3,

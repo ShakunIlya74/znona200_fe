@@ -21,10 +21,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
-import { GetNotesData, GetFolderNotes } from '../services/NoteService';
+import { GetNotesData, GetFolderNotes, NoteCardMeta } from '../services/NoteService';
 import LoadingDots from '../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useNavigate } from 'react-router-dom';
 
 // Define folder object type
 interface FolderObject {
@@ -37,11 +38,6 @@ interface NotesData {
   folder_dicts?: FolderObject[];
 }
 
-interface NoteCardMeta {
-  note_name: string;
-  note_id: number;
-  note_sha: string;
-}
 
 interface FolderNotes {
   success: boolean;
@@ -52,6 +48,7 @@ const NotesPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const navigate = useNavigate();
   
   // Dynamic header offset based on screen size
   const HEADER_OFFSET = isMobile ? 50 : isMedium ? 70 : 100;
@@ -196,9 +193,10 @@ const NotesPage: React.FC = () => {
     }
   };
 
-  const handleNoteClick = (noteId: number, noteName: string) => {
-    console.log(`Note clicked: ${noteName} (ID: ${noteId})`);
-    // Add your navigation or note handling logic here
+  const handleNoteClick = (note: NoteCardMeta) => {
+    console.log(`Note clicked: ${note.note_name} (ID: ${note.note_id})`);
+    // Navigate to the note view page using the nfp_sha
+    navigate(`/note-view/${note.note_sha}`);
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -390,7 +388,7 @@ const NotesPage: React.FC = () => {
                           return (
                             <React.Fragment key={note.note_id}>
                               <ListItemButton
-                                onClick={() => handleNoteClick(note.note_id, note.note_name)}
+                                onClick={() => handleNoteClick(note)}
                                 sx={{ 
                                   py: 1.5, 
                                   px: 3,

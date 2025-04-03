@@ -19,6 +19,8 @@ import SettingsPage from './pages/settings/SettingsPage';
 import LibraryPage from './pages/LibraryPage';
 import TestViewPage from './pages/TestViewPage';
 import LessonViewPage from './pages/LessonViewPage';
+import MinilectionViewPage from './pages/MinilectionViewPage';
+import NoteViewPage from './pages/NoteViewPage';
 
 const withLayout = (Component: React.ComponentType) => () => (
   <>
@@ -104,7 +106,7 @@ const App: React.FC = () => {
           element: withLayout(TestsPage)(),
         },
         {
-          path: 'tests-view/:tfp_sha',
+          path: 'test-view/:tfp_sha',
           element: withLayout(TestViewPage)(),
         },
         {
@@ -120,8 +122,16 @@ const App: React.FC = () => {
           element: withLayout(MinilectionsPage)(),
         },
         {
+          path: 'minilection-view/:minilection_sha',
+          element: withLayout(MinilectionViewPage)(),
+        },
+        {
           path: 'notes',
           element: withLayout(NotesPage)(),
+        },
+        {
+          path: 'note-view/:note_sha',
+          element: withLayout(NoteViewPage)(),
         },
       ],
     },

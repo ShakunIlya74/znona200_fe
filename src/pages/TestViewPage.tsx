@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Container, Paper, Divider, CircularProgress } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import { Box, Typography, Container, Paper, Divider, CircularProgress, Button } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
 import { GetTestView, TestCardMeta } from '../services/TestService';
 import LoadingDots from '../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 interface TestViewData {
   success: boolean;
@@ -18,6 +19,7 @@ const TestViewPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [testData, setTestData] = useState<TestCardMeta | null>(null);
     const theme = useTheme();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const loadTestData = async () => {
@@ -46,8 +48,29 @@ const TestViewPage: React.FC = () => {
         loadTestData();
     }, [tfp_sha]);
 
+    const handleBackClick = () => {
+        navigate('/tests');
+    };
+
     return (
         <Container maxWidth="lg" sx={{ py: 2 }}>
+            {/* <Button 
+                variant="outlined" 
+                startIcon={<ArrowBackIcon />} 
+                onClick={handleBackClick}
+                sx={{ 
+                    mb: 2, 
+                    borderRadius: '8px',
+                    color: theme.palette.primary.main,
+                    borderColor: theme.palette.primary.main,
+                    '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                    }
+                }}
+            >
+                Назад до тестів
+            </Button> */}
+            
             {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
                     <LoadingDots />

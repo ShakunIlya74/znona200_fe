@@ -198,7 +198,7 @@ const TestsPage: React.FC = () => {
   const handleTestClick = (testId: number, testName: string, tfpSha: string) => {
     console.log(`Test clicked: ${testName} (ID: ${testId})`);
     // Navigate to the test view page with the test's tfp_sha parameter
-    navigate(`/tests-view/${tfpSha}`);
+    navigate(`/test-view/${tfpSha}`);
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {

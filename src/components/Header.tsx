@@ -54,9 +54,13 @@ const pathToMenuMap: Record<string, string> = {
   'settings': 'settings',
   'library': 'library',
   'tests': 'tests',
+  'test-view': 'tests',
   'webinars': 'webinars',
+  'webinar-view': 'webinars',
   'minilections': 'minilections',
+  'minilection-view': 'minilections',
   'notes': 'notes',
+  'note-view': 'notes',
   'statistics': 'statistics',
   'queries': 'queries',
   'groups': 'groups'
@@ -91,8 +95,9 @@ function Header() {
   const deriveMenuFromPath = (pathname: string) => {
     // Extract the first segment after '/'
     const path = pathname.split('/')[1];
+    console.log('path: ' + path);
     // Use the mapping to get the corresponding menu identifier
-    return pathToMenuMap[path] || 'tests'; // Default to 'tests' if no match
+    return pathToMenuMap[path] || 'menu'; // Default to 'menu' if no match
   };
 
   // Initialize and update selectedMenu based on current path

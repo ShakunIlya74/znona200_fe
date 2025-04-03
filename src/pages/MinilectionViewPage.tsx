@@ -1,50 +1,49 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Container, Paper, Divider, CircularProgress, Button } from '@mui/material';
+import { Box, Typography, Container, Paper, Divider, Button } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GetLessonView, LessonCardMeta, LessonViewResponse } from '../services/LessonService';
+import { GetMiniLectionView, MiniLectionCardMeta, MiniLectionViewResponse } from '../services/MiniLectionService';
 import LoadingDots from '../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-const LessonViewPage: React.FC = () => {
-    const { lfp_sha } = useParams<{ lfp_sha: string }>();
+const MinilectionViewPage: React.FC = () => {
+    const { minilection_sha } = useParams<{ minilection_sha: string }>();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [lessonData, setLessonData] = useState<LessonCardMeta | null>(null);
+    const [minilectionData, setMinilectionData] = useState<MiniLectionCardMeta | null>(null);
     const theme = useTheme();
     const navigate = useNavigate();
 
     useEffect(() => {
-        const loadLessonData = async () => {
-            if (!lfp_sha) {
-                setError('Lesson ID is missing');
+        const loadMinilectionData = async () => {
+            if (!minilection_sha) {
+                setError('Minilection ID is missing');
                 setLoading(false);
                 return;
             }
 
             setLoading(true);
             try {
-                const response = await GetLessonView(lfp_sha) as LessonViewResponse;
-                // console.log(response);
-                if (response.success && response.webinar_dict) {
-                    setLessonData(response.webinar_dict);
+                const response = await GetMiniLectionView(minilection_sha) as MiniLectionViewResponse;
+                if (response.success && response.minilection_dict) {
+                    setMinilectionData(response.minilection_dict);
                 } else {
-                    setError(response.error || 'Failed to load lesson data');
+                    setError(response.error || 'Failed to load minilection data');
                 }
             } catch (err) {
                 console.error(err);
-                setError('An error occurred while loading the lesson');
+                setError('An error occurred while loading the minilection');
             } finally {
                 setLoading(false);
             }
         };
 
-        loadLessonData();
-    }, [lfp_sha]);
+        loadMinilectionData();
+    }, [minilection_sha]);
 
     const handleBackClick = () => {
-        navigate('/webinars');
+        navigate('/minilections');
     };
 
     return (
@@ -63,7 +62,7 @@ const LessonViewPage: React.FC = () => {
                     }
                 }}
             >
-                Назад до вебінарів
+                Назад до мінілекцій
             </Button>
             
             {loading ? (
@@ -87,7 +86,7 @@ const LessonViewPage: React.FC = () => {
                         {error}
                     </Typography>
                 </Paper>
-            ) : lessonData ? (
+            ) : minilectionData ? (
                 <Paper
                     elevation={0}
                     sx={{
@@ -98,29 +97,19 @@ const LessonViewPage: React.FC = () => {
                     }}
                 >
                     <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
-                        {lessonData.lesson_name}
+                        {minilectionData.minilection_name}
                     </Typography>
                     <Divider sx={{ my: 2 }} />
                     
-                    {/* Lesson metadata */}
+                    {/* Minilection metadata */}
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                            Lesson ID: {lessonData.lesson_id}
+                            Minilection ID: {minilectionData.minilection_id}
                         </Typography>
-                        {lessonData.date && (
-                            <Typography variant="subtitle1" sx={{ fontWeight: 500, mt: 1 }}>
-                                Date: {lessonData.date}
-                            </Typography>
-                        )}
-                        {lessonData.duration && (
-                            <Typography variant="subtitle1" sx={{ fontWeight: 500, mt: 1 }}>
-                                Duration: {lessonData.duration}
-                            </Typography>
-                        )}
                     </Box>
                     
-                    {/* Lesson description */}
-                    {lessonData.description && (
+                    {/* Minilection description */}
+                    {minilectionData.description && (
                         <Box sx={{ mt: 3 }}>
                             <Typography variant="h6" sx={{ fontWeight: 500, mb: 1 }}>
                                 Description
@@ -134,16 +123,16 @@ const LessonViewPage: React.FC = () => {
                                 }}
                             >
                                 <Typography variant="body1">
-                                    {lessonData.description}
+                                    {minilectionData.description}
                                 </Typography>
                             </Paper>
                         </Box>
                     )}
                     
-                    {/* Video content placeholder - would be replaced with actual video player */}
+                    {/* Content placeholder - would be replaced with actual minilection content */}
                     <Box sx={{ mt: 4 }}>
                         <Typography variant="h6" sx={{ fontWeight: 500, mb: 2 }}>
-                            Lesson Content
+                            Minilection Content
                         </Typography>
                         <Paper
                             elevation={0}
@@ -158,18 +147,18 @@ const LessonViewPage: React.FC = () => {
                             }}
                         >
                             <Typography variant="body1" sx={{ color: theme.palette.common.white }}>
-                                Video player will be displayed here
+                                Minilection content will be displayed here
                             </Typography>
                         </Paper>
                     </Box>
                 </Paper>
             ) : (
                 <Typography variant="h5" sx={{ textAlign: 'center', color: theme.palette.text.secondary }}>
-                    No lesson data available
+                    No minilection data available
                 </Typography>
             )}
         </Container>
     );
 };
 
-export default LessonViewPage;
+export default MinilectionViewPage;
