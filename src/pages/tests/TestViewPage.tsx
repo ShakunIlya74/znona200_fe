@@ -18,7 +18,9 @@ import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { getHeaderOffset } from '../../components/Header';
-import { FullTestWithAnswers, Question, TestCardMeta } from './interfaces';
+import { FullTestWithAnswers, Question, TestCardMeta, MatchAnswer, UserTestResponse } from './interfaces';
+import MultipleChoiceQuestion from './MultipleChoiceQuestion';
+import MatchingQuestion from './MatchingQuestion';
 
 // Styled components
 interface QuestionButtonProps {
@@ -64,6 +66,15 @@ const NavButton = styled(Button)(({ theme }) => ({
   }
 }));
 
+// Interface for user responses to be stored in state
+interface UserResponses {
+  [questionId: number]: {
+    questionId: number;
+    selectedOptions?: number[]; // For multiple choice questions
+    matches?: MatchAnswer[]; // For matching questions
+  };
+}
+
 const TestViewPage: React.FC = () => {
   const { tfp_sha } = useParams<{ tfp_sha: string }>();
   const [loading, setLoading] = useState<boolean>(true);
@@ -71,6 +82,7 @@ const TestViewPage: React.FC = () => {
   const [testData, setTestData] = useState<TestCardMeta | null>(null);
   const [testWithAnswers, setTestWithAnswers] = useState<FullTestWithAnswers | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [userResponses, setUserResponses] = useState<UserResponses>({});
   
   const theme = useTheme();
   const navigate = useNavigate();
@@ -94,6 +106,21 @@ const TestViewPage: React.FC = () => {
         if (response.success && response.test_dict && response.full_test_with_answers) {
           setTestData(response.test_dict);
           setTestWithAnswers(response.full_test_with_answers);
+          
+          // Initialize user responses from existing data if available
+          const initialResponses: UserResponses = {};
+          
+          response.full_test_with_answers.questions.forEach(question => {
+            if (question.user_answer) {
+              initialResponses[question.question_id] = {
+                questionId: question.question_id,
+                selectedOptions: question.user_answer.response?.selected_options,
+                matches: question.user_answer.response?.matches
+              };
+            }
+          });
+          
+          setUserResponses(initialResponses);
         } else {
           setError(response.error || 'Failed to load test data');
         }
@@ -107,6 +134,55 @@ const TestViewPage: React.FC = () => {
 
     loadTestData();
   }, [tfp_sha]);
+  
+  // Handler for multiple choice option selection
+  const handleOptionSelect = (questionId: number, optionId: number) => {
+    setUserResponses(prev => {
+      const existingResponse = prev[questionId];
+      const selectedOptions = existingResponse?.selectedOptions || [];
+      
+      // Toggle option selection
+      const updatedOptions = selectedOptions.includes(optionId)
+        ? selectedOptions.filter(id => id !== optionId)
+        : [...selectedOptions, optionId];
+      
+      return {
+        ...prev,
+        [questionId]: {
+          questionId,
+          selectedOptions: updatedOptions,
+          matches: existingResponse?.matches
+        }
+      };
+    });
+  };
+  
+  // Handler for matching question responses
+  const handleMatchSelect = (questionId: number, optionId: number, categoryId: number) => {
+    setUserResponses(prev => {
+      const existingResponse = prev[questionId];
+      const existingMatches = existingResponse?.matches || [];
+      
+      // Remove any existing match for this option
+      const filteredMatches = existingMatches.filter(
+        match => match.option_id !== optionId
+      );
+      
+      // Add the new match if categoryId is not empty
+      const updatedMatches = categoryId 
+        ? [...filteredMatches, { option_id: optionId, matched_to_category_id: categoryId }]
+        : filteredMatches;
+      
+      return {
+        ...prev,
+        [questionId]: {
+          questionId,
+          selectedOptions: existingResponse?.selectedOptions,
+          matches: updatedMatches
+        }
+      };
+    });
+  };
 
   const handleBackClick = () => {
     navigate('/tests');
@@ -124,16 +200,29 @@ const TestViewPage: React.FC = () => {
 
   const handleNextQuestion = () => {
     if (testWithAnswers && currentQuestionIndex < testWithAnswers.questions.length - 1) {
+      // Log current user responses
+      console.log('Current user responses:', userResponses);
+      
+      // Move to next question
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
-  // Helper function to check if a question has been answered (just as an example)
+  // Helper function to check if a question has been answered
   const isQuestionAnswered = (questionId: number): boolean => {
-    if (!testWithAnswers) return false;
+    const response = userResponses[questionId];
     
-    const question = testWithAnswers.questions.find(q => q.question_id === questionId);
-    return question?.user_answer !== undefined;
+    if (!response) return false;
+    
+    if (response.selectedOptions && response.selectedOptions.length > 0) {
+      return true;
+    }
+    
+    if (response.matches && response.matches.length > 0) {
+      return true;
+    }
+    
+    return false;
   };
 
   return (
@@ -219,18 +308,17 @@ const TestViewPage: React.FC = () => {
         }}>
           <Box sx={{ 
             display: 'flex', 
-            flexDirection: { xs: 'column', md: 'row' },
-            gap: 3,
-            height: '100%'
+            flexDirection: { xs: 'column', md: 'row' }, 
+            height: '100%',
+            gap: 3
           }}>
             {/* Question Navigation */}
             <Box sx={{ 
-              width: { xs: '100%', md: '25%', lg: '20%' },
+              width: { xs: '100%', md: '33.33%', lg: '25%' },
               borderRight: { md: `1px solid ${alpha(theme.palette.grey[300], 0.5)}` },
-              height: { xs: 'auto', md: '100%' },
+              height: { md: '100%' },
               display: 'flex', 
-              flexDirection: 'column',
-              pr: { md: 2 }
+              flexDirection: 'column' 
             }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                 Questions
@@ -257,8 +345,8 @@ const TestViewPage: React.FC = () => {
             
             {/* Question Display */}
             <Box sx={{ 
-              width: { xs: '100%', md: '75%', lg: '80%' },
-              height: { xs: 'auto', md: '100%' },
+              width: { xs: '100%', md: '66.67%', lg: '75%' },
+              height: { md: '100%' },
               display: 'flex',
               flexDirection: 'column'
             }}>
@@ -275,42 +363,79 @@ const TestViewPage: React.FC = () => {
                       overflow: 'auto'
                     }}
                   >
-                    <Typography variant="h6" sx={{ 
-                      mb: 2,
-                      fontWeight: 600,
-                      color: theme.palette.primary.main
-                    }}>
-                      Question {currentQuestionIndex + 1}
-                    </Typography>
-                    
-                    <Divider sx={{ mb: 3 }} />
-                    
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                        Question Text:
-                      </Typography>
-                      <Typography variant="body1" sx={{ mt: 1 }}>
-                        {testWithAnswers.questions[currentQuestionIndex].question}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                        Question Type:
-                      </Typography>
-                      <Typography variant="body1" sx={{ mt: 1 }}>
-                        {testWithAnswers.questions[currentQuestionIndex].question_type}
-                      </Typography>
-                    </Box>
-                    
-                    <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                        Question ID:
-                      </Typography>
-                      <Typography variant="body1" sx={{ mt: 1 }}>
-                        {testWithAnswers.questions[currentQuestionIndex].question_id}
-                      </Typography>
-                    </Box>
+                    {(() => {
+                      const currentQuestion = testWithAnswers.questions[currentQuestionIndex];
+                      
+                      if (currentQuestion.question_type === 'MULTIPLE_CHOICE') {
+                        const options = currentQuestion.question_data.options;
+                        return (
+                          <MultipleChoiceQuestion 
+                            questionId={currentQuestion.question_id}
+                            questionNumber={currentQuestionIndex + 1}
+                            questionText={currentQuestion.question}
+                            options={options as any[]}
+                            selectedOptions={userResponses[currentQuestion.question_id]?.selectedOptions || []}
+                            onOptionSelect={handleOptionSelect}
+                          />
+                        );
+                      } else if (currentQuestion.question_type === 'MATCHING') {
+                        const options = currentQuestion.question_data.options;
+                        const categories = currentQuestion.question_data.categories || [];
+                        return (
+                          <MatchingQuestion
+                            questionId={currentQuestion.question_id}
+                            questionNumber={currentQuestionIndex + 1}
+                            questionText={currentQuestion.question}
+                            options={options as any[]}
+                            categories={categories as any[]}
+                            matches={userResponses[currentQuestion.question_id]?.matches || []}
+                            onMatchSelect={handleMatchSelect}
+                          />
+                        );
+                      } else {
+                        // Fallback display for unknown question types
+                        return (
+                          <>
+                            <Typography variant="h6" sx={{ 
+                              mb: 2,
+                              fontWeight: 600,
+                              color: theme.palette.primary.main
+                            }}>
+                              Question {currentQuestionIndex + 1}
+                            </Typography>
+                            
+                            <Divider sx={{ mb: 3 }} />
+                            
+                            <Box sx={{ mb: 3 }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                                Question Text:
+                              </Typography>
+                              <Typography variant="body1" sx={{ mt: 1 }}>
+                                {currentQuestion.question}
+                              </Typography>
+                            </Box>
+                            
+                            <Box sx={{ mb: 3 }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                                Question Type:
+                              </Typography>
+                              <Typography variant="body1" sx={{ mt: 1 }}>
+                                {currentQuestion.question_type} (Not implemented)
+                              </Typography>
+                            </Box>
+                            
+                            <Box>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                                Question ID:
+                              </Typography>
+                              <Typography variant="body1" sx={{ mt: 1 }}>
+                                {currentQuestion.question_id}
+                              </Typography>
+                            </Box>
+                          </>
+                        );
+                      }
+                    })()}
                   </Paper>
                   
                   {/* Question Navigation */}

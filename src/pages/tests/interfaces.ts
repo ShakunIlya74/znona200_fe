@@ -11,6 +11,8 @@ export interface TestViewResponse {
     test_name: string;
     test_id: number;
     tfp_sha: string;
+    test_description?: string;
+    default_question?: string;
     folder_id?: number;
     test_type?: string;
     is_mixed?: boolean;
