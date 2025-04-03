@@ -22,7 +22,7 @@ import LessonViewPage from './pages/LessonViewPage';
 import MinilectionViewPage from './pages/MinilectionViewPage';
 import NoteViewPage from './pages/NoteViewPage';
 
-const withLayout = (Component: React.ComponentType) => () => (
+const withLayout = (Component: React.ComponentType, isViewComponent=false) => () => (
   <>
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f4f4f3' }}>
       <Header />
@@ -39,10 +39,10 @@ const withLayout = (Component: React.ComponentType) => () => (
         <Box
           sx={{
             width: '100%',
-            p: { xs: 0, md: 5 },
+            p: isViewComponent ? 0 : { xs: 0, md: 5 },
             flex: 1,
-            backgroundColor: '#f4f4f3',
-            paddingBottom: { xs: 5, md: 10 }, // Reduced padding on small devices
+            backgroundColor: isViewComponent ? 'white' : '#f4f4f3',
+            paddingBottom: isViewComponent ? 0 : { xs: 5, md: 10 },
           }}
         >
           <Component />
@@ -107,7 +107,7 @@ const App: React.FC = () => {
         },
         {
           path: 'test-view/:tfp_sha',
-          element: withLayout(TestViewPage)(),
+          element: withLayout(TestViewPage, true)(),
         },
         {
           path: 'webinars',
@@ -115,7 +115,7 @@ const App: React.FC = () => {
         },
         {
           path: 'webinar-view/:lfp_sha',
-          element: withLayout(LessonViewPage)(),
+          element: withLayout(LessonViewPage, true)(),
         },
         {
           path: 'minilections',
@@ -123,7 +123,7 @@ const App: React.FC = () => {
         },
         {
           path: 'minilection-view/:minilection_sha',
-          element: withLayout(MinilectionViewPage)(),
+          element: withLayout(MinilectionViewPage, true)(),
         },
         {
           path: 'notes',
@@ -131,7 +131,7 @@ const App: React.FC = () => {
         },
         {
           path: 'note-view/:note_sha',
-          element: withLayout(NoteViewPage)(),
+          element: withLayout(NoteViewPage, true)(),
         },
       ],
     },

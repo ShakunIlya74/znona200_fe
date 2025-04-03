@@ -15,12 +15,20 @@ import {
   Paper,
   alpha,
   InputBase,
-  InputAdornment
+  InputAdornment,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Backdrop
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import CloseIcon from '@mui/icons-material/Close';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { GetTestsData, GetFolderTests, TestCardMeta } from '../services/TestService';
 import { declinateWord } from './utils/utils';
 import LoadingDots from '../components/tools/LoadingDots';
@@ -40,11 +48,144 @@ interface TestsData {
   folder_dicts?: FolderObject[];
 }
 
-
 interface FolderTests {
   success: boolean;
   test_dicts?: TestCardMeta[];
 }
+
+interface TestModalProps {
+  open: boolean;
+  test: TestCardMeta | null;
+  onClose: () => void;
+  onStart: (tfpSha: string) => void;
+}
+
+// Modal component for test start confirmation
+const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart }) => {
+  const theme = useTheme();
+  
+  if (!test) return null;
+  
+  return (
+    <>
+      <Backdrop
+        sx={{
+          zIndex: theme.zIndex.drawer + 1,
+          backgroundColor: alpha(theme.palette.common.black, 0.5),
+          backdropFilter: 'blur(4px)'
+        }}
+        open={open}
+        onClick={onClose}
+      />
+      <Dialog 
+        open={open} 
+        onClose={onClose}
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            boxShadow: `0px 8px 24px ${alpha(theme.palette.common.black, 0.15)}`,
+            maxWidth: '400px',
+            width: '100%',
+            m: 2,
+            position: 'relative',
+            overflow: 'visible'
+          }
+        }}
+        sx={{
+          '& .MuiBackdrop-root': {
+            backgroundColor: 'transparent'
+          }
+        }}
+      >
+        <Box 
+          sx={{ 
+            position: 'absolute', 
+            top: '-12px', 
+            right: '-12px', 
+            zIndex: 1 
+          }}
+        >
+          <IconButton
+            onClick={onClose}
+            sx={{
+              backgroundColor: theme.palette.common.white,
+              boxShadow: `0px 2px 8px ${alpha(theme.palette.common.black, 0.1)}`,
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.grey[100], 0.9)
+              }
+            }}
+            size="small"
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        
+        <DialogTitle 
+          sx={{ 
+            py: 3, 
+            px: 3,
+            borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+          }}
+        >
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontWeight: 600,
+              fontSize: '1.1rem'
+            }}
+          >
+            {test.test_name}
+          </Typography>
+        </DialogTitle>
+        
+        <DialogContent sx={{ py: 3, px: 3 }}>
+          <Typography 
+            variant="body1"
+            sx={{
+              mb: 2,
+              fontWeight: 500
+            }}
+          >
+            {/* todo: Progress bla bla */}
+          </Typography>
+          
+          <Typography 
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 2 }}
+          >
+            Ви готові розпочати тест?
+          </Typography>
+        </DialogContent>
+        
+        <DialogActions 
+          sx={{ 
+            px: 3, 
+            pb: 3, 
+            pt: 1,
+            justifyContent: 'center'
+          }}
+        >
+          <Button 
+            onClick={() => onStart(test.tfp_sha)}
+            variant="contained"
+            startIcon={<PlayArrowIcon />}
+            sx={{
+              borderRadius: '8px',
+              py: 1,
+              px: 3,
+              textTransform: 'none',
+              fontWeight: 600,
+              boxShadow: `0px 2px 4px ${alpha(theme.palette.primary.main, 0.25)}`
+            }}
+          >
+            Почати тест
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+};
 
 const TestsPage: React.FC = () => {
   const theme = useTheme();
@@ -64,6 +205,10 @@ const TestsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [folderLoading, setFolderLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Modal state
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [selectedTest, setSelectedTest] = useState<TestCardMeta | null>(null);
   
   // Create refs for scrolling and sticky behavior
   const folderRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
@@ -195,9 +340,18 @@ const TestsPage: React.FC = () => {
     }
   };
 
-  const handleTestClick = (testId: number, testName: string, tfpSha: string) => {
-    console.log(`Test clicked: ${testName} (ID: ${testId})`);
-    // Navigate to the test view page with the test's tfp_sha parameter
+  const handleTestClick = (test: TestCardMeta) => {
+    console.log(`Test clicked: ${test.test_name} (ID: ${test.test_id})`);
+    setSelectedTest(test);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+
+  const handleStartTest = (tfpSha: string) => {
+    console.log(`Starting test with tfp_sha: ${tfpSha}`);
     navigate(`/test-view/${tfpSha}`);
   };
 
@@ -238,7 +392,7 @@ const TestsPage: React.FC = () => {
                   top: HEADER_OFFSET,
                   zIndex: 3,
                   width: '100%',
-                  borderRadius: '16px', // Increased border radius for more modern look
+                  borderRadius: '16px', // don't change
                   boxShadow: openFolderId === folder.folder_id 
                     ? `0px 2px 8px ${alpha(theme.palette.common.black, 0.08)}` 
                     : `0px 1px 3px ${alpha(theme.palette.common.black, 0.05)}`, // Lighter shadow
@@ -261,7 +415,9 @@ const TestsPage: React.FC = () => {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     pr: 2,
-                    borderRadius: '16px', // Match card border radius
+                    borderRadius: openFolderId === folder.folder_id 
+                      ? '16px 16px 0 0' 
+                      : '16px', // Match card border radius
                     py: 0.5 // Add a bit more vertical padding
                   }}
                 >
@@ -349,7 +505,7 @@ const TestsPage: React.FC = () => {
                       <InputBase
                         inputRef={searchInputRef}
                         fullWidth
-                        placeholder=""
+                        placeholder="Пошук тестів..."
                         value={searchQuery}
                         onChange={handleSearchChange}
                         sx={{
@@ -400,7 +556,7 @@ const TestsPage: React.FC = () => {
                           return (
                             <React.Fragment key={test.test_id}>
                               <ListItemButton
-                                onClick={() => handleTestClick(test.test_id, test.test_name, test.tfp_sha)}
+                                onClick={() => handleTestClick(test)}
                                 sx={{ 
                                   py: 1.5, 
                                   px: 3,
@@ -475,6 +631,14 @@ const TestsPage: React.FC = () => {
           ))}
         </Box>
       )}
+      
+      {/* Test Start Modal */}
+      <TestStartModal 
+        open={modalOpen}
+        test={selectedTest}
+        onClose={handleCloseModal}
+        onStart={handleStartTest}
+      />
     </Container>
   );
 };
