@@ -29,12 +29,13 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import { GetTestsData, GetFolderTests, TestCardMeta } from '../services/TestService';
-import { declinateWord } from './utils/utils';
-import LoadingDots from '../components/tools/LoadingDots';
+import { GetTestsData, GetFolderTests } from '../../services/TestService';
+import { declinateWord } from '../utils/utils';
+import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useNavigate } from 'react-router-dom';
+import { TestCardMeta } from './interfaces';
 
 // Define folder object type
 interface FolderObject {

@@ -1,18 +1,5 @@
+import { TestViewResponse } from "../pages/tests/interfaces";
 import axiosInstance from "./axiosInstance";
-
-export interface TestViewResponse {
-  success: boolean;
-  test_dict?: TestCardMeta;
-  error?: string;
-}
-
-export interface TestCardMeta {
-  test_name: string;
-  test_id: number;
-  tfp_sha: string;
-  folder_id?: number;
-  // Add any additional fields returned by the API
-}
 
 export async function GetTestsData() {
     try {
@@ -49,7 +36,8 @@ export async function GetTestView(tfp_sha: string): Promise<TestViewResponse> {
       const response = await axiosInstance.get('/test-view/' + tfp_sha);
       return {
         success: true,
-        test_dict: response.data.test_dict
+        test_dict: response.data.test_dict,
+        full_test_with_answers: response.data.full_test_with_answers
       };
     }
     catch (err) {
