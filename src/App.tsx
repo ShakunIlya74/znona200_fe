@@ -17,6 +17,7 @@ import NotesPage from './pages/NotesPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import SettingsPage from './pages/settings/SettingsPage';
 import LibraryPage from './pages/LibraryPage';
+import TestViewPage from './pages/TestViewPage';
 
 const withLayout = (Component: React.ComponentType) => () => (
   <>
@@ -100,6 +101,10 @@ const App: React.FC = () => {
         {
           path: 'tests',
           element: withLayout(TestsPage)(),
+        },
+        {
+          path: 'tests-view/:tfp_sha',
+          element: withLayout(TestViewPage)(),
         },
         {
           path: 'webinars',

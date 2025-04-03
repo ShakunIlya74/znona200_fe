@@ -42,6 +42,7 @@ interface LessonsData {
 interface LessonCardMeta {
   lesson_name: string;
   lesson_id: number;
+  lfp_sha: string;
 }
 
 interface FolderLessons {

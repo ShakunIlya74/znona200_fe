@@ -40,6 +40,7 @@ interface MiniLectionsData {
 interface MiniLectionCardMeta {
   minilection_name: string;
   minilection_id: number;
+  minilection_sha: string;
 }
 
 interface FolderMiniLections {

@@ -21,11 +21,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
-import { GetTestsData, GetFolderTests } from '../services/TestService';
+import { GetTestsData, GetFolderTests, TestCardMeta } from '../services/TestService';
 import { declinateWord } from './utils/utils';
 import LoadingDots from '../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useNavigate } from 'react-router-dom';
 
 // Define folder object type
 interface FolderObject {
@@ -39,10 +40,6 @@ interface TestsData {
   folder_dicts?: FolderObject[];
 }
 
-interface TestCardMeta {
-  test_name: string;
-  test_id: number;
-}
 
 interface FolderTests {
   success: boolean;
@@ -51,6 +48,7 @@ interface FolderTests {
 
 const TestsPage: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   
@@ -197,9 +195,10 @@ const TestsPage: React.FC = () => {
     }
   };
 
-  const handleTestClick = (testId: number, testName: string) => {
+  const handleTestClick = (testId: number, testName: string, tfpSha: string) => {
     console.log(`Test clicked: ${testName} (ID: ${testId})`);
-    // Add your navigation or test handling logic here
+    // Navigate to the test view page with the test's tfp_sha parameter
+    navigate(`/tests-view/${tfpSha}`);
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -401,7 +400,7 @@ const TestsPage: React.FC = () => {
                           return (
                             <React.Fragment key={test.test_id}>
                               <ListItemButton
-                                onClick={() => handleTestClick(test.test_id, test.test_name)}
+                                onClick={() => handleTestClick(test.test_id, test.test_name, test.tfp_sha)}
                                 sx={{ 
                                   py: 1.5, 
                                   px: 3,
@@ -455,7 +454,7 @@ const TestsPage: React.FC = () => {
                           color: theme.palette.text.secondary
                         }}
                       >
-                        No tests match your search query.
+                        Жодного тесту не знайдено за вашим пошуковим запитом.
                       </Typography>
                     ) : (
                       <Typography 
@@ -466,7 +465,7 @@ const TestsPage: React.FC = () => {
                           color: theme.palette.text.secondary
                         }}
                       >
-                        No tests available for this folder.
+                        Немає тестів для цієї папки.
                       </Typography>
                     )}
                   </Paper>

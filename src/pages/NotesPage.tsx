@@ -40,6 +40,7 @@ interface NotesData {
 interface NoteCardMeta {
   note_name: string;
   note_id: number;
+  note_sha: string;
 }
 
 interface FolderNotes {
