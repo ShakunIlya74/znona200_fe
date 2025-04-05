@@ -705,7 +705,7 @@ const TestsPage: React.FC = () => {
                           color: theme.palette.text.secondary
                         }}
                       >
-                        Немає тестів для цієї папки.
+                        Немає тестів для цього модуля.
                       </Typography>
                     )}
                   </Paper>
@@ -723,7 +723,7 @@ const TestsPage: React.FC = () => {
             color: theme.palette.text.secondary
           }}
         >
-          Жодної папки не знайдено за вашим пошуковим запитом.
+          Жодного модуля не знайдено за вашим пошуковим запитом.
         </Typography>
       ) : (
         <Typography 

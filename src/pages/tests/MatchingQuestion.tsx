@@ -536,6 +536,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         onDragEnd={handleDragEnd}
       >
         {/* Main matching area - two columns */}
+        {/* TODO: place abcd and 1234 next to the boxes, at least for mobile */}
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' }, // Only column on xs, row from sm upwards
