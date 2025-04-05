@@ -107,7 +107,8 @@ const DroppablePlaceholder = ({
         ref={placeholderRef}
         elevation={0}
         sx={{
-          p: 1.5,
+          py: hasItem ? 5.5 : 5.5, // Increased padding when an item is present
+          px: hasItem ? 1.5 : 0.5,
           mb: 1,
           borderRadius: '8px',
           border: `1px solid ${isOver 
@@ -151,7 +152,8 @@ const VariantBox = ({
     <Paper
       elevation={0}
       sx={{
-        p: 1.5,
+        py: 5.5,
+        px: 1.5,
         mb: 1,
         borderRadius: '8px',
         border: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
@@ -159,10 +161,21 @@ const VariantBox = ({
         height: rowHeight > 0 ? `${rowHeight}px` : 'auto',
         display: 'flex',
         alignItems: 'center',
-        transition: 'all 0.1s ease' // Faster transition time
+        transition: 'all 0.05s ease', // Faster transition time
+        // overflowY: 'auto' // Prevent content from overflowing
       }}
     >
-      <Typography variant="body2">{category.text}</Typography>
+      <Box sx={{ width: '100%' }}>
+        <Typography 
+          variant="body2"
+          sx={{
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word'
+          }}
+        >
+          {category.text}
+        </Typography>
+      </Box>
     </Paper>
   );
 };
@@ -200,7 +213,7 @@ const DroppableOptionsContainer = ({
           flexWrap: 'wrap',
           gap: 1.5,
           alignItems: 'center',
-          transition: 'all 0.2s ease'
+          transition: 'all 0.05s ease'
         }}
       >
         {children}
@@ -242,7 +255,7 @@ const SortableOption = ({
       {...listeners}
       elevation={isDragging ? 4 : 1}
       sx={{
-        p: 1,
+        p: 0.5,
         borderRadius: '6px',
         backgroundColor: isDragging 
           ? alpha(theme.palette.primary.main, 0.1)
@@ -253,6 +266,7 @@ const SortableOption = ({
         minWidth: '120px',
         width: 'fit-content', // Makes the option fit its content
         maxWidth: '100%', // Allow up to full width of container
+        hight: '80%', // Prevent overflow
         cursor: 'grab',
         '&:active': {
           cursor: 'grabbing'
@@ -524,14 +538,14 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         {/* Main matching area - two columns */}
         <Box sx={{ 
           display: 'flex', 
-          flexDirection: { xs: 'column', md: 'row' }, 
-          gap: 2,
+          flexDirection: { xs: 'column', sm: 'row' }, // Only column on xs, row from sm upwards
+          gap: 0,
           mb: 2
         }}>
           {/* Left column - Variants */}
           <Box sx={{ 
-            flex: { md: '0 0 45%' },
-            mr: { md: 2 }
+            flex: { sm: '0 0 45%' },
+            mr: { sm: 2 }
           }}>
             <Typography variant="subtitle1" sx={{ 
               mb: 1, 
@@ -544,19 +558,18 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
             
             {sortedCategories.map((category, index) => (
               <VariantBox
-                key={`variant-${category.id}`}
-                category={category}
-                theme={theme}
-                rowHeight={rowHeights[index] || 0}
+          key={`variant-${category.id}`}
+          category={category}
+          theme={theme}
+          rowHeight={rowHeights[index] || 0}
               />
             ))}
           </Box>
           
           {/* Right column - Placeholders for answers */}
           <Box sx={{ 
-            flex: { md: '0 0 55%' },
+            flex: { sm: '0 0 55%' },
             width: '100%'
-            // Removed overflowX: 'auto' to allow full expansion
           }}>
             <Typography variant="subtitle1" sx={{ 
               mb: 1, 
@@ -571,24 +584,24 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
               const placeholderId = `placeholder-${category.id}`;
               const hasItem = !!matchedOptions[category.id];
               return (
-                <Box key={placeholderId} sx={{ width: '100%' }}>
-                  <DroppablePlaceholder 
-                    id={placeholderId}
-                    hasItem={hasItem}
-                    theme={theme}
-                    rowIndex={index}
-                    updateRowHeight={updateRowHeight}
-                    rowHeight={rowHeights[index] || 0}
-                  >
-                    {matchedOptions[category.id] && (
-                      <SortableOption 
-                        id={`matched-${matchedOptions[category.id]!.id}-${category.id}`}
-                        option={matchedOptions[category.id]!}
-                        theme={theme}
-                      />
-                    )}
-                  </DroppablePlaceholder>
-                </Box>
+          <Box key={placeholderId} sx={{ width: '100%' }}>
+            <DroppablePlaceholder 
+              id={placeholderId}
+              hasItem={hasItem}
+              theme={theme}
+              rowIndex={index}
+              updateRowHeight={updateRowHeight}
+              rowHeight={rowHeights[index] || 0}
+            >
+              {matchedOptions[category.id] && (
+                <SortableOption 
+            id={`matched-${matchedOptions[category.id]!.id}-${category.id}`}
+            option={matchedOptions[category.id]!}
+            theme={theme}
+                />
+              )}
+            </DroppablePlaceholder>
+          </Box>
               );
             })}
           </Box>
