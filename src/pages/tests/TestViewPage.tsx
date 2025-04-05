@@ -8,7 +8,14 @@ import {
   useTheme,
   useMediaQuery,
   Divider,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  Backdrop
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -17,6 +24,9 @@ import LoadingDots from '../../components/tools/LoadingDots';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import CloseIcon from '@mui/icons-material/Close';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { getHeaderOffset } from '../../components/Header';
 import { FullTestWithAnswers, Question, TestCardMeta, MatchAnswer, UserTestResponse } from './interfaces';
 import MultipleChoiceQuestion from './MultipleChoiceQuestion';
@@ -66,6 +76,26 @@ const NavButton = styled(Button)(({ theme }) => ({
   }
 }));
 
+const ActionButton = styled(Button)(({ theme }) => ({
+  borderRadius: '8px',
+  padding: '10px 24px',
+  margin: '16px 0',
+  backgroundColor: theme.palette.common.white,
+  color: theme.palette.primary.main,
+  fontWeight: 600,
+  border: `1px solid ${theme.palette.primary.main}`,
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+  },
+  '&.exit-button': {
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.common.white,
+    '&:hover': {
+      backgroundColor: alpha(theme.palette.primary.main, 0.8),
+    },
+  },
+}));
+
 // Interface for user responses to be stored in state
 interface UserResponses {
   [questionId: number]: {
@@ -83,6 +113,7 @@ const TestViewPage: React.FC = () => {
   const [testWithAnswers, setTestWithAnswers] = useState<FullTestWithAnswers | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [userResponses, setUserResponses] = useState<UserResponses>({});
+  const [cautionDialogOpen, setCautionDialogOpen] = useState<boolean>(false);
 
   const theme = useTheme();
   const navigate = useNavigate();
@@ -185,7 +216,12 @@ const TestViewPage: React.FC = () => {
   };
 
   const handleBackClick = () => {
-    navigate('/tests');
+    // Check if all questions have been answered
+    if (testWithAnswers && !areAllQuestionsAnswered()) {
+      setCautionDialogOpen(true);
+    } else {
+      navigate('/tests');
+    }
   };
 
   const handleQuestionSelect = (index: number) => {
@@ -202,27 +238,46 @@ const TestViewPage: React.FC = () => {
     if (testWithAnswers && currentQuestionIndex < testWithAnswers.questions.length - 1) {
       // Log current user responses
       console.log('Current user responses:', userResponses);
-
+      
       // Move to next question
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  const handleActionButtonClick = () => {
+    if (testWithAnswers && currentQuestionIndex < testWithAnswers.questions.length - 1) {
+      // Not the last question, act as "Next"
+      handleNextQuestion();
+    } else {
+      // Last question, act as "Back to Tests"
+      handleBackClick();
     }
   };
 
   // Helper function to check if a question has been answered
   const isQuestionAnswered = (questionId: number): boolean => {
     const response = userResponses[questionId];
-
+    
     if (!response) return false;
-
+    
     if (response.selectedOptions && response.selectedOptions.length > 0) {
       return true;
     }
-
+    
     if (response.matches && response.matches.length > 0) {
       return true;
     }
-
+    
     return false;
+  };
+
+  // Check if all questions have been answered
+  const areAllQuestionsAnswered = (): boolean => {
+    if (!testWithAnswers) return false;
+    
+    return testWithAnswers.questions.every(question => 
+      isQuestionAnswered(question.question_id)
+    );
   };
 
   return (
@@ -249,7 +304,7 @@ const TestViewPage: React.FC = () => {
           onClick={handleBackClick}
           sx={{ color: theme.palette.primary.main }}
         >
-          Back to Tests
+          Назад до тестів
         </Button>
 
         {testData && (
@@ -396,6 +451,24 @@ const TestViewPage: React.FC = () => {
                 </NavButton>
               </Box>
 
+              {/* Action button below navigation */}
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                mt: 1,
+                px: 1
+              }}>
+                <ActionButton
+                  fullWidth
+                  className={currentQuestionIndex >= testWithAnswers.questions.length - 1 ? 'exit-button' : ''}
+                  startIcon={currentQuestionIndex >= testWithAnswers.questions.length - 1 ? <ExitToAppIcon /> : <ArrowForwardIcon />}
+                  onClick={handleActionButtonClick}
+                >
+                  {currentQuestionIndex >= testWithAnswers.questions.length - 1 
+                    ? 'Завершити тест' 
+                    : 'Наступне питання'}
+                </ActionButton>
+              </Box>
             </Box>
 
             {/* Question Display */}
@@ -510,6 +583,135 @@ const TestViewPage: React.FC = () => {
           No test data available
         </Typography>
       )}
+
+      {/* Caution Dialog */}
+      <>
+        <Backdrop
+          sx={{
+            zIndex: theme.zIndex.drawer + 1,
+            backgroundColor: alpha(theme.palette.common.black, 0.5),
+            backdropFilter: 'blur(4px)'
+          }}
+          open={cautionDialogOpen}
+          onClick={() => setCautionDialogOpen(false)}
+        />
+        <Dialog
+          open={cautionDialogOpen}
+          onClose={() => setCautionDialogOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: '16px',
+              boxShadow: `0px 8px 24px ${alpha(theme.palette.common.black, 0.15)}`,
+              maxWidth: '400px',
+              width: '100%',
+              m: 2,
+              position: 'relative',
+              overflow: 'visible'
+            }
+          }}
+          sx={{
+            '& .MuiBackdrop-root': {
+              backgroundColor: 'transparent'
+            }
+          }}
+        >
+          <Box 
+            sx={{ 
+              position: 'absolute', 
+              top: '-12px', 
+              right: '-12px', 
+              zIndex: 1 
+            }}
+          >
+            <IconButton
+              onClick={() => setCautionDialogOpen(false)}
+              sx={{
+                backgroundColor: theme.palette.common.white,
+                boxShadow: `0px 2px 8px ${alpha(theme.palette.common.black, 0.1)}`,
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.grey[100], 0.9)
+                }
+              }}
+              size="small"
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <DialogTitle 
+            sx={{ 
+              py: 3, 
+              px: 3,
+              borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <WarningAmberIcon sx={{ color: theme.palette.warning.main }} />
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 600,
+                  fontSize: '1.1rem'
+                }}
+              >
+                Увага! Не всі питання мають відповіді
+              </Typography>
+            </Box>
+          </DialogTitle>
+          
+          <DialogContent sx={{ py: 3, px: 3 }}>
+            <Typography 
+              variant="body2"
+              color="text.secondary"
+              sx={{ mb: 2 }}
+            >
+              Тест не буде збережено, доки не надано відповіді на всі питання. Ви впевнені, що хочете вийти?
+            </Typography>
+          </DialogContent>
+          
+          <DialogActions 
+            sx={{ 
+              px: 3, 
+              pb: 3, 
+              pt: 1,
+              justifyContent: 'space-between'
+            }}
+          >
+            <Button 
+              onClick={() => setCautionDialogOpen(false)}
+              variant="outlined"
+              sx={{
+                borderRadius: '8px',
+                py: 1,
+                px: 3,
+                textTransform: 'none',
+                fontWeight: 600,
+                borderColor: alpha(theme.palette.grey[300], 0.8),
+                color: theme.palette.text.primary
+              }}
+            >
+              Назад до тесту
+            </Button>
+            
+            <Button 
+              onClick={() => navigate('/tests')}
+              variant="contained"
+              color="error"
+              startIcon={<ExitToAppIcon />}
+              sx={{
+                borderRadius: '8px',
+                py: 1,
+                px: 3,
+                textTransform: 'none',
+                fontWeight: 600,
+                boxShadow: `0px 2px 4px ${alpha(theme.palette.error.main, 0.25)}`
+              }}
+            >
+              Вийти без збереження
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </>
     </Container>
   );
 };
