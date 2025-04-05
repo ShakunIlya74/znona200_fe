@@ -198,6 +198,8 @@ const TestsPage: React.FC = () => {
   const HEADER_OFFSET = isMobile ? 50 : isMedium ? 70 : 100;
 
   const [folderList, setFolderList] = useState<FolderObject[]>([]);
+  const [filteredFolderList, setFilteredFolderList] = useState<FolderObject[]>([]);
+  const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
   const [openFolderId, setOpenFolderId] = useState<number | null>(null);
   const [previousFolderId, setPreviousFolderId] = useState<number | null>(null);
   const [folderTests, setFolderTests] = useState<TestCardMeta[]>([]);
@@ -215,6 +217,7 @@ const TestsPage: React.FC = () => {
   const folderRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
   const testListRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const folderSearchInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize refs for each folder
   useEffect(() => {
@@ -233,6 +236,7 @@ const TestsPage: React.FC = () => {
         const res = await GetTestsData() as TestsData;
         if (res.success && res.folder_dicts) {
           setFolderList(res.folder_dicts);
+          setFilteredFolderList(res.folder_dicts);
         } else {
           setError('Failed to load folders');
         }
@@ -246,6 +250,20 @@ const TestsPage: React.FC = () => {
 
     loadTestsData();
   }, []);
+
+  // Filter folders when folder search query changes
+  useEffect(() => {
+    if (!folderSearchQuery.trim()) {
+      setFilteredFolderList(folderList);
+      return;
+    }
+
+    const query = folderSearchQuery.toLowerCase();
+    const filtered = folderList.filter(folder => 
+      folder.folder_name.toLowerCase().includes(query)
+    );
+    setFilteredFolderList(filtered);
+  }, [folderSearchQuery, folderList]);
 
   // When folder tests change, reset search and update filtered tests
   useEffect(() => {
@@ -365,20 +383,85 @@ const TestsPage: React.FC = () => {
     searchInputRef.current?.focus();
   };
 
+  const handleFolderSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFolderSearchQuery(event.target.value);
+  };
+
+  const clearFolderSearch = () => {
+    setFolderSearchQuery('');
+    folderSearchInputRef.current?.focus();
+  };
+
   // Find the original index of a test in the unfiltered list
   const getOriginalIndex = (testId: number) => {
     return folderTests.findIndex(test => test.test_id === testId);
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 1 }}>      
+    <Container maxWidth="lg" sx={{ py: 1 }}>
+      {/* Folder Search Bar */}
+      {!loading && !error && folderList.length > 0 && (
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            mb: 3,
+            p: 1.5, 
+            borderRadius: '16px',
+            backgroundColor: alpha(theme.palette.primary.main, 0.03),
+            border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+            boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.05)}`
+          }}
+        >
+          <InputBase
+            inputRef={folderSearchInputRef}
+            fullWidth
+            placeholder="Пошук модулей..."
+            value={folderSearchQuery}
+            onChange={handleFolderSearchChange}
+            sx={{
+              backgroundColor: theme.palette.common.white,
+              borderRadius: '8px',
+              px: 2,
+              py: 0.5,
+              '& .MuiInputBase-input': {
+                transition: theme.transitions.create('width'),
+              },
+              boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.04)}`,
+              border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+            }}
+            startAdornment={
+              <InputAdornment position="start">
+                <SearchIcon color="action" sx={{ opacity: 0.6 }} />
+              </InputAdornment>
+            }
+            endAdornment={
+              folderSearchQuery && (
+                <InputAdornment position="end">
+                  <IconButton 
+                    size="small" 
+                    edge="end" 
+                    onClick={clearFolderSearch}
+                    sx={{ 
+                      opacity: 0.6,
+                      '&:hover': { opacity: 1 }
+                    }}
+                  >
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }
+          />
+        </Paper>
+      )}
+      
       {loading ? (
         <LoadingDots />
       ) : error ? (
         <Typography color="error">{error}</Typography>
-      ) : (
+      ) : filteredFolderList.length > 0 ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {folderList.map((folder) => (
+          {filteredFolderList.map((folder) => (
             <Box 
               key={folder.folder_id}
               ref={folderRefs.current[folder.folder_id] || (folderRefs.current[folder.folder_id] = React.createRef())}
@@ -495,7 +578,7 @@ const TestsPage: React.FC = () => {
                       marginTop: '-1px',
                     }}
                   >
-                    {/* Search Bar */}
+                    {/* Test Search Bar */}
                     <Box 
                       sx={{ 
                         p: 1.5, 
@@ -631,6 +714,28 @@ const TestsPage: React.FC = () => {
             </Box>
           ))}
         </Box>
+      ) : folderList.length > 0 ? (
+        <Typography 
+          sx={{ 
+            py: 3, 
+            px: 3, 
+            textAlign: 'center',
+            color: theme.palette.text.secondary
+          }}
+        >
+          Жодної папки не знайдено за вашим пошуковим запитом.
+        </Typography>
+      ) : (
+        <Typography 
+          sx={{ 
+            py: 3, 
+            px: 3, 
+            textAlign: 'center',
+            color: theme.palette.text.secondary
+          }}
+        >
+          Немає доступних папок з тестами.
+        </Typography>
       )}
       
       {/* Test Start Modal */}
