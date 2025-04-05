@@ -330,6 +330,10 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         // If there was an option already in the destination, add it back to available options
         if (existingOption) {
           newAvailableOptions.push(existingOption);
+          
+          // Also notify parent component about the removal of the existing option
+          // from this category before we assign the new one
+          onMatchSelect(questionId, existingOption.id, 0);
         }
         
         // Put the dragged option in the destination
@@ -352,6 +356,14 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         // Create new matched options state
         const newMatchedOptions = {...matchedOptions};
         
+        // If there was an option in the destination, first notify that it's being moved
+        if (destOption) {
+          onMatchSelect(questionId, destOption.id, 0);
+        }
+        
+        // Notify that the source option is being removed from its current category
+        onMatchSelect(questionId, option.id, 0);
+        
         // Swap options (or just move if destination was empty)
         newMatchedOptions[sourceCategoryId] = destOption;
         newMatchedOptions[categoryId] = option;
@@ -359,7 +371,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         // Update state
         setMatchedOptions(newMatchedOptions);
         
-        // Notify parent component
+        // Notify parent component that options are being assigned to new categories
         onMatchSelect(questionId, option.id, categoryId);
         
         // If there was an option in the destination, update that match too
