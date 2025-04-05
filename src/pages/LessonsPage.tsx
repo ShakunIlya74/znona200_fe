@@ -282,7 +282,7 @@ const LessonsPage: React.FC = () => {
                         fontSize: '0.9rem'
                       }}
                     >
-                      На цьому етапі доступно {declinateWord(folder.elements_count, 'урок')}.
+                      На цьому етапі доступно {declinateWord(folder.elements_count, 'вебінар')}.
                     </Typography>
                   </CardContent>
                   <IconButton 

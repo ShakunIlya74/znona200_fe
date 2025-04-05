@@ -2,9 +2,8 @@ import React from 'react';
 import { 
   Box, 
   Typography, 
-  Checkbox, 
+  Radio,
   FormControlLabel,
-  Button,
   useTheme
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -14,25 +13,13 @@ import { MultipleChoiceOption } from './interfaces';
 // Answer labels for options
 const ANSWER_LABELS = ['А', 'Б', 'В', 'Г', 'Д'];
 
-// Use proper TypeScript interface for custom props
-interface OptionButtonProps {
-  selected?: boolean;
-}
-
-const OptionButton = styled(Button, {
-  shouldForwardProp: (prop) => prop !== 'selected',
-})<OptionButtonProps>(({ theme, selected }) => ({
-  width: '40px',
-  height: '40px',
-  margin: '0 8px',
-  borderRadius: '8px',
-  fontWeight: 'bold',
-  backgroundColor: selected ? theme.palette.primary.main : 'transparent',
-  border: `1px solid ${selected ? theme.palette.primary.main : theme.palette.grey[300]}`,
-  color: selected ? theme.palette.primary.contrastText : theme.palette.text.primary,
-  '&:hover': {
-    backgroundColor: selected ? theme.palette.primary.dark : alpha(theme.palette.primary.main, 0.1),
+// Custom styled Radio component for circular selection
+const CircleRadio = styled(Radio)(({ theme }) => ({
+  color: theme.palette.grey[400],
+  '&.Mui-checked': {
+    color: theme.palette.primary.main,
   },
+  padding: '9px',
 }));
 
 interface MultipleChoiceQuestionProps {
@@ -96,14 +83,12 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
           >
             <FormControlLabel
               control={
-                <Checkbox 
+                <CircleRadio 
                   checked={isOptionSelected(option.id)}
-                  onChange={() => onOptionSelect(questionId, option.id)}
-                  sx={{ 
-                    color: theme.palette.primary.main,
-                    '&.Mui-checked': {
-                      color: theme.palette.primary.main,
-                    },
+                  onClick={(e) => {
+                    // Stop propagation to prevent double handling
+                    e.stopPropagation();
+                    onOptionSelect(questionId, option.id);
                   }}
                 />
               }
@@ -115,26 +100,18 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
                   {option.text}
                 </Typography>
               }
+              sx={{ 
+                margin: 0,
+                width: '100%',
+                // Make the entire label clickable
+                '& .MuiFormControlLabel-label': {
+                  width: '100%',
+                  cursor: 'pointer'
+                }
+              }}
+              onClick={() => onOptionSelect(questionId, option.id)}
             />
           </Box>
-        ))}
-      </Box>
-      
-      {/* Option selection row */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        mb: 2,
-        mt: 3
-      }}>
-        {options.map((option, index) => (
-          <OptionButton
-            key={option.id}
-            selected={isOptionSelected(option.id)}
-            onClick={() => onOptionSelect(questionId, option.id)}
-          >
-            {ANSWER_LABELS[index]}
-          </OptionButton>
         ))}
       </Box>
     </Box>
