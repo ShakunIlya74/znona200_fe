@@ -21,7 +21,8 @@ import {
   DragOverEvent,
   DragStartEvent,
   UniqueIdentifier,
-  DragOverlay
+  DragOverlay,
+  useDroppable
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -42,55 +43,92 @@ interface MatchingQuestionProps {
   onMatchSelect: (questionId: number, optionId: number, categoryId: number) => void;
 }
 
-// Droppable container for options
-const DroppableContainer = ({ 
+// Custom droppable placeholder for the category items
+const DroppablePlaceholder = ({ 
   id, 
   children, 
-  isPlaceholder = false,
   hasItem = false,
-  isDraggingOver = false,
   theme 
 }: { 
   id: string; 
   children: React.ReactNode; 
-  isPlaceholder?: boolean;
   hasItem?: boolean;
-  isDraggingOver?: boolean;
   theme: any;
 }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id
+  });
+
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 1.5,
-        mb: 1,
-        borderRadius: '8px',
-        border: `1px solid ${isDraggingOver 
-          ? theme.palette.primary.main 
-          : hasItem && isPlaceholder
-            ? theme.palette.primary.light
-            : alpha(theme.palette.grey[300], 0.8)}`,
-        backgroundColor: isDraggingOver 
-          ? alpha(theme.palette.primary.main, 0.05)
-          : hasItem && isPlaceholder
-            ? alpha(theme.palette.primary.light, 0.05)
-            : isPlaceholder 
-              ? 'transparent'
-              : alpha(theme.palette.grey[100], 0.3),
-        minHeight: '40px',
-        display: 'flex',
-        alignItems: 'center',
-        transition: 'all 0.2s ease',
-        ...(isPlaceholder ? {
+    <div ref={setNodeRef}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 1.5,
+          mb: 1,
+          borderRadius: '8px',
+          border: `1px solid ${isOver 
+            ? theme.palette.primary.main 
+            : hasItem
+              ? theme.palette.primary.light
+              : alpha(theme.palette.grey[300], 0.8)}`,
+          backgroundColor: isOver 
+            ? alpha(theme.palette.primary.main, 0.05)
+            : hasItem
+              ? alpha(theme.palette.primary.light, 0.05)
+              : 'transparent',
+          minHeight: '40px',
+          display: 'flex',
+          alignItems: 'center',
+          transition: 'all 0.2s ease',
           flexDirection: 'row'
-        } : {
+        }}
+      >
+        {children}
+      </Paper>
+    </div>
+  );
+};
+
+// Droppable container for the available options
+const DroppableOptionsContainer = ({ 
+  id, 
+  children, 
+  theme 
+}: { 
+  id: string; 
+  children: React.ReactNode; 
+  theme: any;
+}) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id
+  });
+
+  return (
+    <div ref={setNodeRef}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 1.5,
+          mb: 1,
+          borderRadius: '8px',
+          border: `1px solid ${isOver 
+            ? theme.palette.primary.main 
+            : alpha(theme.palette.grey[400], 0.5)}`,
+          backgroundColor: isOver 
+            ? alpha(theme.palette.primary.main, 0.05)
+            : alpha(theme.palette.grey[100], 0.3),
+          minHeight: '50px',
+          display: 'flex',
           flexWrap: 'wrap',
-          gap: 1.5
-        })
-      }}
-    >
-      {children}
-    </Paper>
+          gap: 1.5,
+          alignItems: 'center',
+          transition: 'all 0.2s ease'
+        }}
+      >
+        {children}
+      </Paper>
+    </div>
   );
 };
 
@@ -173,7 +211,6 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   // Track active dragging item
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activeOption, setActiveOption] = useState<MatchingOption | null>(null);
-  const [isDraggingOver, setIsDraggingOver] = useState<string | null>(null);
 
   // Configure sensors for drag and drop
   const sensors = useSensors(
@@ -221,40 +258,36 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   }, [options, categories, matches]);
 
   // Get option from ID
-  const getOptionFromId = (id: UniqueIdentifier): MatchingOption | null => {
+  const getOptionFromId = (id: UniqueIdentifier): { option: MatchingOption | null, categoryId?: number } => {
     const idStr = id.toString();
     
     // Handle available options
     if (idStr.startsWith('option-')) {
       const optionId = parseInt(idStr.replace('option-', ''), 10);
-      return availableOptions.find(opt => opt.id === optionId) || null;
+      const option = availableOptions.find(opt => opt.id === optionId) || null;
+      return { option };
     }
     
     // Handle matched options
     if (idStr.startsWith('matched-')) {
       const parts = idStr.replace('matched-', '').split('-');
+      const optionId = parseInt(parts[0], 10);
       const categoryId = parseInt(parts[1], 10);
-      return matchedOptions[categoryId] || null;
+      const option = matchedOptions[categoryId] || null;
+      
+      return { option, categoryId };
     }
     
-    return null;
+    return { option: null };
   };
 
   // Handle drag start
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id);
-    setActiveOption(getOptionFromId(active.id));
-  };
-
-  // Handle drag over
-  const handleDragOver = (event: DragOverEvent) => {
-    const { over } = event;
-    if (over) {
-      setIsDraggingOver(over.id.toString());
-    } else {
-      setIsDraggingOver(null);
-    }
+    
+    const { option } = getOptionFromId(active.id);
+    setActiveOption(option);
   };
   
   // Handle drag end
@@ -262,7 +295,6 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     const { active, over } = event;
     setActiveId(null);
     setActiveOption(null);
-    setIsDraggingOver(null);
     
     if (!over) return;
 
@@ -273,7 +305,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     if (activeId === overId) return;
     
     // Get the option being dragged
-    const option = getOptionFromId(activeId);
+    const { option, categoryId: sourceCategoryId } = getOptionFromId(activeId);
     if (!option) return;
 
     // Handle drop to a category placeholder
@@ -311,10 +343,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         onMatchSelect(questionId, option.id, categoryId);
       }
       // If drag from another category
-      else if (activeId.startsWith('matched-')) {
-        const parts = activeId.replace('matched-', '').split('-');
-        const sourceCategoryId = parseInt(parts[1], 10);
-        
+      else if (activeId.startsWith('matched-') && sourceCategoryId !== undefined) {
         // Don't do anything if dropping in the same category
         if (sourceCategoryId === categoryId) return;
         
@@ -340,10 +369,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
       }
     }
     // Handle drop to available options area
-    else if (overId === 'availableOptions' && activeId.startsWith('matched-')) {
-      const parts = activeId.replace('matched-', '').split('-');
-      const categoryId = parseInt(parts[1], 10);
-      
+    else if (overId === 'availableOptions' && activeId.startsWith('matched-') && sourceCategoryId !== undefined) {
       // Create new state objects
       const newAvailableOptions = [...availableOptions];
       const newMatchedOptions = {...matchedOptions};
@@ -352,7 +378,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
       newAvailableOptions.push(option);
       
       // Remove the option from matched options
-      newMatchedOptions[categoryId] = null;
+      newMatchedOptions[sourceCategoryId] = null;
       
       // Update state
       setAvailableOptions(newAvailableOptions);
@@ -391,7 +417,6 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         {/* Main matching area - two columns */}
@@ -452,23 +477,19 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
               const hasItem = !!matchedOptions[category.id];
               return (
                 <Box key={placeholderId}>
-                  <DroppableContainer 
+                  <DroppablePlaceholder 
                     id={placeholderId}
-                    isPlaceholder={true}
                     hasItem={hasItem}
-                    isDraggingOver={isDraggingOver === placeholderId}
                     theme={theme}
                   >
                     {matchedOptions[category.id] && (
-                      <SortableContext items={[getMatchedOptionId(category.id)]}>
-                        <SortableOption 
-                          id={getMatchedOptionId(category.id)}
-                          option={matchedOptions[category.id]!}
-                          theme={theme}
-                        />
-                      </SortableContext>
+                      <SortableOption 
+                        id={`matched-${matchedOptions[category.id]!.id}-${category.id}`}
+                        option={matchedOptions[category.id]!}
+                        theme={theme}
+                      />
                     )}
-                  </DroppableContainer>
+                  </DroppablePlaceholder>
                 </Box>
               );
             })}
@@ -486,25 +507,19 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
             Перетягніть варіанти відповідей:
           </Typography>
           
-          <DroppableContainer 
+          <DroppableOptionsContainer 
             id="availableOptions"
-            isDraggingOver={isDraggingOver === "availableOptions"}
             theme={theme}
           >
-            <SortableContext 
-              items={availableOptionIds}
-              strategy={horizontalListSortingStrategy}
-            >
-              {availableOptions.map((option) => (
-                <SortableOption 
-                  key={`option-${option.id}`}
-                  id={`option-${option.id}`}
-                  option={option}
-                  theme={theme}
-                />
-              ))}
-            </SortableContext>
-          </DroppableContainer>
+            {availableOptions.map((option) => (
+              <SortableOption 
+                key={`option-${option.id}`}
+                id={`option-${option.id}`}
+                option={option}
+                theme={theme}
+              />
+            ))}
+          </DroppableOptionsContainer>
         </Box>
 
         {/* Drag Overlay */}
