@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   Box, 
   Typography,
@@ -43,25 +43,68 @@ interface MatchingQuestionProps {
   onMatchSelect: (questionId: number, optionId: number, categoryId: number) => void;
 }
 
+// Interface for the row height state
+interface RowHeights {
+  [rowIndex: number]: number;
+}
+
 // Custom droppable placeholder for the category items
 const DroppablePlaceholder = ({ 
   id, 
   children, 
   hasItem = false,
-  theme 
+  theme,
+  rowIndex,
+  updateRowHeight,
+  rowHeight
 }: { 
   id: string; 
   children: React.ReactNode; 
   hasItem?: boolean;
   theme: any;
+  rowIndex: number;
+  updateRowHeight: (index: number, height: number) => void;
+  rowHeight: number;
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id
   });
+  
+  const placeholderRef = useRef<HTMLDivElement>(null);
+  
+  // Update row height when content changes
+  useEffect(() => {
+    const updateHeight = () => {
+      if (placeholderRef.current) {
+        // Get the actual content height
+        const height = placeholderRef.current.scrollHeight;
+        updateRowHeight(rowIndex, height);
+      }
+    };
+    
+    // Update on initial render and when children change
+    updateHeight();
+    
+    // Also set up a resize observer to detect content height changes
+    const resizeObserver = new ResizeObserver(() => {
+      updateHeight();
+    });
+    
+    if (placeholderRef.current) {
+      resizeObserver.observe(placeholderRef.current);
+    }
+    
+    return () => {
+      if (placeholderRef.current) {
+        resizeObserver.unobserve(placeholderRef.current);
+      }
+    };
+  }, [children, updateRowHeight, rowIndex]);
 
   return (
-    <div ref={setNodeRef}>
+    <div ref={setNodeRef} style={{ width: '100%' }}>
       <Paper
+        ref={placeholderRef}
         elevation={0}
         sx={{
           p: 1.5,
@@ -78,15 +121,49 @@ const DroppablePlaceholder = ({
               ? alpha(theme.palette.primary.light, 0.05)
               : 'transparent',
           minHeight: '40px',
+          height: rowHeight > 0 ? `${rowHeight}px` : 'auto',
           display: 'flex',
           alignItems: 'center',
-          transition: 'all 0.2s ease',
-          flexDirection: 'row'
+          transition: 'all 0.05s ease', // Faster transition time
+          flexDirection: 'row',
+          width: '100%',
+          overflowX: 'visible', // Changed from 'auto' to 'visible'
+          whiteSpace: 'normal'
         }}
       >
         {children}
       </Paper>
     </div>
+  );
+};
+
+// Variant box component that syncs height with placeholder
+const VariantBox = ({
+  category,
+  theme,
+  rowHeight
+}: {
+  category: MatchingCategory;
+  theme: any;
+  rowHeight: number;
+}) => {
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 1.5,
+        mb: 1,
+        borderRadius: '8px',
+        border: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
+        minHeight: '40px',
+        height: rowHeight > 0 ? `${rowHeight}px` : 'auto',
+        display: 'flex',
+        alignItems: 'center',
+        transition: 'all 0.1s ease' // Faster transition time
+      }}
+    >
+      <Typography variant="body2">{category.text}</Typography>
+    </Paper>
   );
 };
 
@@ -174,9 +251,8 @@ const SortableOption = ({
           ? theme.palette.primary.main 
           : alpha(theme.palette.grey[300], 0.8)}`,
         minWidth: '120px',
-        maxWidth: '250px',
-        // transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        // transform: isDragging ? 'scale(1.02)' : 'scale(1)',
+        width: 'fit-content', // Makes the option fit its content
+        maxWidth: '100%', // Allow up to full width of container
         cursor: 'grab',
         '&:active': {
           cursor: 'grabbing'
@@ -211,6 +287,20 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   // Track active dragging item
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activeOption, setActiveOption] = useState<MatchingOption | null>(null);
+
+  // State to track row heights for synchronized sizing
+  const [rowHeights, setRowHeights] = useState<RowHeights>({});
+
+  // Function to update row heights
+  const updateRowHeight = (rowIndex: number, height: number) => {
+    setRowHeights(prev => {
+      // Always update the height to match the current content
+      return {
+        ...prev,
+        [rowIndex]: height
+      };
+    });
+  };
 
   // Configure sensors for drag and drop
   const sensors = useSensors(
@@ -452,28 +542,21 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
               Варіанти:
             </Typography>
             
-            {sortedCategories.map((category) => (
-              <Paper
+            {sortedCategories.map((category, index) => (
+              <VariantBox
                 key={`variant-${category.id}`}
-                elevation={0}
-                sx={{
-                  p: 1.5,
-                  mb: 1,
-                  borderRadius: '8px',
-                  border: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
-                  minHeight: '40px',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
-                <Typography variant="body2">{category.text}</Typography>
-              </Paper>
+                category={category}
+                theme={theme}
+                rowHeight={rowHeights[index] || 0}
+              />
             ))}
           </Box>
           
           {/* Right column - Placeholders for answers */}
           <Box sx={{ 
-            flex: { md: '0 0 55%' } 
+            flex: { md: '0 0 55%' },
+            width: '100%'
+            // Removed overflowX: 'auto' to allow full expansion
           }}>
             <Typography variant="subtitle1" sx={{ 
               mb: 1, 
@@ -484,15 +567,18 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
               Відповідності:
             </Typography>
             
-            {sortedCategories.map((category) => {
+            {sortedCategories.map((category, index) => {
               const placeholderId = `placeholder-${category.id}`;
               const hasItem = !!matchedOptions[category.id];
               return (
-                <Box key={placeholderId}>
+                <Box key={placeholderId} sx={{ width: '100%' }}>
                   <DroppablePlaceholder 
                     id={placeholderId}
                     hasItem={hasItem}
                     theme={theme}
+                    rowIndex={index}
+                    updateRowHeight={updateRowHeight}
+                    rowHeight={rowHeights[index] || 0}
                   >
                     {matchedOptions[category.id] && (
                       <SortableOption 
