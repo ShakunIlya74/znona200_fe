@@ -20,13 +20,7 @@ export interface TestViewResponse {
   }
   
   export interface FullTestWithAnswers {
-    test: {
-      test_id: number;
-      test_name: string;
-      test_type: string;
-      is_mixed: boolean;
-      created_at: string;
-    };
+    test: TestCardMeta;
     questions: Question[];
   }
   

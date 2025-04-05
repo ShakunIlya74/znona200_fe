@@ -36,7 +36,7 @@ export async function GetTestView(tfp_sha: string): Promise<TestViewResponse> {
       const response = await axiosInstance.get('/test-view/' + tfp_sha);
       return {
         success: true,
-        test_dict: response.data.test_dict,
+        // test_dict: response.data.test_dict,
         full_test_with_answers: response.data.full_test_with_answers
       };
     }
