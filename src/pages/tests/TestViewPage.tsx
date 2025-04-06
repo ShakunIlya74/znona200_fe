@@ -217,12 +217,12 @@ const TestViewPage: React.FC = () => {
   const handleBackClick = () => {
     // Check if all questions have been answered
     //TODO: is it a fair requirment?
-    // handleEndAndSave();
-    if (testWithAnswers && !areAllQuestionsAnswered()) {
-      setCautionDialogOpen(true);
-    } else {
-      handleEndAndSave();
-    }
+    handleEndAndSave();
+    // if (testWithAnswers && !areAllQuestionsAnswered()) {
+    //   setCautionDialogOpen(true);
+    // } else {
+    //   handleEndAndSave();
+    // }
   };
 
   const handleEndAndSave = async () => {
