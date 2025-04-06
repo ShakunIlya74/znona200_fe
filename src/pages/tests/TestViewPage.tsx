@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GetTestView } from '../../services/TestService';
+import { GetTestView, SubmitTestAnswers } from '../../services/TestService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -140,16 +140,15 @@ const TestViewPage: React.FC = () => {
 
           // Initialize user responses from existing data if available
           const initialResponses: UserResponses = {};
-
-          response.full_test_with_answers.questions.forEach(question => {
-            if (question.user_answer) {
-              initialResponses[question.question_id] = {
-                questionId: question.question_id,
-                selectedOptions: question.user_answer.response?.selected_options,
-                matches: question.user_answer.response?.matches
-              };
-            }
-          });
+          // response.full_test_with_answers.questions.forEach(question => {
+          //   if (question.user_answer) {
+          //     initialResponses[question.question_id] = {
+          //       questionId: question.question_id,
+          //       selectedOptions: question.user_answer.response?.selected_options,
+          //       matches: question.user_answer.response?.matches
+          //     };
+          //   }
+          // });
 
           setUserResponses(initialResponses);
         } else {
@@ -217,11 +216,50 @@ const TestViewPage: React.FC = () => {
 
   const handleBackClick = () => {
     // Check if all questions have been answered
+    //TODO: is it a fair requirment?
+    // handleEndAndSave();
     if (testWithAnswers && !areAllQuestionsAnswered()) {
       setCautionDialogOpen(true);
     } else {
-      navigate('/tests');
+      handleEndAndSave();
     }
+  };
+
+  const handleEndAndSave = async () => {
+    // Check if all questions have been answered
+      // Show loading while saving
+      setLoading(true);
+      
+      try {
+        // Transform userResponses to the expected format
+        const submissionData: UserTestResponse[] = Object.values(userResponses).map(response => ({
+          question_id: response.questionId,
+          response: {
+            selected_options: response.selectedOptions,
+            matches: response.matches
+          }
+        }));
+        
+        if (!tfp_sha) {
+          throw new Error('Test ID is missing');
+        }
+        
+        // Submit the answers to the server
+        const result = await SubmitTestAnswers(tfp_sha, submissionData);
+        
+        if (result.success) {
+          // Navigate to test review page with the test ID
+          navigate(`/tests/review/${tfp_sha}`); //todo: add review page
+        } else {
+          setError(result.error || 'Failed to save test answers');
+          // Keep user on the page so they can try again
+        }
+      } catch (err) {
+        console.error('Error saving test answers:', err);
+        setError('An error occurred while saving your answers');
+      } finally {
+        setLoading(false);
+      }
   };
 
   const handleQuestionSelect = (index: number) => {
@@ -237,7 +275,7 @@ const TestViewPage: React.FC = () => {
   const handleNextQuestion = () => {
     if (testWithAnswers && currentQuestionIndex < testWithAnswers.questions.length - 1) {
       // Log current user responses
-      console.log('Current user responses:', userResponses);
+      // console.log('Current user responses:', userResponses);
       
       // Move to next question
       setCurrentQuestionIndex(currentQuestionIndex + 1);

@@ -18,6 +18,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import SettingsPage from './pages/settings/SettingsPage';
 import LibraryPage from './pages/LibraryPage';
 import TestViewPage from './pages/tests/TestViewPage';
+import TestReviewPage from './pages/tests/TestReviewPage';
 import LessonViewPage from './pages/LessonViewPage';
 import MinilectionViewPage from './pages/MinilectionViewPage';
 import NoteViewPage from './pages/NoteViewPage';
@@ -108,6 +109,10 @@ const App: React.FC = () => {
         {
           path: 'test-view/:tfp_sha',
           element: withLayout(TestViewPage, true)(),
+        },
+        {
+          path: 'tests/review/:tfp_sha',
+          element: withLayout(TestReviewPage, true)(),
         },
         {
           path: 'webinars',

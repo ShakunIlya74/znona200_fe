@@ -31,6 +31,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import LocalLibraryRoundedIcon from '@mui/icons-material/LocalLibraryRounded';
+import HistoryIcon from '@mui/icons-material/History';
 import { GetTestsData, GetFolderTests } from '../../services/TestService';
 import { declinateWord } from '../utils/utils';
 import LoadingDots from '../../components/tools/LoadingDots';
@@ -64,10 +67,53 @@ interface TestModalProps {
 }
 
 // Modal component for test start confirmation
+// Modal component for test start confirmation
 const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart }) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   
   if (!test) return null;
+  
+  const hasCompletedTrials = test.complete_trials && test.complete_trials > 0;
+  
+  const handleReviewTest = () => {
+    console.log(`Navigating to review test with tfp_sha: ${test.tfp_sha}`);
+    navigate(`/tests/review/${test.tfp_sha}`);
+  };
+  
+  // This function helps create square buttons with responsive size
+  const getButtonSx = (variant: 'outlined' | 'contained') => {
+    const isContained = variant === 'contained';
+    return {
+      borderRadius: '8px',
+      textTransform: 'none',
+      fontWeight: 600,
+      minWidth: '120px', // Minimum width
+      height: '120px', // Fixed height to make them square
+      flex: 1, // Allow buttons to share space equally
+      maxWidth: '180px', // Limit maximum size
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 1,
+      p: 2,
+      transition: 'all 0.2s ease-in-out',
+      ...(isContained ? {
+        boxShadow: `0px 2px 4px ${alpha(theme.palette.primary.main, 0.25)}`,
+        '&:hover': {
+          backgroundColor: alpha(theme.palette.primary.main, 0.8)
+        }
+      } : {
+        borderColor: alpha(theme.palette.grey[500], 0.5),
+        color: theme.palette.text.primary,
+        '&:hover': {
+          borderColor: theme.palette.primary.main,
+          backgroundColor: alpha(theme.palette.primary.main, 0.05)
+        }
+      })
+    };
+  };
   
   return (
     <>
@@ -87,7 +133,7 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
           sx: {
             borderRadius: '16px',
             boxShadow: `0px 8px 24px ${alpha(theme.palette.common.black, 0.15)}`,
-            maxWidth: '400px',
+            maxWidth: '600px', // Increased to accommodate square buttons
             width: '100%',
             m: 2,
             position: 'relative',
@@ -142,15 +188,39 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
         </DialogTitle>
         
         <DialogContent sx={{ py: 3, px: 3 }}>
-          <Typography 
-            variant="body1"
-            sx={{
-              mb: 2,
-              fontWeight: 500
-            }}
-          >
-            {/* todo: Progress bla bla */}
-          </Typography>
+          {hasCompletedTrials && (
+            <Box sx={{ mb: 3 }}>
+              <Box 
+                sx={{ 
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                  borderRadius: '8px',
+                  p: 1.5,
+                  mb: 1,
+                  mt: 1
+                }}
+              >
+                <Typography variant="body2">
+                  Кількість спроб: <strong>{test.complete_trials}</strong>
+                </Typography>
+                
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontWeight: 600,
+                    color: theme.palette.primary.main 
+                  }}
+                >
+                  {test.correct_percentage !== undefined ? 
+                    `${Math.round(test.correct_percentage)}%` : 
+                    '0%'
+                  }
+                </Typography>
+              </Box>
+            </Box>
+          )}
           
           <Typography 
             variant="body2"
@@ -172,23 +242,46 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
             px: 3, 
             pb: 3, 
             pt: 1,
-            justifyContent: 'center'
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 2,
+            flexWrap: { xs: 'wrap', sm: 'nowrap' }
           }}
         >
+          {/* Example of a third button (uncomment to use) */}
+          {/* <Button 
+            variant="outlined"
+            sx={getButtonSx('outlined')}
+          >
+            <HistoryIcon sx={{ fontSize: '2rem', mb: 1 }} />
+            <Typography variant="body2">
+              Історія тестів
+            </Typography>
+          </Button> */}
+         
+          
+          {hasCompletedTrials && (
+            <Button 
+              onClick={handleReviewTest}
+              variant="outlined"
+              sx={getButtonSx('outlined')}
+            >
+              <LocalLibraryRoundedIcon sx={{ fontSize: '2rem', mb: 1 }} />
+              <Typography variant="body2">
+                Переглянути останню спробу
+              </Typography>
+            </Button>
+          )}
+          
           <Button 
             onClick={() => onStart(test.tfp_sha)}
             variant="contained"
-            startIcon={<PlayArrowIcon />}
-            sx={{
-              borderRadius: '8px',
-              py: 1,
-              px: 3,
-              textTransform: 'none',
-              fontWeight: 600,
-              boxShadow: `0px 2px 4px ${alpha(theme.palette.primary.main, 0.25)}`
-            }}
+            sx={getButtonSx('contained')}
           >
-            Почати тест
+            <PlayArrowIcon sx={{ fontSize: '2rem', mb: 1 }} />
+            <Typography variant="body2">
+              Почати тест
+            </Typography>
           </Button>
         </DialogActions>
       </Dialog>
@@ -350,6 +443,7 @@ const TestsPage: React.FC = () => {
     try {
       const response = await GetFolderTests(folderId) as FolderTests;
       if (response.success && response.test_dicts) {
+        console.log('Loaded tests:', response.test_dicts);
         setFolderTests(response.test_dicts);
         setFilteredTests(response.test_dicts);
       } else {
