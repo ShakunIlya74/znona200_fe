@@ -194,7 +194,8 @@ const VariantBox = ({
     <Paper
       elevation={0}
       sx={{
-        p: 1,
+        py: 6,
+        px: 1,
         mb: 0.5,
         borderRadius: '8px',
         border: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
@@ -282,7 +283,8 @@ const AnswerBox = ({
       ref={boxRef}
       elevation={0}
       sx={{
-        p: 1,
+        py: 6,
+        px: 1,
         mb: 0.5,
         borderRadius: '8px',
         border: `1px solid ${borderColor}`,
