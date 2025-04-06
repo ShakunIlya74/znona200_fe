@@ -1,4 +1,4 @@
-import { TestViewResponse, UserTestResponse } from "../pages/tests/interfaces";
+import { TestViewResponse, UserTestResponse, FullTestWithAnswers } from "../pages/tests/interfaces";
 import axiosInstance from "./axiosInstance";
 
 export async function GetTestsData() {
@@ -61,6 +61,35 @@ export async function SubmitTestAnswers(tfp_sha: string, answers: UserTestRespon
   }
   catch (err) {
     console.error('Error submitting test answers:', err);
+    return { 
+      success: false, 
+      error: err instanceof Error ? err.message : 'Unknown error occurred'
+    };
+  }
+}
+
+// Function to save an edited test
+export async function SaveEditedTest(tfp_sha: string, testData: {
+  test_id?: number;
+  test_name: string;
+  questions: Array<{
+    question_id?: number;
+    question: string;
+    question_type: string;
+    question_data: any;
+    max_points: number;
+    isNew?: boolean;
+  }>;
+}) {
+  try {
+    const response = await axiosInstance.put('/test-edit/' + tfp_sha, testData);
+    return {
+      success: true,
+      updatedTest: response.data
+    };
+  }
+  catch (err) {
+    console.error('Error saving edited test:', err);
     return { 
       success: false, 
       error: err instanceof Error ? err.message : 'Unknown error occurred'

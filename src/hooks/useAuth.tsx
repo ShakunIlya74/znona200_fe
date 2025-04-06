@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { GetSessionData } from "../services/AuthService";
 
 const adminOnlyEndpoints = [
-    "/admin_start"
+    "/admin_start",
+    "/test/edit",  // Adding the test edit route as admin-only
+    "test-edit"
 ];
 
 export function useAuth(currentPath: string) {

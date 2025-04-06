@@ -34,7 +34,9 @@ import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LocalLibraryRoundedIcon from '@mui/icons-material/LocalLibraryRounded';
 import HistoryIcon from '@mui/icons-material/History';
+import EditIcon from '@mui/icons-material/Edit';
 import { GetTestsData, GetFolderTests } from '../../services/TestService';
+import { GetSessionData } from '../../services/AuthService';
 import { declinateWord } from '../utils/utils';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
@@ -64,11 +66,11 @@ interface TestModalProps {
   test: TestCardMeta | null;
   onClose: () => void;
   onStart: (tfpSha: string) => void;
+  isAdmin: boolean; // Adding isAdmin prop
 }
 
 // Modal component for test start confirmation
-// Modal component for test start confirmation
-const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart }) => {
+const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart, isAdmin }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   
@@ -79,6 +81,11 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
   const handleReviewTest = () => {
     console.log(`Navigating to review test with tfp_sha: ${test.tfp_sha}`);
     navigate(`/tests/review/${test.tfp_sha}`);
+  };
+
+  const handleEditTest = () => {
+    console.log(`Navigating to edit test with tfp_sha: ${test.tfp_sha}`);
+    navigate(`/test/edit/${test.tfp_sha}`);
   };
   
   // This function helps create square buttons with responsive size
@@ -248,17 +255,28 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
             flexWrap: { xs: 'wrap', sm: 'nowrap' }
           }}
         >
-          {/* Example of a third button (uncomment to use) */}
-          {/* <Button 
-            variant="outlined"
-            sx={getButtonSx('outlined')}
-          >
-            <HistoryIcon sx={{ fontSize: '2rem', mb: 1 }} />
-            <Typography variant="body2">
-              Історія тестів
-            </Typography>
-          </Button> */}
-         
+
+          {/* Admin edit button */}
+          {isAdmin && (
+            <Button 
+              onClick={handleEditTest}
+              variant="outlined"
+              sx={{
+                ...getButtonSx('outlined'),
+                borderColor: theme.palette.warning.main,
+                color: theme.palette.warning.main,
+                '&:hover': {
+                  borderColor: theme.palette.warning.dark,
+                  backgroundColor: alpha(theme.palette.warning.main, 0.05)
+                }
+              }}
+            >
+              <EditIcon sx={{ fontSize: '2rem', mb: 1 }} />
+              <Typography variant="body2">
+                Редагувати тест
+              </Typography>
+            </Button>
+          )}
           
           {hasCompletedTrials && (
             <Button 
@@ -309,6 +327,7 @@ const TestsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [folderLoading, setFolderLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   
   // Modal state
   const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -498,6 +517,25 @@ const TestsPage: React.FC = () => {
   const getOriginalIndex = (testId: number) => {
     return folderTests.findIndex(test => test.test_id === testId);
   };
+
+  // Load user session data to check admin status
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const sessionData = await GetSessionData();
+        if (sessionData && sessionData.is_admin) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (err) {
+        console.error('Error checking admin status:', err);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
 
   return (
     <Container maxWidth="lg" sx={{ py: 1 }}>
@@ -865,6 +903,7 @@ const TestsPage: React.FC = () => {
         test={selectedTest}
         onClose={handleCloseModal}
         onStart={handleStartTest}
+        isAdmin={isAdmin} // Pass the actual isAdmin state
       />
     </Container>
   );

@@ -22,6 +22,7 @@ import TestReviewPage from './pages/tests/TestReviewPage';
 import LessonViewPage from './pages/LessonViewPage';
 import MinilectionViewPage from './pages/MinilectionViewPage';
 import NoteViewPage from './pages/NoteViewPage';
+import EditTestPage from './pages/tests/EditTestPage';
 
 const withLayout = (Component: React.ComponentType, isViewComponent=false) => () => (
   <>
@@ -109,6 +110,10 @@ const App: React.FC = () => {
         {
           path: 'test-view/:tfp_sha',
           element: withLayout(TestViewPage, true)(),
+        },
+        {
+          path: 'test/edit/:tfp_sha',
+          element: withLayout(EditTestPage)(),
         },
         {
           path: 'tests/review/:tfp_sha',
