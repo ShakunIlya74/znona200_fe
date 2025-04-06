@@ -112,7 +112,7 @@ const App: React.FC = () => {
           element: withLayout(TestViewPage, true)(),
         },
         {
-          path: 'test/edit/:tfp_sha',
+          path: 'tests/edit/:tfp_sha',
           element: withLayout(EditTestPage)(),
         },
         {

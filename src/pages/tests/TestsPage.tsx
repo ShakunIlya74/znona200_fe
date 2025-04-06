@@ -85,7 +85,7 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
 
   const handleEditTest = () => {
     console.log(`Navigating to edit test with tfp_sha: ${test.tfp_sha}`);
-    navigate(`/test/edit/${test.tfp_sha}`);
+    navigate(`/tests/edit/${test.tfp_sha}`);
   };
   
   // This function helps create square buttons with responsive size

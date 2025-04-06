@@ -26,6 +26,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from '@mui/icons-material/Edit';
 import { getHeaderOffset } from '../../components/Header';
 import { FullTestWithAnswers, Question, TestCardMeta } from './interfaces';
 import EditMultipleChoiceQuestion from './EditMultipleChoiceQuestion';
@@ -75,6 +76,109 @@ interface EditedQuestion extends Question {
   markedForDeletion?: boolean;
 }
 
+// EditableContent component for test name that transforms into editable field
+const EditableTestName: React.FC<{
+  value: string;
+  onChange: (newValue: string) => void;
+  placeholder?: string;
+}> = ({
+  value,
+  onChange,
+  placeholder = 'Введіть назву тесту...'
+}) => {
+  const theme = useTheme();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  useEffect(() => {
+    setEditValue(value);
+  }, [value]);
+  
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditing]);
+  
+  const handleBlur = () => {
+    setIsEditing(false);
+    onChange(editValue);
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleBlur();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditValue(value); // Reset to original value
+    }
+  };
+  
+  if (isEditing) {
+    return (
+      <TextField
+        inputRef={inputRef}
+        fullWidth
+        variant="outlined"
+        size="small"
+        autoFocus
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '6px',
+            fontSize: '1.25rem',
+            fontWeight: 600
+          }
+        }}
+      />
+    );
+  }
+  
+  return (
+    <Box 
+      sx={{ 
+        display: 'flex', 
+        alignItems: 'center',
+        cursor: 'pointer',
+      }}
+      onClick={() => setIsEditing(true)}
+    >
+      <Typography 
+        variant="h6" 
+        sx={{ 
+          fontWeight: 600,
+          color: theme.palette.primary.main,
+          mr: 1
+        }}
+      >
+        {value || placeholder}
+      </Typography>
+      <IconButton 
+        size="small" 
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsEditing(true);
+        }}
+        sx={{ 
+          opacity: 0.6,
+          '&:hover': {
+            opacity: 1,
+            backgroundColor: alpha(theme.palette.primary.main, 0.1),
+          }
+        }}
+      >
+        <EditIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  );
+};
+
 const EditTestPage: React.FC = () => {
   const { tfp_sha } = useParams<{ tfp_sha: string }>();
   const [loading, setLoading] = useState<boolean>(true);
@@ -86,7 +190,6 @@ const EditTestPage: React.FC = () => {
   const [nextQuestionId, setNextQuestionId] = useState<number>(-1); // Negative IDs for new questions
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [testNameEdited, setTestNameEdited] = useState<string>('');
-  const [testNameDialogOpen, setTestNameDialogOpen] = useState<boolean>(false);
 
   // Create refs for each question for scroll functionality
   const questionRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
@@ -369,9 +472,9 @@ const EditTestPage: React.FC = () => {
     }
   };
 
-  // Handle edit test name
-  const handleEditTestName = () => {
-    setTestNameDialogOpen(true);
+  // Handle test name change
+  const handleTestNameChange = (newName: string) => {
+    setTestNameEdited(newName);
   };
 
   return (
@@ -411,24 +514,10 @@ const EditTestPage: React.FC = () => {
               justifyContent: { xs: 'flex-start', sm: 'center' }
             }}
           >
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 600,
-                color: theme.palette.primary.main
-              }}
-            >
-              {testNameEdited}
-            </Typography>
-            
-            <IconButton 
-              size="small" 
-              onClick={handleEditTestName}
-              sx={{ ml: 1 }}
-            >
-              <EditIcon  /> 
-           
-            </IconButton>
+            <EditableTestName
+              value={testNameEdited}
+              onChange={handleTestNameChange}
+            />
           </Box>
         )}
       </Box>
@@ -772,7 +861,7 @@ const EditTestPage: React.FC = () => {
         </Box>
       )}
 
-      {/* Dialog for selecting question type */}
+      {/* Question Type Dialog for Mobile (keeping only this dialog) */}
       <Dialog
         open={showQuestionTypeDialog && isMobile}
         onClose={() => setShowQuestionTypeDialog(false)}
@@ -817,54 +906,7 @@ const EditTestPage: React.FC = () => {
           </Grid>
         </DialogContent>
       </Dialog>
-
-      {/* Dialog for editing test name */}
-      <Dialog
-        open={testNameDialogOpen}
-        onClose={() => setTestNameDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Редагування назви тесту</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Назва тесту"
-            type="text"
-            fullWidth
-            value={testNameEdited}
-            onChange={(e) => setTestNameEdited(e.target.value)}
-            variant="outlined"
-            sx={{ mt: 2 }}
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, mb: 1 }}>
-            <Button 
-              onClick={() => setTestNameDialogOpen(false)} 
-              sx={{ mr: 2 }}
-            >
-              Скасувати
-            </Button>
-            <Button 
-              variant="contained"
-              onClick={() => setTestNameDialogOpen(false)}
-            >
-              Зберегти
-            </Button>
-          </Box>
-        </DialogContent>
-      </Dialog>
     </Container>
-  );
-};
-
-// Import EditIcon for test name editing
-const EditIcon = () => {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-    </svg>
   );
 };
 

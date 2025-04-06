@@ -5,7 +5,6 @@ import {
   TextField,
   Button,
   IconButton,
-  Checkbox,
   useTheme,
   Paper
 } from '@mui/material';
@@ -14,6 +13,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import EditIcon from '@mui/icons-material/Edit';
 import { MultipleChoiceOption } from './interfaces';
 
 // Answer labels for options
@@ -32,6 +32,109 @@ interface EditMultipleChoiceQuestionProps {
     }> 
   }) => void;
 }
+
+// EditableContent component for text that transforms into editable field on demand
+const EditableContent: React.FC<{
+  value: string;
+  onChange: (newValue: string) => void;
+  placeholder?: string;
+  multiline?: boolean;
+  isNew?: boolean;
+}> = ({
+  value,
+  onChange,
+  placeholder = 'Enter text...',
+  multiline = false,
+  isNew = false
+}) => {
+  const theme = useTheme();
+  const [isEditing, setIsEditing] = useState(isNew);
+  const [editValue, setEditValue] = useState(value);
+  
+  useEffect(() => {
+    setEditValue(value);
+  }, [value]);
+  
+  const handleBlur = () => {
+    setIsEditing(false);
+    onChange(editValue);
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey && !multiline) {
+      e.preventDefault();
+      handleBlur();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditValue(value); // Reset to original value
+    }
+  };
+  
+  if (isEditing) {
+    return (
+      <TextField
+        fullWidth
+        multiline={multiline}
+        rows={multiline ? 2 : 1}
+        variant="outlined"
+        size="small"
+        autoFocus
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '6px',
+          }
+        }}
+      />
+    );
+  }
+  
+  return (
+    <Box 
+      sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        width: '100%',
+        minHeight: '32px',
+        cursor: 'pointer',
+      }}
+      onClick={() => setIsEditing(true)}
+    >
+      <Typography 
+        variant="body2" 
+        sx={{ 
+          flex: 1,
+          color: value ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.5),
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word'
+        }}
+      >
+        {value || placeholder}
+      </Typography>
+      <IconButton 
+        size="small" 
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsEditing(true);
+        }}
+        sx={{ 
+          opacity: 0.6,
+          ml: 1,
+          '&:hover': {
+            opacity: 1,
+            backgroundColor: alpha(theme.palette.primary.main, 0.1),
+          }
+        }}
+      >
+        <EditIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  );
+};
 
 const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
   questionId,
@@ -119,20 +222,21 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
         }}>
           Текст питання:
         </Typography>
-        <TextField
-          fullWidth
-          multiline
-          rows={2}
-          variant="outlined"
-          value={questionText}
-          onChange={(e) => setQuestionText(e.target.value)}
-          placeholder="Введіть текст питання"
+        <Paper
+          elevation={0}
           sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '6px',
-            }
+            p: 1.5,
+            borderRadius: '6px',
+            border: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
           }}
-        />
+        >
+          <EditableContent
+            value={questionText}
+            onChange={setQuestionText}
+            placeholder="Введіть текст питання"
+            multiline
+          />
+        </Paper>
       </Box>
       
       {/* Options list */}
@@ -161,12 +265,12 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
                 : 'transparent',
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
               {/* Correct/Incorrect checkbox icon */}
               <IconButton 
                 onClick={() => handleOptionCorrectToggle(option.id)}
                 size="small"
-                sx={{ p: 0.5, mr: 0.5 }}
+                sx={{ p: 0.5, mr: 0.5, mt: 0.5 }}
               >
                 {option.is_correct ? (
                   <CheckCircleIcon sx={{ color: theme.palette.success.main }} />
@@ -181,26 +285,23 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
                 sx={{ 
                   fontWeight: 600, 
                   mr: 1, 
-                  minWidth: '20px'
+                  minWidth: '20px',
+                  mt: 0.5
                 }}
               >
                 {ANSWER_LABELS[index % ANSWER_LABELS.length]}.
               </Typography>
               
               {/* Option content */}
-              <TextField
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={option.text}
-                onChange={(e) => handleOptionTextChange(option.id, e.target.value)}
-                placeholder={`Варіант ${index + 1}`}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '6px',
-                  }
-                }}
-              />
+              <Box sx={{ flex: 1 }}>
+                <EditableContent
+                  value={option.text}
+                  onChange={(newText) => handleOptionTextChange(option.id, newText)}
+                  placeholder={`Варіант ${index + 1}`}
+                  multiline
+                  isNew={option.text === ''}
+                />
+              </Box>
               
               {/* Delete button */}
               <IconButton 
@@ -210,6 +311,7 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
                   color: theme.palette.error.main,
                   ml: 0.5,
                   p: 0.5,
+                  mt: 0.5,
                   '&:hover': {
                     backgroundColor: alpha(theme.palette.error.main, 0.1),
                   }
