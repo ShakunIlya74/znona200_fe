@@ -17,6 +17,7 @@ interface AnsweredMatchingQuestionProps {
   options: MatchingOption[];
   categories: MatchingCategory[];
   userMatches: MatchAnswer[];
+  hideCorrectAnswers?: boolean; // New prop to control showing correct answers
 }
 
 const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
@@ -25,7 +26,8 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
   questionText,
   options,
   categories,
-  userMatches
+  userMatches,
+  hideCorrectAnswers = false // Default to false to maintain backward compatibility
 }) => {
   const theme = useTheme();
   
@@ -56,7 +58,7 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
   return (
     <Box>
       <Typography variant="h6" sx={{ 
-        mb: 2, 
+        mb: 1, // Reduced from mb: 2
         fontWeight: 600, 
         color: theme.palette.primary.main 
       }}>
@@ -67,16 +69,16 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
       <Box sx={{ 
         display: 'flex', 
         flexDirection: { xs: 'column', md: 'row' }, 
-        gap: 2,
-        mb: 2
+        gap: 1, // Reduced from gap: 2
+        mb: 1.5 // Reduced from mb: , 2
       }}>
         {/* Left column - Categories */}
         <Box sx={{ 
           flex: { md: '0 0 45%' },
-          mr: { md: 2 }
+          mr: { md: 1 } // Reduced from mr: { md: 2 }
         }}>
           <Typography variant="subtitle1" sx={{ 
-            mb: 1, 
+            mb: 0.5, // Reduced from mb: 1
             fontWeight: 600,
             borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
             pb: 0.5
@@ -89,11 +91,11 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
               key={`variant-${category.id}`}
               elevation={0}
               sx={{
-                p: 1.5,
-                mb: 1,
+                p: 1, // Reduced from p: 1.5
+                mb: 0.5, // Reduced from mb: 1
                 borderRadius: '8px',
                 border: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
-                minHeight: '40px',
+                minHeight: '32px', // Reduced from minHeight: '40px'
                 display: 'flex',
                 alignItems: 'center'
               }}
@@ -106,11 +108,11 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
         {/* Right column - User matches with feedback */}
         <Box sx={{ 
           width: '100%', 
-          mr: 3,
+          mr: 2, // Reduced from mr: 3
           flex: { md: '0 0 55%' } 
         }}>
           <Typography variant="subtitle1" sx={{ 
-            mb: 1, 
+            mb: 0.5, // Reduced from mb: 1
             fontWeight: 600,
             borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
             pb: 0.5
@@ -133,11 +135,11 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
               if (isCorrect) {
                 borderColor = theme.palette.success.main;
                 bgColor = alpha(theme.palette.success.main, 0.1);
-                icon = <CheckCircleOutlineIcon sx={{ color: theme.palette.success.main }} />;
+                icon = <CheckCircleOutlineIcon sx={{ color: theme.palette.success.main, fontSize: '1.1rem' }} />;
               } else {
                 borderColor = theme.palette.error.main;
                 bgColor = alpha(theme.palette.error.main, 0.1);
-                icon = <CancelOutlinedIcon sx={{ color: theme.palette.error.main }} />;
+                icon = <CancelOutlinedIcon sx={{ color: theme.palette.error.main, fontSize: '1.1rem' }} />;
               }
             }
             
@@ -146,12 +148,12 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
                 key={`answer-${category.id}`}
                 elevation={0}
                 sx={{
-                  p: 1.5,
-                  mb: 1,
+                  p: 1, // Reduced from p: 1.5
+                  mb: 0.5, // Reduced from mb: 1
                   borderRadius: '8px',
                   border: `1px solid ${borderColor}`,
                   backgroundColor: bgColor,
-                  minHeight: '40px',
+                  minHeight: '32px', // Reduced from minHeight: '40px'
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between'
@@ -176,13 +178,15 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
                     </Typography>
                   )}
                   
-                  {/* Show correct answer if user got it wrong or didn't answer */}
-                  {((userMatchedOption && !isMatchCorrect(userMatchedOption, category.id)) || !userMatchedOption) && correctOption && (
+                  {/* Show correct answer if user got it wrong or didn't answer, but only if not hiding correct answers */}
+                  {!hideCorrectAnswers && 
+                   ((userMatchedOption && !isMatchCorrect(userMatchedOption, category.id)) || !userMatchedOption) && 
+                   correctOption && (
                     <Typography 
                       variant="body2" 
                       sx={{ 
                         color: theme.palette.success.main,
-                        mt: 0.5,
+                        mt: 0.3, // Reduced from mt: 0.5
                         fontStyle: 'italic'
                       }}
                     >
@@ -192,7 +196,7 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
                 </Box>
                 
                 {icon && (
-                  <Box sx={{ ml: 2 }}>
+                  <Box sx={{ ml: 1 }}> {/* Reduced from ml: 2 */}
                     {icon}
                   </Box>
                 )}

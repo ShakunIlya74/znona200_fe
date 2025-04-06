@@ -19,6 +19,7 @@ import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import ReplayIcon from '@mui/icons-material/Replay';
 import { getHeaderOffset } from '../../components/Header';
 import { FullTestWithAnswers, Question, TestCardMeta } from './interfaces';
 import AnsweredMultipleChoiceQuestion from './AnsweredMultipleChoiceQuestion';
@@ -31,9 +32,9 @@ interface QuestionButtonProps {
 }
 
 const QuestionButton = styled(Button)<QuestionButtonProps>(({ theme, correct, incorrect }) => ({
-  minWidth: '40px',
-  height: '40px',
-  margin: '8px',
+  minWidth: '36px', // Slightly reduced for better fit
+  height: '36px', // Slightly reduced for better fit
+  margin: '4px', // Reduced margin for more compact layout
   borderRadius: '8px',
   backgroundColor: correct
     ? alpha(theme.palette.success.main, 0.2)
@@ -67,6 +68,8 @@ const TestReviewPage: React.FC = () => {
   const [testWithAnswers, setTestWithAnswers] = useState<FullTestWithAnswers | null>(null);
   const [totalScore, setTotalScore] = useState<number>(0);
   const [maxPossibleScore, setMaxPossibleScore] = useState<number>(0);
+  // State to control hiding correct answers
+  const [hideCorrectAnswers, setHideCorrectAnswers] = useState<boolean>(true);
 
   const theme = useTheme();
   const navigate = useNavigate();
@@ -96,9 +99,16 @@ const TestReviewPage: React.FC = () => {
           let maxScore = 0;
           
           response.full_test_with_answers.questions.forEach(question => {
-            maxScore += question.max_points || 1;
-            if (question.user_answer) {
-              score += (question.user_answer.correct_percentage / 100) * (question.max_points || 1);
+            const questionMaxPoints = question.max_points || 1;
+            maxScore += questionMaxPoints;
+            
+            // Explicitly handle missing answers by assigning 0 points
+            if (question.user_answer && question.user_answer.correct_percentage !== undefined) {
+              // Calculate points based on correct percentage
+              score += (question.user_answer.correct_percentage / 100) * questionMaxPoints;
+            } else {
+              // Missing answer - explicitly add 0 points (for clarity)
+              score += 0;
             }
           });
           
@@ -123,11 +133,20 @@ const TestReviewPage: React.FC = () => {
     navigate('/tests');
   };
 
+  // Handler to take the test again
+  const handleTakeAgainClick = () => {
+    if (tfp_sha) {
+      navigate(`/test-view/${tfp_sha}`);
+    }
+  };
+
   // Helper function to scroll to a specific question
   const scrollToQuestion = (questionId: string) => {
     const element = document.getElementById(questionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const yOffset = -1 * (headerOffset + 16); // Add some extra padding
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
 
@@ -231,13 +250,17 @@ const TestReviewPage: React.FC = () => {
             flexDirection: { xs: 'column', md: 'row' },
             gap: 3
           }}>
-            {/* Question Navigation Column */}
+            {/* Question Navigation Column - Adjusted width to be wider */}
             <Box sx={{
-              width: { xs: '100%', md: '33.33%', lg: '25%' },
+              width: { xs: '100%', md: '40%', lg: '35%' }, // Increased from 33.33% to 40% for md and 25% to 35% for lg
               borderRight: { md: `1px solid ${alpha(theme.palette.grey[300], 0.5)}` },
-              paddingRight: { md: 3 },
+              paddingRight: { md: 2 }, // Slightly reduced padding from 3 to 2
               display: 'flex',
-              flexDirection: 'column'
+              flexDirection: 'column',
+              height: { md: 'fit-content' }, // Set a height for desktop
+              position: { md: 'sticky' }, // Make it sticky on desktop
+              top: { md: `${headerOffset + 16}px` }, // Stick below header
+              alignSelf: { md: 'flex-start' } // Align to top of container
             }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                 Огляд відповідей
@@ -251,7 +274,7 @@ const TestReviewPage: React.FC = () => {
                   borderRadius: '12px',
                   border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                   backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                  mb: 3
+                  mb: 2 // Reduced from 3
                 }}
               >
                 <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
@@ -270,36 +293,76 @@ const TestReviewPage: React.FC = () => {
                 </Typography>
               </Paper>
 
-              {/* Question number grid */}
-              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
-                Питання:
-              </Typography>
+              {/* Question number grid with improved layout */}
               <Box sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'flex-start',
                 mb: 2,
               }}>
-                {testWithAnswers.questions.map((question, index) => {
-                  const correctPercentage = question.user_answer?.correct_percentage || 0;
-                  const isFullyCorrect = correctPercentage === 100;
-                  const isIncorrect = correctPercentage < 100;
-                  
-                  return (
-                    <QuestionButton
-                      key={question.question_id}
-                      correct={isFullyCorrect}
-                      incorrect={isIncorrect}
-                      onClick={() => scrollToQuestion(`question-${question.question_id}`)}
-                    >
-                      {index + 1}
-                    </QuestionButton>
-                  );
-                })}
+                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                  Питання:
+                </Typography>
+                <Box sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'flex-start',
+                  maxWidth: '100%', // Ensure it doesn't overflow
+                  ml: -0.5, // Compensate for button margins
+                  mr: -0.5, // Compensate for button margins
+                }}>
+                  {testWithAnswers.questions.map((question, index) => {
+                    const correctPercentage = question.user_answer?.correct_percentage || 0;
+                    const isFullyCorrect = correctPercentage === 100;
+                    const isIncorrect = correctPercentage < 100;
+                    
+                    return (
+                      <QuestionButton
+                        key={question.question_id}
+                        correct={isFullyCorrect}
+                        incorrect={isIncorrect}
+                        onClick={() => scrollToQuestion(`question-${question.question_id}`)}
+                      >
+                        {index + 1}
+                      </QuestionButton>
+                    );
+                  })}
+                </Box>
               </Box>
 
+              {/* Option to toggle showing correct answers */}
+{/*               <Button
+                variant="outlined"
+                color={hideCorrectAnswers ? "primary" : "success"}
+                onClick={() => setHideCorrectAnswers(!hideCorrectAnswers)}
+                sx={{ 
+                  mb: 2,
+                  borderRadius: '8px',
+                  textTransform: 'none'
+                }}
+              >
+                {hideCorrectAnswers 
+                  ? "Показати правильні відповіді" 
+                  : "Сховати правильні відповіді"}
+              </Button> *}
+
+              {/* Take test again button */}
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<ReplayIcon />}
+                onClick={handleTakeAgainClick}
+                sx={{ 
+                  mb: 2,
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.8)
+                  }
+                }}
+              >
+                Пройти знов
+              </Button>
+
               {/* Legend */}
-              <Box sx={{ mt: 2 }}>
+              <Box sx={{ mt: 1 }}> {/* Reduced from mt: 2 */}
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                   Позначення:
                 </Typography>
@@ -332,9 +395,9 @@ const TestReviewPage: React.FC = () => {
               </Box>
             </Box>
 
-            {/* Question List */}
+            {/* Question List - Adjusted width to match navigation column change */}
             <Box sx={{
-              width: { xs: '100%', md: '66.67%', lg: '75%' },
+              width: { xs: '100%', md: '60%', lg: '65%' }, // Changed from 66.67% to 60% for md and 75% to 65% for lg
               display: 'flex',
               flexDirection: 'column',
               gap: 3
@@ -392,7 +455,7 @@ const TestReviewPage: React.FC = () => {
                         </Box>
                       </Box>
                       
-                      {/* Render appropriate question type */}
+                      {/* Render appropriate question type with hideCorrectAnswers prop */}
                       {question.question_type === 'MULTIPLE_CHOICE' && (
                         <AnsweredMultipleChoiceQuestion
                           questionId={question.question_id}
@@ -400,6 +463,7 @@ const TestReviewPage: React.FC = () => {
                           questionText={question.question}
                           options={question.question_data.options as any[]}
                           userSelectedOptions={question.user_answer?.response?.selected_options || []}
+                          hideCorrectAnswers={!isFullyCorrect && hideCorrectAnswers}
                         />
                       )}
 
@@ -411,6 +475,7 @@ const TestReviewPage: React.FC = () => {
                           options={question.question_data.options as any[]}
                           categories={question.question_data.categories as any[]}
                           userMatches={question.user_answer?.response?.matches || []}
+                          hideCorrectAnswers={!isFullyCorrect && hideCorrectAnswers}
                         />
                       )}
                     </Paper>
