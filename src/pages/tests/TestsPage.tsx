@@ -29,6 +29,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import { GetTestsData, GetFolderTests } from '../../services/TestService';
 import { declinateWord } from '../utils/utils';
 import LoadingDots from '../../components/tools/LoadingDots';
@@ -155,6 +157,12 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
             color="text.secondary"
             sx={{ mb: 2 }}
           >
+            {test.test_description && (
+              <>
+              {test.test_description}
+              <Box sx={{ mb: 2 }} />
+              </>
+            )}
             Ви готові розпочати тест?
           </Typography>
         </DialogContent>
@@ -578,55 +586,57 @@ const TestsPage: React.FC = () => {
                       marginTop: '-1px',
                     }}
                   >
-                    {/* Test Search Bar */}
-                    <Box 
-                      sx={{ 
-                        p: 1.5, 
-                        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                        backgroundColor: alpha(theme.palette.primary.main, 0.03)
-                      }}
-                    >
-                      <InputBase
-                        inputRef={searchInputRef}
-                        fullWidth
-                        placeholder="Пошук тестів..."
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        sx={{
-                          backgroundColor: theme.palette.common.white,
-                          borderRadius: '8px',
-                          px: 2,
-                          py: 0.5,
-                          '& .MuiInputBase-input': {
-                            transition: theme.transitions.create('width'),
-                          },
-                          boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.04)}`,
-                          border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                    {/* Test Search Bar - only show when there are at least 10 tests */}
+                    {folderTests.length >= 10 && (
+                      <Box 
+                        sx={{ 
+                          p: 1.5, 
+                          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                          backgroundColor: alpha(theme.palette.primary.main, 0.03)
                         }}
-                        startAdornment={
-                          <InputAdornment position="start">
-                            <SearchIcon color="action" sx={{ opacity: 0.6 }} />
-                          </InputAdornment>
-                        }
-                        endAdornment={
-                          searchQuery && (
-                            <InputAdornment position="end">
-                              <IconButton 
-                                size="small" 
-                                edge="end" 
-                                onClick={clearSearch}
-                                sx={{ 
-                                  opacity: 0.6,
-                                  '&:hover': { opacity: 1 }
-                                }}
-                              >
-                                <ClearIcon fontSize="small" />
-                              </IconButton>
+                      >
+                        <InputBase
+                          inputRef={searchInputRef}
+                          fullWidth
+                          placeholder="Пошук тестів..."
+                          value={searchQuery}
+                          onChange={handleSearchChange}
+                          sx={{
+                            backgroundColor: theme.palette.common.white,
+                            borderRadius: '8px',
+                            px: 2,
+                            py: 0.5,
+                            '& .MuiInputBase-input': {
+                              transition: theme.transitions.create('width'),
+                            },
+                            boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.04)}`,
+                            border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                          }}
+                          startAdornment={
+                            <InputAdornment position="start">
+                              <SearchIcon color="action" sx={{ opacity: 0.6 }} />
                             </InputAdornment>
-                          )
-                        }
-                      />
-                    </Box>
+                          }
+                          endAdornment={
+                            searchQuery && (
+                              <InputAdornment position="end">
+                                <IconButton 
+                                  size="small" 
+                                  edge="end" 
+                                  onClick={clearSearch}
+                                  sx={{ 
+                                    opacity: 0.6,
+                                    '&:hover': { opacity: 1 }
+                                  }}
+                                >
+                                  <ClearIcon fontSize="small" />
+                                </IconButton>
+                              </InputAdornment>
+                            )
+                          }
+                        />
+                      </Box>
+                    )}
                     
                     {folderLoading ? (
                       <Box sx={{ py: 3, px: 2, display: 'flex', justifyContent: 'center' }}>
@@ -672,6 +682,23 @@ const TestsPage: React.FC = () => {
                                     </Typography>
                                   } 
                                 />
+                                <Box sx={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: 1,
+                                  color: theme.palette.primary.main
+                                }}>
+                                  {(test.complete_trials && test.complete_trials > 0 && test.correct_percentage !== undefined) ? (
+                                    <>
+                                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                        {Math.round(test.correct_percentage)}%
+                                      </Typography>
+                                      <CheckCircleIcon sx={{ fontSize: '1rem' }} />
+                                    </>
+                                  ) : (
+                                    <FiberManualRecordIcon sx={{ fontSize: '0.7rem' }} />
+                                  )}
+                                </Box>
                               </ListItemButton>
                               {index < array.length - 1 && (
                                 <Divider 

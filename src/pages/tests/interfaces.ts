@@ -12,6 +12,8 @@ export interface TestViewResponse {
     test_id: number;
     tfp_sha: string;
     test_description?: string;
+    correct_percentage?: number;
+    complete_trials?: number;
     default_question?: string;
     folder_id?: number;
     test_type?: string;
