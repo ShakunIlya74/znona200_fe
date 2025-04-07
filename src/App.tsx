@@ -26,7 +26,7 @@ import EditTestPage from './pages/tests/EditTestPage';
 
 const withLayout = (Component: React.ComponentType, isViewComponent=false) => () => (
   <>
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f4f4f3' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#ffffff' }}>
       <Header />
       <Box sx={{ display: 'flex', flex: 1 }}>
         <Box
@@ -113,7 +113,7 @@ const App: React.FC = () => {
         },
         {
           path: 'tests/edit/:tfp_sha',
-          element: withLayout(EditTestPage)(),
+          element: withLayout(EditTestPage, true)(),
         },
         {
           path: 'tests/review/:tfp_sha',

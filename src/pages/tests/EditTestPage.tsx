@@ -46,17 +46,17 @@ const QuestionButton = styled(Button)<QuestionButtonProps>(({ theme, isNew }) =>
   borderRadius: '8px',
   backgroundColor: isNew
     ? alpha(theme.palette.primary.main, 0.2)
-    : alpha(theme.palette.grey[300], 0.5),
+    : theme.palette.common.white,
   color: isNew
     ? theme.palette.primary.main
     : theme.palette.text.primary,
   border: isNew
     ? `1px solid ${theme.palette.primary.main}`
-    : 'none',
+    : `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
   '&:hover': {
     backgroundColor: isNew
       ? alpha(theme.palette.primary.main, 0.3)
-      : alpha(theme.palette.grey[400], 0.5),
+      : alpha(theme.palette.grey[100], 0.8),
   },
   '&.Mui-disabled': {
     opacity: 0.6,
@@ -385,6 +385,7 @@ const EditTestPage: React.FC = () => {
       isEdited: true
     };
     
+    console.log('Updated question:', updatedQuestions[questionIndex]);
     setQuestions(updatedQuestions);
     setIsSaved(false); // Mark as unsaved when a question is edited
   };
@@ -595,7 +596,7 @@ const EditTestPage: React.FC = () => {
           }}>
             {/* Question Navigation Column - Now sticky */}
             <Box sx={{
-              width: { xs: '100%', md: '33.33%', lg: '25%' },
+              width: { xs: '100%', md: '40%', lg: '40%' },
               borderRight: { md: `1px solid ${alpha(theme.palette.grey[300], 0.5)}` },
               paddingRight: { md: 3 },
               display: 'flex',
@@ -603,11 +604,10 @@ const EditTestPage: React.FC = () => {
               height: { md: 'fit-content' },
               position: { md: 'sticky' },
               top: { md: `${headerOffset + 16}px` },
-              alignSelf: { md: 'flex-start' }
+              alignSelf: { md: 'flex-start' },
+              maxHeight: { md: `calc(100vh - ${headerOffset + 150}px)` },
+              overflow: { md: 'auto' },
             }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Редагування тесту
-              </Typography>
 
               {/* Question number grid */}
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
@@ -632,7 +632,7 @@ const EditTestPage: React.FC = () => {
                           ? alpha(theme.palette.primary.main, 0.8)
                           : question.isNew
                             ? alpha(theme.palette.primary.main, 0.2)
-                            : alpha(theme.palette.grey[300], 0.5),
+                            : theme.palette.common.white,
                         color: index === currentQuestionIndex 
                           ? theme.palette.common.white
                           : question.isNew
@@ -729,7 +729,7 @@ const EditTestPage: React.FC = () => {
 
             {/* Question Display/Edit Area - Now shows all questions */}
             <Box sx={{
-              width: { xs: '100%', md: '66.67%', lg: '75%' },
+              width: { xs: '100%', md: '60%', lg: '60%' },
               display: 'flex',
               flexDirection: 'column',
               gap: 4

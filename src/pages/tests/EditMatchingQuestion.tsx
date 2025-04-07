@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, 
   Typography,
@@ -146,6 +146,14 @@ const EditMatchingQuestion = ({
   const [nextOptionId, setNextOptionId] = useState<number>(
     initialOptions.length > 0 ? Math.max(...initialOptions.map(opt => opt.id)) + 1 : 1000
   );
+  
+  // Track if initial render has completed
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  useEffect(() => {
+    // Mark that initial render is complete
+    setIsInitialized(true);
+  }, []);
 
   // Save all changes
   const handleSave = () => {
@@ -177,6 +185,14 @@ const EditMatchingQuestion = ({
     }
   };
 
+  // Use effect to trigger saves when state changes
+  useEffect(() => {
+    // Skip the initial render to avoid unnecessary save
+    if (isInitialized) {
+      handleSave();
+    }
+  }, [questionText, categories, options]);
+
   // Add a new matching pair
   const handleAddMatchingPair = () => {
     const newCategoryId = nextCategoryId;
@@ -196,8 +212,7 @@ const EditMatchingQuestion = ({
     setOptions([...options, newOption]);
     setNextCategoryId(newCategoryId + 1);
     setNextOptionId(nextOptionId + 1);
-    
-    setTimeout(handleSave, 0);
+    // handleSave will be called by useEffect
   };
   
   // Add unmatched option
@@ -210,8 +225,7 @@ const EditMatchingQuestion = ({
     
     setOptions([...options, newOption]);
     setNextOptionId(nextOptionId + 1);
-    
-    setTimeout(handleSave, 0);
+    // handleSave will be called by useEffect
   };
 
   // Remove a matching pair
@@ -224,14 +238,13 @@ const EditMatchingQuestion = ({
     
     setCategories(updatedCategories);
     setOptions(updatedOptions);
-    
-    setTimeout(handleSave, 0);
+    // handleSave will be called by useEffect
   };
   
   // Remove an unmatched option
   const handleRemoveUnmatchedOption = (optionId: number) => {
     setOptions(options.filter(opt => opt.id !== optionId));
-    setTimeout(handleSave, 0);
+    // handleSave will be called by useEffect
   };
 
   // Update category text
@@ -240,6 +253,7 @@ const EditMatchingQuestion = ({
       cat.id === categoryId ? { ...cat, text } : cat
     );
     setCategories(updatedCategories);
+    // handleSave will be called by useEffect
   };
 
   // Update option text
@@ -248,6 +262,7 @@ const EditMatchingQuestion = ({
       opt.id === optionId ? { ...opt, text } : opt
     );
     setOptions(updatedOptions);
+    // handleSave will be called by useEffect
   };
 
   // Get matched option for a category
@@ -280,7 +295,6 @@ const EditMatchingQuestion = ({
           <EditableText
             value={questionText}
             onChange={setQuestionText}
-            onBlur={handleSave}
             placeholder="Введіть текст питання"
             multiline
           />
@@ -325,7 +339,6 @@ const EditMatchingQuestion = ({
                   <EditableText
                     value={category.text}
                     onChange={(text) => handleUpdateCategoryText(category.id, text)}
-                    onBlur={handleSave}
                     placeholder={`Варіант ${category.display_order + 1}`}
                     multiline
                     isNew={category.text === ''}
@@ -335,7 +348,6 @@ const EditMatchingQuestion = ({
                   <EditableText
                     value={matchedOption?.text || ''}
                     onChange={(text) => matchedOption && handleUpdateOptionText(matchedOption.id, text)}
-                    onBlur={handleSave}
                     placeholder={`Відповідь ${category.display_order + 1}`}
                     multiline
                     isNew={(!matchedOption || matchedOption.text === '')}
@@ -386,7 +398,6 @@ const EditMatchingQuestion = ({
                     <EditableText
                       value={option.text}
                       onChange={(text) => handleUpdateOptionText(option.id, text)}
-                      onBlur={handleSave}
                       placeholder="Додаткова відповідь"
                       multiline
                       isNew={option.text === ''}

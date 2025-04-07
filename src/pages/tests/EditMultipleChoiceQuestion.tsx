@@ -167,7 +167,6 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
     }
   }, [initialOptions]);
 
-  // Save when focus is lost
   const handleSave = () => {
     // Only save if there's actual content
     if (!questionText.trim() && options.every(opt => !opt.text.trim())) {
@@ -184,6 +183,7 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
     };
     
     if (onSave) {
+      console.log('Saving question data:', questionData);
       onSave(questionData);
     }
   };
@@ -195,29 +195,47 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
       text: '',
       is_correct: false
     };
-    setOptions([...options, newOption]);
+    const updatedOptions = [...options, newOption];
+    setOptions(updatedOptions);
     setNextOptionId(nextOptionId + 1);
   };
 
   // Remove an option
   const handleRemoveOption = (optionId: number) => {
-    setOptions(options.filter(option => option.id !== optionId));
-    handleSave();
+    const updatedOptions = options.filter(option => option.id !== optionId);
+    setOptions(updatedOptions);
+    // Don't call handleSave here as it would use stale state
   };
 
   // Update option text
   const handleOptionTextChange = (optionId: number, text: string) => {
-    setOptions(options.map(option => 
+    const updatedOptions = options.map(option => 
       option.id === optionId ? { ...option, text } : option
-    ));
+    );
+    setOptions(updatedOptions);
+    // We'll save after the state is updated with useEffect
   };
 
   // Toggle option correctness
   const handleOptionCorrectToggle = (optionId: number) => {
-    setOptions(options.map(option => 
+    const updatedOptions = options.map(option => 
       option.id === optionId ? { ...option, is_correct: !option.is_correct } : option
-    ));
-    handleSave();
+    );
+    setOptions(updatedOptions);
+    // We'll save after the state is updated with useEffect
+  };
+
+  // Effect to handle saves after state updates
+  useEffect(() => {
+    // Skip initial render
+    if (options !== initialOptions || questionText !== initialQuestionText) {
+      handleSave();
+    }
+  }, [options, questionText]);
+
+  // Handle question text change
+  const handleQuestionTextChange = (newText: string) => {
+    setQuestionText(newText);
   };
 
   return (
@@ -241,8 +259,7 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
         >
           <EditableContent
             value={questionText}
-            onChange={setQuestionText}
-            onBlur={handleSave}
+            onChange={handleQuestionTextChange}
             placeholder="Введіть текст питання"
             multiline
           />
@@ -307,7 +324,6 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
                 <EditableContent
                   value={option.text}
                   onChange={(newText) => handleOptionTextChange(option.id, newText)}
-                  onBlur={handleSave}
                   placeholder={`Варіант ${index + 1}`}
                   multiline
                   isNew={option.text === ''}
