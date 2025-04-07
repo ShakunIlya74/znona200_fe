@@ -112,15 +112,22 @@ const EditableText = ({
         border: `1px dashed ${alpha(theme.palette.grey[400], 0.5)}`,
         borderRadius: '6px',
         padding: '8px 12px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         '&:hover': {
           backgroundColor: alpha(theme.palette.grey[100], 0.5),
         }
       }}
     >
-      <Typography variant="body2" sx={{ color: value ? 'inherit' : 'text.disabled' }}>
+      <Typography variant="body2" sx={{ 
+        color: value ? 'inherit' : 'text.disabled',
+        flex: 1,
+        mr: 1
+      }}>
         {value || placeholder}
       </Typography>
-      <EditIcon fontSize="small" sx={{ opacity: 0.6, float: 'right' }} />
+      <EditIcon fontSize="small" sx={{ opacity: 0.6 }} />
     </Box>
   );
 };
