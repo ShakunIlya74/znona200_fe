@@ -277,8 +277,13 @@ const EditTestPage: React.FC = () => {
       setShowAddQuestionSection(true);
       // Scroll to the add question section
       setTimeout(() => {
-        addQuestionSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+        if (addQuestionSectionRef.current) {
+          const rect = addQuestionSectionRef.current.getBoundingClientRect();
+          const headerOffset = getHeaderOffset(isMobile, isMedium);
+          const scrollOffset = window.pageYOffset + rect.top - headerOffset - 20;
+          window.scrollTo({ top: scrollOffset, behavior: 'smooth' });
+        }
+      }, 300);
     }
   };
 
@@ -371,7 +376,9 @@ const EditTestPage: React.FC = () => {
       }
     }
     
+    // console.log('Updated questions after deletion:', updatedQuestions);
     setQuestions(updatedQuestions);
+    setIsSaved(false); // Mark as unsaved when deleting a question
   };
 
   // Handle saving a multiple choice question
@@ -464,14 +471,14 @@ const EditTestPage: React.FC = () => {
       test_id: testData?.test_id,
       test_name: testNameEdited,
       questions: questions
-        .filter(q => !q.markedForDeletion)
         .map(q => ({
           question_id: q.question_id > 0 ? q.question_id : undefined, // Don't send negative IDs
           question: q.question,
           question_type: q.question_type,
           question_data: q.question_data,
           max_points: q.max_points,
-          isNew: q.isNew
+          isNew: q.isNew,
+          markedForDeletion: q.markedForDeletion // Include marked for deletion
         }))
     };
     
@@ -907,6 +914,36 @@ const EditTestPage: React.FC = () => {
                       </Box>
                     </Paper>
                   )}
+                  <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    borderRadius: '16px',
+                    border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: 300
+                  }}
+                >
+                    <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddIcon />}
+                    onClick={handleAddQuestion}
+                    sx={{
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      mt: 2,
+                      '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.8)
+                      }
+                    }}
+                    >
+                    Додати нове питання
+                    </Button>
+                </Paper>
                 </>
               ) : (
                 <Paper
