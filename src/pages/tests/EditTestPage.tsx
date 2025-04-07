@@ -187,6 +187,7 @@ const EditTestPage: React.FC = () => {
   const [questions, setQuestions] = useState<EditedQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [showQuestionTypeDialog, setShowQuestionTypeDialog] = useState<boolean>(false);
+  const [showAddQuestionSection, setShowAddQuestionSection] = useState<boolean>(false); // New state
   const [nextQuestionId, setNextQuestionId] = useState<number>(-1); // Negative IDs for new questions
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [testNameEdited, setTestNameEdited] = useState<string>('');
@@ -195,6 +196,7 @@ const EditTestPage: React.FC = () => {
 
   // Create refs for each question for scroll functionality
   const questionRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
+  const addQuestionSectionRef = useRef<HTMLDivElement>(null); // New ref for add question section
 
   const theme = useTheme();
   const navigate = useNavigate();
@@ -267,7 +269,17 @@ const EditTestPage: React.FC = () => {
 
   // Handle adding a new question
   const handleAddQuestion = () => {
-    setShowQuestionTypeDialog(true);
+    if (isMobile) {
+      // On mobile, show the dialog as before
+      setShowQuestionTypeDialog(true);
+    } else {
+      // On desktop, show the add question section at the bottom
+      setShowAddQuestionSection(true);
+      // Scroll to the add question section
+      setTimeout(() => {
+        addQuestionSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
   };
 
   // Create a new question based on selected type
@@ -305,6 +317,7 @@ const EditTestPage: React.FC = () => {
     
     const updatedQuestions = [...questions, newQuestion];
     setQuestions(updatedQuestions);
+    setIsSaved(false); // Mark as unsaved when adding a new question
     
     // Initialize ref for the new question
     const newIndex = updatedQuestions.length - 1;
@@ -317,6 +330,7 @@ const EditTestPage: React.FC = () => {
     
     setNextQuestionId(nextQuestionId - 1); // Decrement for next new question ID
     setShowQuestionTypeDialog(false);
+    setShowAddQuestionSection(false); // Hide the add question section
   };
 
   // Handle deleting a question
@@ -432,6 +446,7 @@ const EditTestPage: React.FC = () => {
 
   // Handler for question selection
   const handleQuestionSelect = (index: number) => {
+    setShowQuestionTypeDialog(false);
     scrollToQuestion(index);
   };
 
@@ -734,84 +749,7 @@ const EditTestPage: React.FC = () => {
               flexDirection: 'column',
               gap: 4
             }}>
-              {showQuestionTypeDialog ? (
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 3,
-                    borderRadius: '16px',
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.05)
-                  }}
-                >
-                  <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, textAlign: 'center' }}>
-                    Оберіть тип питання
-                  </Typography>
-                  
-                  <Box sx={{ 
-                    display: 'flex', 
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    gap: 3,
-                    justifyContent: 'center'
-                  }}>
-                    <Box sx={{ flex: 1 }}>
-                      <Card
-                        onClick={() => createNewQuestion(QuestionTypeOptions.MULTIPLE_CHOICE)}
-                        sx={{
-                          borderRadius: '16px',
-                          cursor: 'pointer',
-                          height: '100%',
-                          border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                            transform: 'translateY(-4px)',
-                            boxShadow: `0 6px 12px ${alpha(theme.palette.primary.main, 0.15)}`
-                          }
-                        }}
-                      >
-                        <CardContent sx={{ textAlign: 'center', p: 4 }}>
-                          <QuizIcon sx={{ fontSize: 60, color: theme.palette.primary.main, mb: 2 }} />
-                          <Typography variant="h6" gutterBottom>
-                            Вибір з варіантів
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary">
-                            Створити питання з вибором однієї або кількох правильних відповідей
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Box>
-                    
-                    <Box sx={{ flex: 1 }}>
-                      <Card
-                        onClick={() => createNewQuestion(QuestionTypeOptions.MATCHING)}
-                        sx={{
-                          borderRadius: '16px',
-                          cursor: 'pointer',
-                          height: '100%',
-                          border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                            transform: 'translateY(-4px)',
-                            boxShadow: `0 6px 12px ${alpha(theme.palette.primary.main, 0.15)}`
-                          }
-                        }}
-                      >
-                        <CardContent sx={{ textAlign: 'center', p: 4 }}>
-                          <CompareArrowsIcon sx={{ fontSize: 60, color: theme.palette.primary.main, mb: 2 }} />
-                          <Typography variant="h6" gutterBottom>
-                            Встановлення відповідності
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary">
-                            Створити питання на встановлення відповідності між елементами
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Box>
-                  </Box>
-                </Paper>
-              ) : questions.filter(q => !q.markedForDeletion).length > 0 ? (
+              {questions.filter(q => !q.markedForDeletion).length > 0 ? (
                 <>
                   {/* Display all questions */}
                   {questions
@@ -888,6 +826,87 @@ const EditTestPage: React.FC = () => {
                         )}
                       </Paper>
                     ))}
+                    
+                  {/* Add Question Section - Appears at the bottom when adding a new question */}
+                  {showAddQuestionSection && (
+                    <Paper
+                      ref={addQuestionSectionRef}
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        borderRadius: '16px',
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                        backgroundColor: alpha(theme.palette.primary.main, 0.05)
+                      }}
+                    >
+                      <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, textAlign: 'center' }}>
+                        Оберіть тип питання
+                      </Typography>
+                      
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        gap: 3,
+                        justifyContent: 'center'
+                      }}>
+                        <Box sx={{ flex: 1 }}>
+                          <Card
+                            onClick={() => createNewQuestion(QuestionTypeOptions.MULTIPLE_CHOICE)}
+                            sx={{
+                              borderRadius: '16px',
+                              cursor: 'pointer',
+                              height: '100%',
+                              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                              transition: 'all 0.2s ease',
+                              '&:hover': {
+                                backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                                transform: 'translateY(-4px)',
+                                boxShadow: `0 6px 12px ${alpha(theme.palette.primary.main, 0.15)}`
+                              }
+                            }}
+                          >
+                            <CardContent sx={{ textAlign: 'center', p: 4 }}>
+                              <QuizIcon sx={{ fontSize: 60, color: theme.palette.primary.main, mb: 2 }} />
+                              <Typography variant="h6" gutterBottom>
+                                Вибір з варіантів
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                Створити питання з вибором однієї або кількох правильних відповідей
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Box>
+                        
+                        <Box sx={{ flex: 1 }}>
+                          <Card
+                            onClick={() => createNewQuestion(QuestionTypeOptions.MATCHING)}
+                            sx={{
+                              borderRadius: '16px',
+                              cursor: 'pointer',
+                              height: '100%',
+                              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                              transition: 'all 0.2s ease',
+                              '&:hover': {
+                                backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                                transform: 'translateY(-4px)',
+                                boxShadow: `0 6px 12px ${alpha(theme.palette.primary.main, 0.15)}`
+                              }
+                            }}
+                          >
+                            <CardContent sx={{ textAlign: 'center', p: 4 }}>
+                              <CompareArrowsIcon sx={{ fontSize: 60, color: theme.palette.primary.main, mb: 2 }} />
+                              <Typography variant="h6" gutterBottom>
+                                Встановлення відповідності
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                Створити питання на встановлення відповідності між елементами
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  )}
                 </>
               ) : (
                 <Paper
@@ -921,6 +940,9 @@ const EditTestPage: React.FC = () => {
                   </Button>
                 </Paper>
               )}
+              
+              {/* Empty box at the bottom that can be scrolled to when adding questions */}
+              {showAddQuestionSection && <Box sx={{ height: 20 }} />}
             </Box>
           </Box>
         </Box>
