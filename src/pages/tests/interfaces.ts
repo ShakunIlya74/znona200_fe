@@ -50,7 +50,7 @@ export interface TestViewResponse {
   export interface MatchingOption {
     id: number;
     text: string;
-    matching_category_id: number;
+    matching_category_id: number | null;
   }
   
   export interface MatchingCategory {

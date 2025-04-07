@@ -21,16 +21,8 @@ interface EditMatchingQuestionProps {
   onSave?: (questionData: { 
     question_id?: number;
     question_text: string;
-    category_list: Array<{
-      id: number;
-      text: string;
-      display_order: number;
-    }>;
-    options_list: Array<{
-      id: number;
-      text: string;
-      matching_category_id: number;
-    }>;
+    category_list: Array<MatchingCategory>;
+    options_list: Array<MatchingOption>;
   }) => void;
 }
 
@@ -148,10 +140,10 @@ const EditMatchingQuestion = ({
   );
   const [options, setOptions] = useState<MatchingOption[]>(() => initialOptions);
   const [nextCategoryId, setNextCategoryId] = useState<number>(
-    initialCategories.length > 0 ? Math.max(...initialCategories.map(cat => cat.id)) + 1 : 1000
+    initialCategories.length > 0 ? Math.max(...initialCategories.map(cat => cat.id)) + 1 : 1
   );
   const [nextOptionId, setNextOptionId] = useState<number>(
-    initialOptions.length > 0 ? Math.max(...initialOptions.map(opt => opt.id)) + 1 : 1000
+    initialOptions.length > 0 ? Math.max(...initialOptions.map(opt => opt.id)) + 1 : 1
   );
   
   // Track if initial render has completed
@@ -227,7 +219,7 @@ const EditMatchingQuestion = ({
     const newOption: MatchingOption = {
       id: nextOptionId,
       text: '',
-      matching_category_id: 0
+      matching_category_id: null  // Use null to indicate unmatched options
     };
     
     setOptions([...options, newOption]);
@@ -280,7 +272,7 @@ const EditMatchingQuestion = ({
   // Get unmatched options
   const getUnmatchedOptions = () => {
     return options.filter(opt => 
-      opt.matching_category_id === 0 || 
+      opt.matching_category_id === null || 
       !categories.some(cat => cat.id === opt.matching_category_id)
     );
   };
@@ -384,7 +376,7 @@ const EditMatchingQuestion = ({
         </Button>
         
         {/* Unmatched options section */}
-        {getUnmatchedOptions().length > 0 && (
+        {getUnmatchedOptions().length >= 0 && (
           <Box sx={{ mt: 3 }}>
             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
               Додаткові відповіді (без пари):

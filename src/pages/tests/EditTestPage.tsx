@@ -28,7 +28,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SaveIcon from '@mui/icons-material/Save';
 import EditIcon from '@mui/icons-material/Edit';
 import { getHeaderOffset } from '../../components/Header';
-import { FullTestWithAnswers, Question, TestCardMeta } from './interfaces';
+import { FullTestWithAnswers, MatchingCategory, MatchingOption, Question, TestCardMeta } from './interfaces';
 import EditMultipleChoiceQuestion from './EditMultipleChoiceQuestion';
 import EditMatchingQuestion from './EditMatchingQuestion';
 import QuizIcon from '@mui/icons-material/Quiz';
@@ -415,16 +415,8 @@ const EditTestPage: React.FC = () => {
   const handleSaveMatchingQuestion = (questionData: {
     question_id?: number;
     question_text: string;
-    category_list: Array<{
-      id: number;
-      text: string;
-      display_order: number;
-    }>;
-    options_list: Array<{
-      id: number;
-      text: string;
-      matching_category_id: number;
-    }>;
+    category_list: Array<MatchingCategory>;
+    options_list: Array<MatchingOption>;
   }, questionIndex: number) => {
     const updatedQuestions = [...questions];
     

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback, memo } from 'react';
 import { 
   Box, 
   Typography,
@@ -18,14 +18,12 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  DragOverEvent,
   DragStartEvent,
   UniqueIdentifier,
   DragOverlay,
   useDroppable
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   horizontalListSortingStrategy,
@@ -49,7 +47,7 @@ interface RowHeights {
 }
 
 // Custom droppable placeholder for the category items
-const DroppablePlaceholder = ({ 
+const DroppablePlaceholder = memo(({ 
   id, 
   children, 
   hasItem = false,
@@ -71,6 +69,7 @@ const DroppablePlaceholder = ({
   });
   
   const placeholderRef = useRef<HTMLDivElement>(null);
+  const prevHeightRef = useRef<number>(rowHeight);
   
   // Update row height when content changes
   useEffect(() => {
@@ -78,26 +77,28 @@ const DroppablePlaceholder = ({
       if (placeholderRef.current) {
         // Get the actual content height
         const height = placeholderRef.current.scrollHeight;
-        updateRowHeight(rowIndex, height);
+        
+        // Only update if height has changed significantly (by more than 2px)
+        if (Math.abs(height - prevHeightRef.current) > 2) {
+          prevHeightRef.current = height;
+          updateRowHeight(rowIndex, height);
+        }
       }
     };
     
-    // Update on initial render and when children change
-    updateHeight();
-    
-    // Also set up a resize observer to detect content height changes
+    // Set up a resize observer to detect content height changes
     const resizeObserver = new ResizeObserver(() => {
       updateHeight();
     });
     
     if (placeholderRef.current) {
+      // Initial height check
+      updateHeight();
       resizeObserver.observe(placeholderRef.current);
     }
     
     return () => {
-      if (placeholderRef.current) {
-        resizeObserver.unobserve(placeholderRef.current);
-      }
+      resizeObserver.disconnect();
     };
   }, [children, updateRowHeight, rowIndex]);
 
@@ -107,7 +108,7 @@ const DroppablePlaceholder = ({
         ref={placeholderRef}
         elevation={0}
         sx={{
-          py: hasItem ? 5.5 : 5.5, // Increased padding when an item is present
+          py: hasItem ? 5.5 : 5.5,
           px: hasItem ? 1.5 : 0.5,
           mb: 1,
           borderRadius: '8px',
@@ -125,10 +126,10 @@ const DroppablePlaceholder = ({
           height: rowHeight > 0 ? `${rowHeight}px` : 'auto',
           display: 'flex',
           alignItems: 'center',
-          transition: 'all 0.05s ease', // Faster transition time
+          transition: 'all 0.05s ease',
           flexDirection: 'row',
           width: '100%',
-          overflowX: 'visible', // Changed from 'auto' to 'visible'
+          overflowX: 'visible',
           whiteSpace: 'normal'
         }}
       >
@@ -136,10 +137,10 @@ const DroppablePlaceholder = ({
       </Paper>
     </div>
   );
-};
+});
 
 // Variant box component that syncs height with placeholder
-const VariantBox = ({
+const VariantBox = memo(({
   category,
   theme,
   rowHeight
@@ -161,8 +162,7 @@ const VariantBox = ({
         height: rowHeight > 0 ? `${rowHeight}px` : 'auto',
         display: 'flex',
         alignItems: 'center',
-        transition: 'all 0.05s ease', // Faster transition time
-        // overflowY: 'auto' // Prevent content from overflowing
+        transition: 'all 0.05s ease',
       }}
     >
       <Box sx={{ width: '100%' }}>
@@ -178,10 +178,10 @@ const VariantBox = ({
       </Box>
     </Paper>
   );
-};
+});
 
 // Droppable container for the available options
-const DroppableOptionsContainer = ({ 
+const DroppableOptionsContainer = memo(({ 
   id, 
   children, 
   theme 
@@ -220,10 +220,10 @@ const DroppableOptionsContainer = ({
       </Paper>
     </div>
   );
-};
+});
 
 // Draggable option item
-const SortableOption = ({ 
+const SortableOption = memo(({ 
   id, 
   option, 
   theme 
@@ -264,9 +264,9 @@ const SortableOption = ({
           ? theme.palette.primary.main 
           : alpha(theme.palette.grey[300], 0.8)}`,
         minWidth: '120px',
-        width: 'fit-content', // Makes the option fit its content
-        maxWidth: '100%', // Allow up to full width of container
-        hight: '80%', // Prevent overflow
+        width: 'fit-content',
+        maxWidth: '100%',
+        height: 'auto',
         cursor: 'grab',
         '&:active': {
           cursor: 'grabbing'
@@ -279,7 +279,7 @@ const SortableOption = ({
       </Typography>
     </Paper>
   );
-};
+});
 
 const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   questionId,
@@ -305,22 +305,24 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   // State to track row heights for synchronized sizing
   const [rowHeights, setRowHeights] = useState<RowHeights>({});
 
-  // Function to update row heights
-  const updateRowHeight = (rowIndex: number, height: number) => {
+  // Function to update row heights (memoized)
+  const updateRowHeight = useCallback((rowIndex: number, height: number) => {
     setRowHeights(prev => {
-      // Always update the height to match the current content
+      // Skip update if height hasn't changed
+      if (prev[rowIndex] === height) return prev;
+      
       return {
         ...prev,
         [rowIndex]: height
       };
     });
-  };
+  }, []);
 
-  // Configure sensors for drag and drop
+  // Configure sensors for drag and drop (memoized)
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 5, // 5px
+        distance: 5,
       },
     }),
     useSensor(TouchSensor, {
@@ -361,8 +363,8 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     setAvailableOptions(availableOpts);
   }, [options, categories, matches]);
 
-  // Get option from ID
-  const getOptionFromId = (id: UniqueIdentifier): { option: MatchingOption | null, categoryId?: number } => {
+  // Get option from ID (memoized)
+  const getOptionFromId = useCallback((id: UniqueIdentifier): { option: MatchingOption | null, categoryId?: number } => {
     const idStr = id.toString();
     
     // Handle available options
@@ -383,19 +385,19 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     }
     
     return { option: null };
-  };
+  }, [availableOptions, matchedOptions]);
 
-  // Handle drag start
-  const handleDragStart = (event: DragStartEvent) => {
+  // Handle drag start (memoized)
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id);
     
     const { option } = getOptionFromId(active.id);
     setActiveOption(option);
-  };
+  }, [getOptionFromId]);
   
-  // Handle drag end
-  const handleDragEnd = (event: DragEndEvent) => {
+  // Handle drag end (memoized)
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
     setActiveOption(null);
@@ -503,22 +505,15 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
       // Notify parent component - passing 0 as categoryId to indicate removal
       onMatchSelect(questionId, option.id, 0);
     }
-  };
+  }, [availableOptions, getOptionFromId, matchedOptions, onMatchSelect, questionId]);
   
   // Sort categories by display_order if available
-  const sortedCategories = [...categories].sort((a, b) => 
-    (a.display_order || 0) - (b.display_order || 0)
+  const sortedCategories = React.useMemo(() => 
+    [...categories].sort((a, b) => (a.display_order || 0) - (b.display_order || 0)),
+    [categories]
   );
 
-  // Get option IDs for SortableContext
-  const availableOptionIds = availableOptions.map(option => `option-${option.id}`);
-  
-  // Get matched option IDs for each category
-  const getMatchedOptionId = (categoryId: number): string => {
-    const option = matchedOptions[categoryId];
-    return option ? `matched-${option.id}-${categoryId}` : `empty-${categoryId}`;
-  };
-
+  // Render the component
   return (
     <Box>
       <Typography variant="h6" sx={{ 
@@ -536,10 +531,9 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         onDragEnd={handleDragEnd}
       >
         {/* Main matching area - two columns */}
-        {/* TODO: place abcd and 1234 next to the boxes, at least for mobile */}
         <Box sx={{ 
           display: 'flex', 
-          flexDirection: { xs: 'column', sm: 'row' }, // Only column on xs, row from sm upwards
+          flexDirection: { xs: 'column', sm: 'row' },
           gap: 0,
           mb: 2
         }}>
@@ -559,10 +553,10 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
             
             {sortedCategories.map((category, index) => (
               <VariantBox
-          key={`variant-${category.id}`}
-          category={category}
-          theme={theme}
-          rowHeight={rowHeights[index] || 0}
+                key={`variant-${category.id}`}
+                category={category}
+                theme={theme}
+                rowHeight={rowHeights[index] || 0}
               />
             ))}
           </Box>
@@ -585,24 +579,24 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
               const placeholderId = `placeholder-${category.id}`;
               const hasItem = !!matchedOptions[category.id];
               return (
-          <Box key={placeholderId} sx={{ width: '100%' }}>
-            <DroppablePlaceholder 
-              id={placeholderId}
-              hasItem={hasItem}
-              theme={theme}
-              rowIndex={index}
-              updateRowHeight={updateRowHeight}
-              rowHeight={rowHeights[index] || 0}
-            >
-              {matchedOptions[category.id] && (
-                <SortableOption 
-            id={`matched-${matchedOptions[category.id]!.id}-${category.id}`}
-            option={matchedOptions[category.id]!}
-            theme={theme}
-                />
-              )}
-            </DroppablePlaceholder>
-          </Box>
+                <Box key={placeholderId} sx={{ width: '100%' }}>
+                  <DroppablePlaceholder 
+                    id={placeholderId}
+                    hasItem={hasItem}
+                    theme={theme}
+                    rowIndex={index}
+                    updateRowHeight={updateRowHeight}
+                    rowHeight={rowHeights[index] || 0}
+                  >
+                    {matchedOptions[category.id] && (
+                      <SortableOption 
+                        id={`matched-${matchedOptions[category.id]!.id}-${category.id}`}
+                        option={matchedOptions[category.id]!}
+                        theme={theme}
+                      />
+                    )}
+                  </DroppablePlaceholder>
+                </Box>
               );
             })}
           </Box>
@@ -661,4 +655,4 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   );
 };
 
-export default MatchingQuestion;
+export default React.memo(MatchingQuestion);
