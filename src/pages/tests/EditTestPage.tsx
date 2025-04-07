@@ -959,7 +959,7 @@ const EditTestPage: React.FC = () => {
                   <Typography variant="h6" sx={{ mb: 2, color: theme.palette.text.secondary }}>
                     Немає питань для редагування
                   </Typography>
-                  <Button
+                    <Button
                     variant="contained"
                     color="primary"
                     startIcon={<AddIcon />}
@@ -967,11 +967,14 @@ const EditTestPage: React.FC = () => {
                     sx={{
                       borderRadius: '8px',
                       textTransform: 'none',
-                      mt: 2
+                      mt: 2,
+                      '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.8)
+                      }
                     }}
-                  >
+                    >
                     Додати нове питання
-                  </Button>
+                    </Button>
                 </Paper>
               )}
               

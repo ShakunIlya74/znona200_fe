@@ -68,6 +68,26 @@ export async function SubmitTestAnswers(tfp_sha: string, answers: UserTestRespon
   }
 }
 
+// Function to create a new empty test in a specified folder
+export async function CreateEmptyTest(folderId: number | string) {
+  try {
+    const response = await axiosInstance.post('/tests-create', {
+      folderId: folderId
+    });
+    return {
+      success: true,
+      tfp_sha: response.data.tfp_sha
+    };
+  }
+  catch (err) {
+    console.error('Error creating empty test:', err);
+    return { 
+      success: false, 
+      error: err instanceof Error ? err.message : 'Unknown error occurred'
+    };
+  }
+}
+
 // Function to save an edited test
 export async function SaveEditedTest(tfp_sha: string, testData: {
   test_id?: number;

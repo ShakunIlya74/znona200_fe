@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
-  CardActionArea, 
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  CardActionArea,
   Container,
   List,
   ListItemText,
@@ -35,7 +35,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import LocalLibraryRoundedIcon from '@mui/icons-material/LocalLibraryRounded';
 import HistoryIcon from '@mui/icons-material/History';
 import EditIcon from '@mui/icons-material/Edit';
-import { GetTestsData, GetFolderTests } from '../../services/TestService';
+import { GetTestsData, GetFolderTests, CreateEmptyTest } from '../../services/TestService';
 import { GetSessionData } from '../../services/AuthService';
 import { declinateWord } from '../utils/utils';
 import LoadingDots from '../../components/tools/LoadingDots';
@@ -73,11 +73,11 @@ interface TestModalProps {
 const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart, isAdmin }) => {
   const theme = useTheme();
   const navigate = useNavigate();
-  
+
   if (!test) return null;
-  
+
   const hasCompletedTrials = test.complete_trials && test.complete_trials > 0;
-  
+
   const handleReviewTest = () => {
     console.log(`Navigating to review test with tfp_sha: ${test.tfp_sha}`);
     navigate(`/tests/review/${test.tfp_sha}`);
@@ -87,7 +87,7 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
     console.log(`Navigating to edit test with tfp_sha: ${test.tfp_sha}`);
     navigate(`/tests/edit/${test.tfp_sha}`);
   };
-  
+
   // This function helps create square buttons with responsive size
   const getButtonSx = (variant: 'outlined' | 'contained') => {
     const isContained = variant === 'contained';
@@ -121,7 +121,7 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
       })
     };
   };
-  
+
   return (
     <>
       <Backdrop
@@ -133,8 +133,8 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
         open={open}
         onClick={onClose}
       />
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onClose={onClose}
         PaperProps={{
           sx: {
@@ -153,12 +153,12 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
           }
         }}
       >
-        <Box 
-          sx={{ 
-            position: 'absolute', 
-            top: '-12px', 
-            right: '-12px', 
-            zIndex: 1 
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '-12px',
+            right: '-12px',
+            zIndex: 1
           }}
         >
           <IconButton
@@ -175,17 +175,17 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
             <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
-        
-        <DialogTitle 
-          sx={{ 
-            py: 3, 
+
+        <DialogTitle
+          sx={{
+            py: 3,
             px: 3,
             borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`
           }}
         >
-          <Typography 
-            variant="h6" 
-            sx={{ 
+          <Typography
+            variant="h6"
+            sx={{
               fontWeight: 600,
               fontSize: '1.1rem'
             }}
@@ -193,12 +193,12 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
             {test.test_name}
           </Typography>
         </DialogTitle>
-        
+
         <DialogContent sx={{ py: 3, px: 3 }}>
           {hasCompletedTrials && (
             <Box sx={{ mb: 3 }}>
-              <Box 
-                sx={{ 
+              <Box
+                sx={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -212,42 +212,42 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
                 <Typography variant="body2">
                   Кількість спроб: <strong>{test.complete_trials}</strong>
                 </Typography>
-                
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
+
+                <Typography
+                  variant="body2"
+                  sx={{
                     fontWeight: 600,
-                    color: theme.palette.primary.main 
+                    color: theme.palette.primary.main
                   }}
                 >
-                  {test.correct_percentage !== undefined ? 
-                    `${Math.round(test.correct_percentage)}%` : 
+                  {test.correct_percentage !== undefined ?
+                    `${Math.round(test.correct_percentage)}%` :
                     '0%'
                   }
                 </Typography>
               </Box>
             </Box>
           )}
-          
-          <Typography 
+
+          <Typography
             variant="body2"
             color="text.secondary"
             sx={{ mb: 2 }}
           >
             {test.test_description && (
               <>
-              {test.test_description}
-              <Box sx={{ mb: 2 }} />
+                {test.test_description}
+                <Box sx={{ mb: 2 }} />
               </>
             )}
             Ви готові розпочати тест?
           </Typography>
         </DialogContent>
-        
-        <DialogActions 
-          sx={{ 
-            px: 3, 
-            pb: 3, 
+
+        <DialogActions
+          sx={{
+            px: 3,
+            pb: 3,
             pt: 1,
             display: 'flex',
             justifyContent: 'center',
@@ -258,7 +258,7 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
 
           {/* Admin edit button */}
           {isAdmin && (
-            <Button 
+            <Button
               onClick={handleEditTest}
               variant="outlined"
               sx={{
@@ -277,9 +277,9 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
               </Typography>
             </Button>
           )}
-          
+
           {hasCompletedTrials && (
-            <Button 
+            <Button
               onClick={handleReviewTest}
               variant="outlined"
               sx={getButtonSx('outlined')}
@@ -290,8 +290,8 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
               </Typography>
             </Button>
           )}
-          
-          <Button 
+
+          <Button
             onClick={() => onStart(test.tfp_sha)}
             variant="contained"
             sx={getButtonSx('contained')}
@@ -312,7 +312,7 @@ const TestsPage: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
-  
+
   // Dynamic header offset based on screen size
   const HEADER_OFFSET = isMobile ? 50 : isMedium ? 70 : 100;
 
@@ -328,13 +328,14 @@ const TestsPage: React.FC = () => {
   const [folderLoading, setFolderLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  
+  const [creatingTest, setCreatingTest] = useState<boolean>(false);
+
   // Modal state
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [selectedTest, setSelectedTest] = useState<TestCardMeta | null>(null);
-  
+
   // Create refs for scrolling and sticky behavior
-  const folderRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
+  const folderRefs = useRef<{ [key: number]: React.RefObject<HTMLDivElement> }>({});
   const testListRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const folderSearchInputRef = useRef<HTMLInputElement>(null);
@@ -379,7 +380,7 @@ const TestsPage: React.FC = () => {
     }
 
     const query = folderSearchQuery.toLowerCase();
-    const filtered = folderList.filter(folder => 
+    const filtered = folderList.filter(folder =>
       folder.folder_name.toLowerCase().includes(query)
     );
     setFilteredFolderList(filtered);
@@ -399,7 +400,7 @@ const TestsPage: React.FC = () => {
     }
 
     const query = searchQuery.toLowerCase();
-    const filtered = folderTests.filter(test => 
+    const filtered = folderTests.filter(test =>
       test.test_name.toLowerCase().includes(query)
     );
     setFilteredTests(filtered);
@@ -449,16 +450,16 @@ const TestsPage: React.FC = () => {
       setOpenFolderId(null);
       return;
     }
-    
+
     // Remember previous folder before changing to the new one
     setPreviousFolderId(openFolderId);
-    
+
     // Set the new folder as open and start loading its tests
     setOpenFolderId(folderId);
     setFolderLoading(true);
     setFolderTests([]);
     setFilteredTests([]);
-    
+
     try {
       const response = await GetFolderTests(folderId) as FolderTests;
       if (response.success && response.test_dicts) {
@@ -518,6 +519,26 @@ const TestsPage: React.FC = () => {
     return folderTests.findIndex(test => test.test_id === testId);
   };
 
+  // Handle creating a new test in the current folder
+  const handleCreateNewTest = async () => {
+    if (!openFolderId) return;
+
+    setCreatingTest(true);
+    try {
+      const response = await CreateEmptyTest(openFolderId);
+      if (response.success && response.tfp_sha) {
+        navigate(`/tests/edit/${response.tfp_sha}`);
+      } else {
+        setError('Failed to create new test');
+      }
+    } catch (err) {
+      console.error('Error creating new test:', err);
+      setError('An error occurred while creating a new test');
+    } finally {
+      setCreatingTest(false);
+    }
+  };
+
   // Load user session data to check admin status
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -541,11 +562,11 @@ const TestsPage: React.FC = () => {
     <Container maxWidth="lg" sx={{ py: 1 }}>
       {/* Folder Search Bar */}
       {!loading && !error && folderList.length > 0 && (
-        <Paper 
-          elevation={0} 
-          sx={{ 
+        <Paper
+          elevation={0}
+          sx={{
             mb: 3,
-            p: 1.5, 
+            p: 1.5,
             borderRadius: '16px',
             backgroundColor: alpha(theme.palette.primary.main, 0.03),
             border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
@@ -577,11 +598,11 @@ const TestsPage: React.FC = () => {
             endAdornment={
               folderSearchQuery && (
                 <InputAdornment position="end">
-                  <IconButton 
-                    size="small" 
-                    edge="end" 
+                  <IconButton
+                    size="small"
+                    edge="end"
                     onClick={clearFolderSearch}
-                    sx={{ 
+                    sx={{
                       opacity: 0.6,
                       '&:hover': { opacity: 1 }
                     }}
@@ -594,7 +615,7 @@ const TestsPage: React.FC = () => {
           />
         </Paper>
       )}
-      
+
       {loading ? (
         <LoadingDots />
       ) : error ? (
@@ -602,7 +623,7 @@ const TestsPage: React.FC = () => {
       ) : filteredFolderList.length > 0 ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {filteredFolderList.map((folder) => (
-            <Box 
+            <Box
               key={folder.folder_id}
               ref={folderRefs.current[folder.folder_id] || (folderRefs.current[folder.folder_id] = React.createRef())}
               sx={{
@@ -617,8 +638,8 @@ const TestsPage: React.FC = () => {
                   zIndex: 3,
                   width: '100%',
                   borderRadius: '16px', // don't change
-                  boxShadow: openFolderId === folder.folder_id 
-                    ? `0px 2px 8px ${alpha(theme.palette.common.black, 0.08)}` 
+                  boxShadow: openFolderId === folder.folder_id
+                    ? `0px 2px 8px ${alpha(theme.palette.common.black, 0.08)}`
                     : `0px 1px 3px ${alpha(theme.palette.common.black, 0.05)}`, // Lighter shadow
                   border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`, // Lighter border
                   transition: 'all 0.2s ease-in-out', // Smooth transition for hover effects
@@ -632,33 +653,33 @@ const TestsPage: React.FC = () => {
                   }
                 }}
               >
-                <CardActionArea 
+                <CardActionArea
                   onClick={() => handleFolderClick(folder.folder_id)}
-                  sx={{ 
-                    display: 'flex', 
+                  sx={{
+                    display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     pr: 2,
-                    borderRadius: openFolderId === folder.folder_id 
-                      ? '16px 16px 0 0' 
+                    borderRadius: openFolderId === folder.folder_id
+                      ? '16px 16px 0 0'
                       : '16px', // Match card border radius
                     py: 0.5 // Add a bit more vertical padding
                   }}
                 >
                   <CardContent sx={{ flexGrow: 1, py: 2 }}>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        fontWeight: 600, 
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 600,
                         fontSize: '1.1rem',
                         mb: 0.5
                       }}
                     >
                       {folder.folder_name}
                     </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
+                    <Typography
+                      variant="body2"
+                      sx={{
                         color: theme.palette.text.secondary,
                         fontSize: '0.9rem'
                       }}
@@ -666,7 +687,7 @@ const TestsPage: React.FC = () => {
                       На цьому етапі доступно {declinateWord(folder.elements_count, 'тест')}.
                     </Typography>
                   </CardContent>
-                  <IconButton 
+                  <IconButton
                     onClick={(e) => {
                       e.stopPropagation();
                       handleFolderClick(folder.folder_id);
@@ -681,35 +702,35 @@ const TestsPage: React.FC = () => {
                       transition: 'all 0.2s'
                     }}
                   >
-                    {openFolderId === folder.folder_id 
-                      ? <ExpandLessIcon /> 
+                    {openFolderId === folder.folder_id
+                      ? <ExpandLessIcon />
                       : <ExpandMoreIcon />
                     }
                   </IconButton>
                 </CardActionArea>
               </Card>
-              
-              <Collapse 
-                in={openFolderId === folder.folder_id} 
+
+              <Collapse
+                in={openFolderId === folder.folder_id}
                 timeout="auto"
                 unmountOnExit
               >
-                <Box 
+                <Box
                   ref={testListRef}
-                  sx={{ 
-                    mt: 0, 
-                    mb: 2, 
+                  sx={{
+                    mt: 0,
+                    mb: 2,
                     mr: 1,
-                    borderLeft: '2px solid', 
+                    borderLeft: '2px solid',
                     borderColor: alpha(theme.palette.primary.main, 0.2),
                     borderRadius: '0 0 16px 16px',
                     ml: 2,
                     position: 'relative',
                   }}
                 >
-                  <Paper 
-                    elevation={0} 
-                    sx={{ 
+                  <Paper
+                    elevation={0}
+                    sx={{
                       backgroundColor: theme.palette.background.paper,
                       borderRadius: '0 0 12px 12px',
                       overflow: 'hidden',
@@ -720,9 +741,9 @@ const TestsPage: React.FC = () => {
                   >
                     {/* Test Search Bar - only show when there are at least 10 tests */}
                     {folderTests.length >= 10 && (
-                      <Box 
-                        sx={{ 
-                          p: 1.5, 
+                      <Box
+                        sx={{
+                          p: 1.5,
                           borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
                           backgroundColor: alpha(theme.palette.primary.main, 0.03)
                         }}
@@ -752,11 +773,11 @@ const TestsPage: React.FC = () => {
                           endAdornment={
                             searchQuery && (
                               <InputAdornment position="end">
-                                <IconButton 
-                                  size="small" 
-                                  edge="end" 
+                                <IconButton
+                                  size="small"
+                                  edge="end"
                                   onClick={clearSearch}
-                                  sx={{ 
+                                  sx={{
                                     opacity: 0.6,
                                     '&:hover': { opacity: 1 }
                                   }}
@@ -769,13 +790,55 @@ const TestsPage: React.FC = () => {
                         />
                       </Box>
                     )}
-                    
+
                     {folderLoading ? (
                       <Box sx={{ py: 3, px: 2, display: 'flex', justifyContent: 'center' }}>
                         <LoadingDots />
                       </Box>
                     ) : filteredTests.length > 0 ? (
                       <List disablePadding>
+                        {/* Add "Create New Test" button for admin users */}
+                        {isAdmin && (
+                          <>
+                            <ListItemButton
+                              onClick={handleCreateNewTest}
+                              disabled={creatingTest}
+                              sx={{
+                                py: 1.5,
+                                px: 3,
+                                transition: 'all 0.15s ease',
+                                backgroundColor: alpha(theme.palette.success.light, 0.05),
+                                '&:hover': {
+                                  backgroundColor: alpha(theme.palette.success.light, 0.1),
+                                },
+                                display: 'flex',
+                                gap: 2
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  fontWeight: 600,
+                                  color: theme.palette.success.main,
+                                  minWidth: '24px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                +
+                              </Typography>
+                              <ListItemText
+                                primary={
+                                  <Typography sx={{ fontWeight: 500, color: theme.palette.success.main }}>
+                                    {creatingTest ? 'Створення тесту...' : 'Додати новий тест'}
+                                  </Typography>
+                                }
+                              />
+                             
+                            </ListItemButton>
+                            <Divider component="li" sx={{ borderColor: alpha(theme.palette.divider, 0.5) }} />
+                          </>
+                        )}
                         {filteredTests.map((test, index, array) => {
                           // Get original index for consistent numbering
                           const originalIndex = getOriginalIndex(test.test_id);
@@ -783,8 +846,8 @@ const TestsPage: React.FC = () => {
                             <React.Fragment key={test.test_id}>
                               <ListItemButton
                                 onClick={() => handleTestClick(test)}
-                                sx={{ 
-                                  py: 1.5, 
+                                sx={{
+                                  py: 1.5,
                                   px: 3,
                                   transition: 'all 0.15s ease',
                                   '&:hover': {
@@ -794,9 +857,9 @@ const TestsPage: React.FC = () => {
                                   gap: 2
                                 }}
                               >
-                                <Typography 
-                                  sx={{ 
-                                    fontWeight: 600, 
+                                <Typography
+                                  sx={{
+                                    fontWeight: 600,
                                     color: theme.palette.primary.main,
                                     opacity: 0.8,
                                     minWidth: '24px',
@@ -807,16 +870,16 @@ const TestsPage: React.FC = () => {
                                 >
                                   {originalIndex + 1}.
                                 </Typography>
-                                <ListItemText 
+                                <ListItemText
                                   primary={
                                     <Typography sx={{ fontWeight: 500 }}>
                                       {test.test_name}
                                     </Typography>
-                                  } 
+                                  }
                                 />
-                                <Box sx={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
+                                <Box sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
                                   gap: 1,
                                   color: theme.palette.primary.main
                                 }}>
@@ -833,11 +896,11 @@ const TestsPage: React.FC = () => {
                                 </Box>
                               </ListItemButton>
                               {index < array.length - 1 && (
-                                <Divider 
-                                  component="li" 
-                                  sx={{ 
+                                <Divider
+                                  component="li"
+                                  sx={{
                                     borderColor: alpha(theme.palette.divider, 0.5)
-                                  }} 
+                                  }}
                                 />
                               )}
                             </React.Fragment>
@@ -845,10 +908,10 @@ const TestsPage: React.FC = () => {
                         })}
                       </List>
                     ) : folderTests.length > 0 && searchQuery ? (
-                      <Typography 
-                        sx={{ 
-                          py: 3, 
-                          px: 3, 
+                      <Typography
+                        sx={{
+                          py: 3,
+                          px: 3,
                           textAlign: 'center',
                           color: theme.palette.text.secondary
                         }}
@@ -856,10 +919,10 @@ const TestsPage: React.FC = () => {
                         Жодного тесту не знайдено за вашим пошуковим запитом.
                       </Typography>
                     ) : (
-                      <Typography 
-                        sx={{ 
-                          py: 3, 
-                          px: 3, 
+                      <Typography
+                        sx={{
+                          py: 3,
+                          px: 3,
                           textAlign: 'center',
                           color: theme.palette.text.secondary
                         }}
@@ -874,10 +937,10 @@ const TestsPage: React.FC = () => {
           ))}
         </Box>
       ) : folderList.length > 0 ? (
-        <Typography 
-          sx={{ 
-            py: 3, 
-            px: 3, 
+        <Typography
+          sx={{
+            py: 3,
+            px: 3,
             textAlign: 'center',
             color: theme.palette.text.secondary
           }}
@@ -885,10 +948,10 @@ const TestsPage: React.FC = () => {
           Жодного модуля не знайдено за вашим пошуковим запитом.
         </Typography>
       ) : (
-        <Typography 
-          sx={{ 
-            py: 3, 
-            px: 3, 
+        <Typography
+          sx={{
+            py: 3,
+            px: 3,
             textAlign: 'center',
             color: theme.palette.text.secondary
           }}
@@ -896,9 +959,9 @@ const TestsPage: React.FC = () => {
           Немає доступних папок з тестами.
         </Typography>
       )}
-      
+
       {/* Test Start Modal */}
-      <TestStartModal 
+      <TestStartModal
         open={modalOpen}
         test={selectedTest}
         onClose={handleCloseModal}
