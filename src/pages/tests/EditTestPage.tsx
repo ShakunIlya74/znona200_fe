@@ -519,6 +519,11 @@ const EditTestPage: React.FC = () => {
     setShowExitDialog(false);
   };
 
+  // Define a responsive padding value based on screen size
+  const questionTypeCardPadding = useMediaQuery(theme.breakpoints.between('sm', 'lg',)) 
+    ? 1  // Less padding for medium screens
+    : 4; // Normal padding for other screen sizes
+
   return (
     <Container
       maxWidth={false}
@@ -864,7 +869,7 @@ const EditTestPage: React.FC = () => {
                               }
                             }}
                           >
-                            <CardContent sx={{ textAlign: 'center', p: 4 }}>
+                            <CardContent sx={{ textAlign: 'center', p: questionTypeCardPadding }}>
                               <QuizIcon sx={{ fontSize: 60, color: theme.palette.primary.main, mb: 2 }} />
                               <Typography variant="h6" gutterBottom>
                                 Вибір з варіантів
@@ -892,7 +897,7 @@ const EditTestPage: React.FC = () => {
                               }
                             }}
                           >
-                            <CardContent sx={{ textAlign: 'center', p: 4 }}>
+                            <CardContent sx={{ textAlign: 'center', p: questionTypeCardPadding }}>
                               <CompareArrowsIcon sx={{ fontSize: 60, color: theme.palette.primary.main, mb: 2 }} />
                               <Typography variant="h6" gutterBottom>
                                 Встановлення відповідності
