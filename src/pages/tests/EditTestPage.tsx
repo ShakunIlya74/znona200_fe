@@ -190,6 +190,8 @@ const EditTestPage: React.FC = () => {
   const [nextQuestionId, setNextQuestionId] = useState<number>(-1); // Negative IDs for new questions
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [testNameEdited, setTestNameEdited] = useState<string>('');
+  const [isSaved, setIsSaved] = useState<boolean>(true);
+  const [showExitDialog, setShowExitDialog] = useState<boolean>(false);
 
   // Create refs for each question for scroll functionality
   const questionRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
@@ -218,6 +220,7 @@ const EditTestPage: React.FC = () => {
           setTestData(testDataFromApi);
           setTestNameEdited(testDataFromApi.test_name || '');
           setQuestions(response.full_test_with_answers.questions.map(q => ({ ...q })));
+          setIsSaved(true); // Initially mark as saved when loaded
         } else {
           setError(response.error || 'Failed to load test data');
         }
@@ -383,6 +386,7 @@ const EditTestPage: React.FC = () => {
     };
     
     setQuestions(updatedQuestions);
+    setIsSaved(false); // Mark as unsaved when a question is edited
   };
 
   // Handle saving a matching question
@@ -422,6 +426,7 @@ const EditTestPage: React.FC = () => {
     };
     
     setQuestions(updatedQuestions);
+    setIsSaved(false); // Mark as unsaved when a question is edited
   };
 
   // Handler for question selection
@@ -459,8 +464,9 @@ const EditTestPage: React.FC = () => {
     try {
       const result = await SaveEditedTest(tfp_sha!, testToSave);
       if (result.success) {
-        // Navigate back to tests list on success
-        navigate('/tests');
+        setIsSaved(true); // Mark as saved when successfully saved
+        // Note: if we want to stay on the page after saving, remove this navigate
+        // navigate('/tests');
       } else {
         setError(result.error || 'Failed to save test');
       }
@@ -475,6 +481,27 @@ const EditTestPage: React.FC = () => {
   // Handle test name change
   const handleTestNameChange = (newName: string) => {
     setTestNameEdited(newName);
+    setIsSaved(false); // Mark as unsaved when test name is edited
+  };
+
+  // Handle exit with unsaved changes
+  const handleExitClick = () => {
+    if (!isSaved) {
+      setShowExitDialog(true);
+    } else {
+      navigate('/tests');
+    }
+  };
+
+  // Handle exit confirmation
+  const handleConfirmExit = () => {
+    setShowExitDialog(false);
+    navigate('/tests');
+  };
+
+  // Handle exit cancellation
+  const handleCancelExit = () => {
+    setShowExitDialog(false);
   };
 
   return (
@@ -635,31 +662,69 @@ const EditTestPage: React.FC = () => {
                 </QuestionButton>
               </Box>
 
-              {/* Save button */}
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                startIcon={<SaveIcon />}
-                onClick={handleSaveTest}
-                disabled={isSaving}
+              {/* Save status indicator */}
+              <Box 
                 sx={{ 
                   mb: 2,
-                  borderRadius: '8px',
-                  padding: '12px 0',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.8)
-                  }
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
-                {isSaving ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  'Зберегти тест'
-                )}
-              </Button>
+                <Typography 
+                  variant="subtitle2" 
+                  sx={{ 
+                    color: isSaved ? theme.palette.success.main : theme.palette.error.main,
+                    fontWeight: 600
+                  }}
+                >
+                  {isSaved ? 'Збережено' : 'Зміни не збережено'}
+                </Typography>
+              </Box>
+
+              {/* Save and Exit buttons */}
+              <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  startIcon={<SaveIcon />}
+                  onClick={handleSaveTest}
+                  disabled={isSaving}
+                  sx={{ 
+                    borderRadius: '8px',
+                    padding: '12px 0',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.8)
+                    }
+                  }}
+                >
+                  {isSaving ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    'Зберегти тест'
+                  )}
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  fullWidth
+                  startIcon={<ArrowBackIcon />}
+                  onClick={handleExitClick}
+                  disabled={isSaving}
+                  sx={{ 
+                    borderRadius: '8px',
+                    padding: '12px 0',
+                    fontWeight: 600,
+                    textTransform: 'none'
+                  }}
+                >
+                  Вийти
+                </Button>
+              </Box>
             </Box>
 
             {/* Question Display/Edit Area - Now shows all questions */}
@@ -905,6 +970,80 @@ const EditTestPage: React.FC = () => {
             </Grid>
           </Grid>
         </DialogContent>
+      </Dialog>
+
+      {/* Exit confirmation dialog */}
+      <Dialog
+        open={showExitDialog}
+        onClose={handleCancelExit}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            boxShadow: `0px 8px 24px ${alpha(theme.palette.common.black, 0.15)}`,
+            maxWidth: '400px',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          py: 3, 
+          px: 3,
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+        }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontWeight: 600,
+              fontSize: '1.1rem'
+            }}
+          >
+            Незбережені зміни
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ py: 3, px: 3 }}>
+          <Typography variant="body1">
+            У вас є незбережені зміни. Ви впевнені, що хочете вийти без збереження?
+          </Typography>
+        </DialogContent>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          px: 3, 
+          pb: 3, 
+          pt: 1
+        }}>
+          <Button 
+            onClick={handleCancelExit}
+            variant="outlined"
+            sx={{
+              borderRadius: '8px',
+              py: 1,
+              px: 3,
+              textTransform: 'none',
+              fontWeight: 600,
+              borderColor: alpha(theme.palette.grey[300], 0.8),
+              color: theme.palette.text.primary
+            }}
+          >
+            Повернутися до редагування
+          </Button>
+          
+          <Button 
+            onClick={handleConfirmExit}
+            variant="contained"
+            color="error"
+            sx={{
+              borderRadius: '8px',
+              py: 1,
+              px: 3,
+              textTransform: 'none',
+              fontWeight: 600
+            }}
+          >
+            Вийти без збереження
+          </Button>
+        </Box>
       </Dialog>
     </Container>
   );

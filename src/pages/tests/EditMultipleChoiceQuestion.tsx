@@ -37,12 +37,14 @@ interface EditMultipleChoiceQuestionProps {
 const EditableContent: React.FC<{
   value: string;
   onChange: (newValue: string) => void;
+  onBlur?: () => void;
   placeholder?: string;
   multiline?: boolean;
   isNew?: boolean;
 }> = ({
   value,
   onChange,
+  onBlur,
   placeholder = 'Enter text...',
   multiline = false,
   isNew = false
@@ -55,9 +57,19 @@ const EditableContent: React.FC<{
     setEditValue(value);
   }, [value]);
   
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditValue(e.target.value);
+  };
+  
+  // Simple blur handler that only saves once when focus is lost
   const handleBlur = () => {
+    if (editValue !== value) {
+      onChange(editValue);
+    }
     setIsEditing(false);
-    onChange(editValue);
+    if (onBlur) {
+      onBlur();
+    }
   };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -80,7 +92,7 @@ const EditableContent: React.FC<{
         size="small"
         autoFocus
         value={editValue}
-        onChange={(e) => setEditValue(e.target.value)}
+        onChange={handleTextChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
@@ -155,43 +167,8 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
     }
   }, [initialOptions]);
 
-  // Auto-save when question or options change
-  useEffect(() => {
-    handleAutoSave();
-  }, [questionText, options]);
-
-  // Add a new option
-  const handleAddOption = () => {
-    const newOption: MultipleChoiceOption = {
-      id: nextOptionId,
-      text: '',
-      is_correct: false
-    };
-    setOptions([...options, newOption]);
-    setNextOptionId(nextOptionId + 1);
-  };
-
-  // Remove an option
-  const handleRemoveOption = (optionId: number) => {
-    setOptions(options.filter(option => option.id !== optionId));
-  };
-
-  // Update option text
-  const handleOptionTextChange = (optionId: number, text: string) => {
-    setOptions(options.map(option => 
-      option.id === optionId ? { ...option, text } : option
-    ));
-  };
-
-  // Toggle option correctness
-  const handleOptionCorrectToggle = (optionId: number) => {
-    setOptions(options.map(option => 
-      option.id === optionId ? { ...option, is_correct: !option.is_correct } : option
-    ));
-  };
-
-  // Auto-save the question
-  const handleAutoSave = () => {
+  // Save when focus is lost
+  const handleSave = () => {
     // Only save if there's actual content
     if (!questionText.trim() && options.every(opt => !opt.text.trim())) {
       return;
@@ -209,6 +186,38 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
     if (onSave) {
       onSave(questionData);
     }
+  };
+
+  // Add a new option
+  const handleAddOption = () => {
+    const newOption: MultipleChoiceOption = {
+      id: nextOptionId,
+      text: '',
+      is_correct: false
+    };
+    setOptions([...options, newOption]);
+    setNextOptionId(nextOptionId + 1);
+  };
+
+  // Remove an option
+  const handleRemoveOption = (optionId: number) => {
+    setOptions(options.filter(option => option.id !== optionId));
+    handleSave();
+  };
+
+  // Update option text
+  const handleOptionTextChange = (optionId: number, text: string) => {
+    setOptions(options.map(option => 
+      option.id === optionId ? { ...option, text } : option
+    ));
+  };
+
+  // Toggle option correctness
+  const handleOptionCorrectToggle = (optionId: number) => {
+    setOptions(options.map(option => 
+      option.id === optionId ? { ...option, is_correct: !option.is_correct } : option
+    ));
+    handleSave();
   };
 
   return (
@@ -233,6 +242,7 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
           <EditableContent
             value={questionText}
             onChange={setQuestionText}
+            onBlur={handleSave}
             placeholder="Введіть текст питання"
             multiline
           />
@@ -297,6 +307,7 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
                 <EditableContent
                   value={option.text}
                   onChange={(newText) => handleOptionTextChange(option.id, newText)}
+                  onBlur={handleSave}
                   placeholder={`Варіант ${index + 1}`}
                   multiline
                   isNew={option.text === ''}
