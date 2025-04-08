@@ -3,8 +3,13 @@ import { GetSessionData } from "../services/AuthService";
 
 const adminOnlyEndpoints = [
     "/admin_start",
+
+    // test editing endpoints
     "/tests/edit",  // Adding the test edit route as admin-only
-    "test-edit"
+    "/test-edit",
+    "/test-create",
+    "/test-remove-tfp",
+
 ];
 
 export function useAuth(currentPath: string) {

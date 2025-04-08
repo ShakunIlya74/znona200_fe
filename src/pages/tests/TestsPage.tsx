@@ -35,7 +35,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import LocalLibraryRoundedIcon from '@mui/icons-material/LocalLibraryRounded';
 import HistoryIcon from '@mui/icons-material/History';
 import EditIcon from '@mui/icons-material/Edit';
-import { GetTestsData, GetFolderTests, CreateEmptyTest } from '../../services/TestService';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { GetTestsData, GetFolderTests, CreateEmptyTest, RemoveTestFromFolder } from '../../services/TestService';
 import { GetSessionData } from '../../services/AuthService';
 import { declinateWord } from '../utils/utils';
 import LoadingDots from '../../components/tools/LoadingDots';
@@ -67,12 +68,15 @@ interface TestModalProps {
   onClose: () => void;
   onStart: (tfpSha: string) => void;
   isAdmin: boolean; // Adding isAdmin prop
+  onTestRemoved?: () => void; // New callback for test removal
 }
 
 // Modal component for test start confirmation
-const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart, isAdmin }) => {
+const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart, isAdmin, onTestRemoved }) => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteInProgress, setDeleteInProgress] = useState(false);
 
   if (!test) return null;
 
@@ -88,9 +92,37 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
     navigate(`/tests/edit/${test.tfp_sha}`);
   };
 
+  const handleDeleteTest = async () => {
+    if (!test.tfp_sha) return;
+
+    setDeleteInProgress(true);
+    try {
+      const result = await RemoveTestFromFolder(test.tfp_sha);
+      if (result.success) {
+        onClose();
+        if (onTestRemoved) {
+          onTestRemoved();
+        }
+      } else {
+        console.error('Failed to delete test:', result.error);
+        // Could add a toast/snackbar error notification here
+      }
+    } catch (error) {
+      console.error('Error deleting test:', error);
+    } finally {
+      setDeleteInProgress(false);
+    }
+  };
+
+  const toggleDeleteMode = () => {
+    setIsDeleting(!isDeleting);
+  };
+
   // This function helps create square buttons with responsive size
-  const getButtonSx = (variant: 'outlined' | 'contained') => {
+  const getButtonSx = (variant: 'outlined' | 'contained', color?: string) => {
     const isContained = variant === 'contained';
+    const buttonColor = color || theme.palette.primary.main;
+    
     return {
       borderRadius: '8px',
       textTransform: 'none',
@@ -107,16 +139,17 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
       p: 2,
       transition: 'all 0.2s ease-in-out',
       ...(isContained ? {
-        boxShadow: `0px 2px 4px ${alpha(theme.palette.primary.main, 0.25)}`,
+        backgroundColor: buttonColor,
+        boxShadow: `0px 2px 4px ${alpha(buttonColor, 0.25)}`,
         '&:hover': {
-          backgroundColor: alpha(theme.palette.primary.main, 0.8)
+          backgroundColor: alpha(buttonColor, 0.8)
         }
       } : {
-        borderColor: alpha(theme.palette.grey[500], 0.5),
-        color: theme.palette.text.primary,
+        borderColor: color ? buttonColor : alpha(theme.palette.grey[500], 0.5),
+        color: color || theme.palette.text.primary,
         '&:hover': {
-          borderColor: theme.palette.primary.main,
-          backgroundColor: alpha(theme.palette.primary.main, 0.05)
+          borderColor: buttonColor,
+          backgroundColor: alpha(buttonColor, 0.05)
         }
       })
     };
@@ -195,7 +228,7 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
         </DialogTitle>
 
         <DialogContent sx={{ py: 3, px: 3 }}>
-          {hasCompletedTrials && (
+          {hasCompletedTrials && !isDeleting && (
             <Box sx={{ mb: 3 }}>
               <Box
                 sx={{
@@ -229,19 +262,33 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
             </Box>
           )}
 
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mb: 2 }}
-          >
-            {test.test_description && (
-              <>
-                {test.test_description}
-                <Box sx={{ mb: 2 }} />
-              </>
-            )}
-            Ви готові розпочати тест?
-          </Typography>
+          {isDeleting ? (
+            <Typography
+              variant="body1"
+              color="error.main"
+              sx={{ mb: 2, fontWeight: 500, textAlign: 'center' }}
+            >
+              Ви впевнені, що хочете видалити цей тест з папки?
+              <br/>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Ця дія не може бути скасована.
+              </Typography>
+            </Typography>
+          ) : (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mb: 2 }}
+            >
+              {test.test_description && (
+                <>
+                  {test.test_description}
+                  <Box sx={{ mb: 2 }} />
+                </>
+              )}
+              Ви готові розпочати тест?
+            </Typography>
+          )}
         </DialogContent>
 
         <DialogActions
@@ -255,52 +302,119 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
             flexWrap: { xs: 'wrap', sm: 'nowrap' }
           }}
         >
+          {isDeleting ? (
+            <>
+              <Button
+                onClick={toggleDeleteMode}
+                variant="outlined"
+                disabled={deleteInProgress}
+                sx={getButtonSx('outlined')}
+              >
+                <Typography variant="body2">
+                  Скасувати
+                </Typography>
+              </Button>
+              <Button
+                onClick={handleDeleteTest}
+                variant="contained"
+                disabled={deleteInProgress}
+                sx={getButtonSx('contained', theme.palette.error.main)}
+              >
+                {deleteInProgress ? (
+                  <Typography variant="body2">
+                    Видалення...
+                  </Typography>
+                ) : (
+                  <Typography variant="body2">
+                    Підтвердити видалення
+                  </Typography>
+                )}
+              </Button>
+            </>
+          ) : (
+            <>
+              {/* Admin delete button - updated with icon and smaller width */}
+              {isAdmin && (
+                <Button
+                  onClick={toggleDeleteMode}
+                  variant="outlined"
+                  sx={{
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    height: '120px',
+                    width: '120px', // Fixed width instead of flex
+                    minWidth: 'unset', // Remove minimum width constraint
+                    maxWidth: '120px', // Limit maximum size
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 1,
+                    p: 2,
+                    transition: 'all 0.2s ease-in-out',
+                    borderColor: theme.palette.error.main,
+                    color: theme.palette.error.main,
+                    '&:hover': {
+                      borderColor: theme.palette.error.dark,
+                      backgroundColor: alpha(theme.palette.error.main, 0.05)
+                    }
+                  }}
+                >
+                  <DeleteIcon sx={{ fontSize: '2rem', mb: 1 }} />
+                  <Typography variant="body2" sx={{ textAlign: 'center' }}>
+                    Видалити з папки
+                  </Typography>
+                </Button>
+              )}
 
-          {/* Admin edit button */}
-          {isAdmin && (
-            <Button
-              onClick={handleEditTest}
-              variant="outlined"
-              sx={{
-                ...getButtonSx('outlined'),
-                borderColor: theme.palette.warning.main,
-                color: theme.palette.warning.main,
-                '&:hover': {
-                  borderColor: theme.palette.warning.dark,
-                  backgroundColor: alpha(theme.palette.warning.main, 0.05)
-                }
-              }}
-            >
-              <EditIcon sx={{ fontSize: '2rem', mb: 1 }} />
-              <Typography variant="body2">
-                Редагувати тест
-              </Typography>
-            </Button>
+              {/* Admin edit button */}
+              {isAdmin && (
+                <Button
+                  onClick={handleEditTest}
+                  variant="outlined"
+                  sx={{
+                    ...getButtonSx('outlined'),
+                    borderColor: theme.palette.warning.main,
+                    color: theme.palette.warning.main,
+                    '&:hover': {
+                      borderColor: theme.palette.warning.dark,
+                      backgroundColor: alpha(theme.palette.warning.main, 0.05)
+                    }
+                  }}
+                >
+                  <EditIcon sx={{ fontSize: '2rem', mb: 1 }} />
+                  <Typography variant="body2">
+                    Редагувати тест
+                  </Typography>
+                </Button>
+              )}
+
+              {hasCompletedTrials && (
+                <Button
+                  onClick={handleReviewTest}
+                  variant="outlined"
+                  sx={getButtonSx('outlined')}
+                >
+                  <LocalLibraryRoundedIcon sx={{ fontSize: '2rem', mb: 1 }} />
+                  <Typography variant="body2">
+                    Переглянути останню спробу
+                  </Typography>
+                </Button>
+              )}
+
+              <Button
+                onClick={() => onStart(test.tfp_sha)}
+                variant="contained"
+                sx={getButtonSx('contained')}
+              >
+                <PlayArrowIcon sx={{ fontSize: '2rem', mb: 1 }} />
+                <Typography variant="body2">
+                  Почати тест
+                </Typography>
+              </Button>
+            </>
           )}
-
-          {hasCompletedTrials && (
-            <Button
-              onClick={handleReviewTest}
-              variant="outlined"
-              sx={getButtonSx('outlined')}
-            >
-              <LocalLibraryRoundedIcon sx={{ fontSize: '2rem', mb: 1 }} />
-              <Typography variant="body2">
-                Переглянути останню спробу
-              </Typography>
-            </Button>
-          )}
-
-          <Button
-            onClick={() => onStart(test.tfp_sha)}
-            variant="contained"
-            sx={getButtonSx('contained')}
-          >
-            <PlayArrowIcon sx={{ fontSize: '2rem', mb: 1 }} />
-            <Typography variant="body2">
-              Почати тест
-            </Typography>
-          </Button>
         </DialogActions>
       </Dialog>
     </>
@@ -557,6 +671,25 @@ const TestsPage: React.FC = () => {
 
     checkAdminStatus();
   }, []);
+
+  // Add a callback to refresh folder tests when a test is removed
+  const handleTestRemoved = async () => {
+    if (openFolderId !== null) {
+      // Reload the tests for the current folder
+      setFolderLoading(true);
+      try {
+        const response = await GetFolderTests(openFolderId) as FolderTests;
+        if (response.success && response.test_dicts) {
+          setFolderTests(response.test_dicts);
+          setFilteredTests(response.test_dicts);
+        }
+      } catch (err) {
+        console.error('Error reloading folder tests:', err);
+      } finally {
+        setFolderLoading(false);
+      }
+    }
+  };
 
   return (
     <Container maxWidth="lg" sx={{ py: 1 }}>
@@ -967,6 +1100,7 @@ const TestsPage: React.FC = () => {
         onClose={handleCloseModal}
         onStart={handleStartTest}
         isAdmin={isAdmin} // Pass the actual isAdmin state
+        onTestRemoved={handleTestRemoved}
       />
     </Container>
   );

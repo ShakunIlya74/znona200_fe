@@ -117,3 +117,25 @@ export async function SaveEditedTest(tfp_sha: string, testData: {
   }
 }
 
+// Function to delete a test from a folder
+export async function RemoveTestFromFolder(tfp_sha: string) {
+  try {
+    const response = await axiosInstance.delete('/test-remove-tfp/' + tfp_sha);
+    return {
+      success: true,
+      message: response.data.message || 'Test deleted successfully'
+    };
+  }
+  catch (err) {
+    console.error('Error deleting test:', err);
+    return { 
+      success: false, 
+      error: err instanceof Error ? err.message : 'Unknown error occurred'
+    };
+  }
+}
+
+
+
+
+
