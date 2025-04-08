@@ -63,7 +63,8 @@ const pathToMenuMap: Record<string, string> = {
   'note-view': 'notes',
   'statistics': 'statistics',
   'queries': 'queries',
-  'groups': 'groups'
+  // 'groups': 'groups',
+  'user-groups': 'user-groups' // Added mapping for user-groups
 };
 
 const BUTTON_FONT_SIZE = '18px';
@@ -302,9 +303,9 @@ function Header() {
         <ListItem component="div" disablePadding>
           <ListItemButton
             component={Link}
-            to="/groups"
+            to="/user-groups"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "groups" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "user-groups" ? "#FFFFFF" : "inherit" }}
           >
             <Diversity1OutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText

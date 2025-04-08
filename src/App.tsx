@@ -23,6 +23,7 @@ import LessonViewPage from './pages/LessonViewPage';
 import MinilectionViewPage from './pages/MinilectionViewPage';
 import NoteViewPage from './pages/NoteViewPage';
 import EditTestPage from './pages/tests/EditTestPage';
+import UserGroupsPage from './pages/user-managment/UserGroupsPage';
 
 const withLayout = (Component: React.ComponentType, isViewComponent=false) => () => (
   <>
@@ -142,6 +143,10 @@ const App: React.FC = () => {
         {
           path: 'note-view/:note_sha',
           element: withLayout(NoteViewPage, true)(),
+        },
+        {
+          path: 'user-groups',
+          element: withLayout(UserGroupsPage)(),
         },
       ],
     },

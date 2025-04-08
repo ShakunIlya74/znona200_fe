@@ -422,6 +422,10 @@ const TestStartModal: React.FC<TestModalProps> = ({ open, test, onClose, onStart
 };
 
 const TestsPage: React.FC = () => {
+  // TODO: create new folders, deactivate folders
+  // TODO: add existing tests to folders
+  // TODO: add test details edit functionality
+  // TODO: add module tests logic and ui
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
