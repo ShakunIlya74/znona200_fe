@@ -13,7 +13,8 @@ import {
   Grid,
   Chip,
   alpha,
-  CircularProgress
+  CircularProgress,
+  Collapse
 } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import EventIcon from '@mui/icons-material/Event';
@@ -58,6 +59,12 @@ const UserGroupsPage: React.FC = () => {
   const [tabValue, setTabValue] = useState<number>(0);
   const [inactiveTabClicked, setInactiveTabClicked] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedGroupId, setExpandedGroupId] = useState<number | null>(null);
+
+  // Reset expanded group when changing tabs
+  useEffect(() => {
+    setExpandedGroupId(null);
+  }, [tabValue]);
 
   // Load active groups on initial render
   useEffect(() => {
@@ -125,21 +132,23 @@ const UserGroupsPage: React.FC = () => {
   // Handle group card click
   const handleGroupClick = (group: UserGroup) => {
     console.log(`Group clicked: ${group.group_name} (ID: ${group.group_id})`);
+    // Toggle expanded state
+    setExpandedGroupId(expandedGroupId === group.group_id ? null : group.group_id);
   };
 
   // Render group cards
   const renderGroupCards = (groups: UserGroup[]) => {
     return (
-      <Grid container spacing={2} sx={{ mt: 1 }}>
+      <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
         {groups.map((group) => (
-          <Grid item xs={12} sm={6} md={4} key={group.group_id}>
+          <Box key={group.group_id}>
             <Card
               sx={{
                 borderRadius: '16px',
                 boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.05)}`,
                 border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
                 transition: 'all 0.2s ease-in-out',
-                height: '100%',
+                width: '100%',
                 '&:hover': {
                   boxShadow: `0px 4px 12px ${alpha(theme.palette.common.black, 0.1)}`,
                   transform: 'translateY(-2px)'
@@ -149,63 +158,141 @@ const UserGroupsPage: React.FC = () => {
               <CardActionArea 
                 onClick={() => handleGroupClick(group)}
                 sx={{ 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  height: '100%',
+                  width: '100%',
                   p: 0
                 }}
               >
                 <CardContent sx={{ width: '100%', pb: 2 }}>
-                  <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <GroupIcon color="primary" sx={{ opacity: 0.7 }} />
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        fontWeight: 600, 
-                        fontSize: '1.1rem',
-                        color: theme.palette.text.primary
-                      }}
-                    >
-                      {group.group_name}
-                    </Typography>
-                  </Box>
-                  
-                  <Divider sx={{ my: 1, borderColor: alpha(theme.palette.divider, 0.5) }} />
-                  
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: { xs: 1, md: 2 }
+                  }}>
+                    {/* Group Name */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: '200px', flex: '1 1 auto' }}>
+                      <GroupIcon color="primary" sx={{ opacity: 0.7 }} />
+                      <Typography 
+                        variant="h6" 
+                        sx={{ 
+                          fontWeight: 600, 
+                          fontSize: '1.1rem',
+                          color: theme.palette.text.primary
+                        }}
+                      >
+                        {group.group_name}
+                      </Typography>
+                    </Box>
+                    
+                    {/* Open Date */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: '160px' }}>
                       <EventIcon fontSize="small" sx={{ color: theme.palette.success.main, opacity: 0.8 }} />
                       <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
                         Open: {formatDate(group.open_date)}
                       </Typography>
                     </Box>
                     
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {/* Close Date */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: '160px' }}>
                       <EventBusyIcon fontSize="small" sx={{ color: theme.palette.error.main, opacity: 0.8 }} />
                       <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
                         Close: {formatDate(group.close_date)}
                       </Typography>
                     </Box>
-                  </Box>
-                  
-                  <Box sx={{ mt: 2 }}>
-                    <Chip 
-                      label={group.is_active ? "Active" : "Inactive"} 
-                      size="small"
-                      color={group.is_active ? "success" : "default"}
-                      sx={{ 
-                        fontWeight: 500,
-                        fontSize: '0.75rem'
-                      }}
-                    />
+                    
+                    {/* Status Chip */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', minWidth: '100px' }}>
+                      <Chip 
+                        label={group.is_active ? "Active" : "Inactive"} 
+                        size="small"
+                        color={group.is_active ? "success" : "default"}
+                        sx={{ 
+                          fontWeight: 500,
+                          fontSize: '0.75rem'
+                        }}
+                      />
+                    </Box>
                   </Box>
                 </CardContent>
               </CardActionArea>
             </Card>
-          </Grid>
+            
+            {/* Expanded details section */}
+            <Collapse in={expandedGroupId === group.group_id} timeout="auto" unmountOnExit>
+              <Paper
+                elevation={0}
+                sx={{
+                  mt: 1,
+                  mb: 2,
+                  p: 3,
+                  borderRadius: '12px',
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.03),
+                  borderLeft: `4px solid ${theme.palette.primary.main}`,
+                  boxShadow: `0px 2px 8px ${alpha(theme.palette.common.black, 0.05)}`
+                }}
+              >
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: '1rem' }}>
+                  Additional Group Details
+                </Typography>
+                
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary, mb: 0.5 }}>
+                        Group ID
+                      </Typography>
+                      <Typography variant="body1">
+                        {group.group_id}
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary, mb: 0.5 }}>
+                        Status
+                      </Typography>
+                      <Typography variant="body1">
+                        {group.is_active ? 'Currently Active' : 'Currently Inactive'}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary, mb: 0.5 }}>
+                        Open Date (Full)
+                      </Typography>
+                      <Typography variant="body1">
+                        {new Date(group.open_date).toLocaleDateString('en-GB', { 
+                          weekday: 'long',
+                          day: 'numeric', 
+                          month: 'long', 
+                          year: 'numeric' 
+                        })}
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary, mb: 0.5 }}>
+                        Close Date (Full)
+                      </Typography>
+                      <Typography variant="body1">
+                        {new Date(group.close_date).toLocaleDateString('en-GB', { 
+                          weekday: 'long',
+                          day: 'numeric', 
+                          month: 'long', 
+                          year: 'numeric' 
+                        })}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Collapse>
+          </Box>
         ))}
-      </Grid>
+      </Box>
     );
   };
 
