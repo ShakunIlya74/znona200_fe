@@ -10,7 +10,6 @@ import {
   Tab,
   Paper,
   Divider,
-  Grid,
   Chip,
   alpha,
   CircularProgress,
@@ -165,53 +164,84 @@ const UserGroupsPage: React.FC = () => {
                 <CardContent sx={{ width: '100%', pb: 2 }}>
                   <Box sx={{ 
                     display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: { xs: 1, md: 2 }
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    width: '100%'
                   }}>
                     {/* Group Name */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: '200px', flex: '1 1 auto' }}>
-                      <GroupIcon color="primary" sx={{ opacity: 0.7 }} />
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      width: { xs: '100%', sm: '40%', md: '40%' },
+                      mb: { xs: 1, sm: 0 }
+                    }}>
+                      <GroupIcon color="primary" sx={{ opacity: 0.7, flexShrink: 0 }} />
                       <Typography 
                         variant="h6" 
                         sx={{ 
                           fontWeight: 600, 
                           fontSize: '1.1rem',
-                          color: theme.palette.text.primary
+                          color: theme.palette.text.primary,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
                         }}
                       >
                         {group.group_name}
                       </Typography>
                     </Box>
                     
-                    {/* Open Date */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: '160px' }}>
-                      <EventIcon fontSize="small" sx={{ color: theme.palette.success.main, opacity: 0.8 }} />
-                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                        Open: {formatDate(group.open_date)}
-                      </Typography>
-                    </Box>
-                    
-                    {/* Close Date */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: '160px' }}>
-                      <EventBusyIcon fontSize="small" sx={{ color: theme.palette.error.main, opacity: 0.8 }} />
-                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                        Close: {formatDate(group.close_date)}
-                      </Typography>
-                    </Box>
-                    
-                    {/* Status Chip */}
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', minWidth: '100px' }}>
-                      <Chip 
-                        label={group.is_active ? "Active" : "Inactive"} 
-                        size="small"
-                        color={group.is_active ? "success" : "default"}
-                        sx={{ 
-                          fontWeight: 500,
-                          fontSize: '0.75rem'
-                        }}
-                      />
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      width: { xs: '100%', sm: '60%' },
+                      gap: { xs: 1, sm: 1 }
+                    }}>
+                      {/* Open Date */}
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 1, 
+                        width: { xs: '100%', md: '33.3%' },
+                        mb: { xs: 1, md: 0 }
+                      }}>
+                        <EventIcon fontSize="small" sx={{ color: theme.palette.success.main, opacity: 0.8 }} />
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                          Open: {formatDate(group.open_date)}
+                        </Typography>
+                      </Box>
+                      
+                      {/* Close Date */}
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 1, 
+                        width: { xs: '100%', md: '33.3%' },
+                        mb: { xs: 1, md: 0 }
+                      }}>
+                        <EventBusyIcon fontSize="small" sx={{ color: theme.palette.error.main, opacity: 0.8 }} />
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                          Close: {formatDate(group.close_date)}
+                        </Typography>
+                      </Box>
+                      
+                      {/* Status Chip */}
+                      <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: { xs: 'flex-start', md: 'flex-end' },
+                        width: { xs: '100%', md: '33.3%' }
+                      }}>
+                        <Chip 
+                          label={group.is_active ? "Active" : "Inactive"} 
+                          size="small"
+                          color={group.is_active ? "success" : "default"}
+                          sx={{ 
+                            fontWeight: 500,
+                            fontSize: '0.75rem'
+                          }}
+                        />
+                      </Box>
                     </Box>
                   </Box>
                 </CardContent>
@@ -237,8 +267,12 @@ const UserGroupsPage: React.FC = () => {
                   Additional Group Details
                 </Typography>
                 
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: { xs: 'column', md: 'row' }, 
+                  gap: 3 
+                }}>
+                  <Box sx={{ flex: '1 1 50%' }}>
                     <Box sx={{ mb: 2 }}>
                       <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary, mb: 0.5 }}>
                         Group ID
@@ -256,9 +290,9 @@ const UserGroupsPage: React.FC = () => {
                         {group.is_active ? 'Currently Active' : 'Currently Inactive'}
                       </Typography>
                     </Box>
-                  </Grid>
+                  </Box>
                   
-                  <Grid item xs={12} md={6}>
+                  <Box sx={{ flex: '1 1 50%' }}>
                     <Box sx={{ mb: 2 }}>
                       <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary, mb: 0.5 }}>
                         Open Date (Full)
@@ -286,8 +320,8 @@ const UserGroupsPage: React.FC = () => {
                         })}
                       </Typography>
                     </Box>
-                  </Grid>
-                </Grid>
+                  </Box>
+                </Box>
               </Paper>
             </Collapse>
           </Box>
