@@ -20,7 +20,7 @@ import EventIcon from '@mui/icons-material/Event';
 import EventBusyIcon from '@mui/icons-material/EventBusy';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { getUserGroups, getInactiveUserGroups } from '../../services/UserService';
+import { getUserGroups, getInactiveUserGroups, getUserGroupInfo } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
 
 // Define user group interface
@@ -44,6 +44,16 @@ interface InactiveGroupsResponse {
     inactive_user_groups?: UserGroup[];
 }
 
+interface GroupInfoResponse {
+    success: boolean;
+    user_group_dict?: {
+        group_name: string;
+        group_id: number | string;
+        user_count: number;
+    };
+    message?: string;
+}
+
 const UserGroupsPage: React.FC = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -59,6 +69,7 @@ const UserGroupsPage: React.FC = () => {
     const [inactiveTabClicked, setInactiveTabClicked] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [expandedGroupId, setExpandedGroupId] = useState<number | null>(null);
+    const [groupInfo, setGroupInfo] = useState<{ [key: number]: { userCount: number, loading: boolean } }>({});
 
     // Reset expanded group when changing tabs
     useEffect(() => {
@@ -133,6 +144,42 @@ const UserGroupsPage: React.FC = () => {
         console.log(`Group clicked: ${group.group_name} (ID: ${group.group_id})`);
         // Toggle expanded state
         setExpandedGroupId(expandedGroupId === group.group_id ? null : group.group_id);
+
+        // Fetch group info if not already loaded
+        if (!groupInfo[group.group_id]) {
+            setGroupInfo((prev) => ({
+                ...prev,
+                [group.group_id]: { userCount: 0, loading: true }
+            }));
+
+            const fetchGroupInfo = async () => {
+                try {
+                    const response = await getUserGroupInfo(group.group_id) as GroupInfoResponse;
+                    if (response.success && response.user_group_dict) {
+                        setGroupInfo((prev) => ({
+                            ...prev,
+                            [group.group_id]: {
+                                userCount: response.user_group_dict?.user_count || 0,
+                                loading: false
+                            }
+                        }));
+                    } else {
+                        setGroupInfo((prev) => ({
+                            ...prev,
+                            [group.group_id]: { userCount: 0, loading: false }
+                        }));
+                    }
+                } catch (err) {
+                    console.error(err);
+                    setGroupInfo((prev) => ({
+                        ...prev,
+                        [group.group_id]: { userCount: 0, loading: false }
+                    }));
+                }
+            };
+
+            fetchGroupInfo();
+        }
     };
 
     // Render group cards
@@ -272,8 +319,12 @@ const UserGroupsPage: React.FC = () => {
                                     <Box sx={{ flex: '1 1 50%' }}>
                                         <Box sx={{ mb: 2 }}>
                                             <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary, mb: 0.5 }}>
-                                                Кількість учнів: {group.group_id}
-                                                {/* TODO: replace with real number */}
+                                                Кількість учнів: {groupInfo[group.group_id]?.loading ? (
+                                                    <CircularProgress size={16} />
+                                                ) : (
+                                                    groupInfo[group.group_id]?.userCount || 'N/A'
+                                                )}
+
                                             </Typography>
                                         </Box>
                                     </Box>

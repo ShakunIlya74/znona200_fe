@@ -8,6 +8,17 @@ interface UserGroupsResponse {
   is_admin: boolean;
 }
 
+// Interface for user group info response
+interface UserGroupInfoResponse {
+  success: boolean;
+  user_group_dict?: {
+    group_name: string;
+    group_id: number | string;
+    user_count: number;
+  };
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -32,6 +43,23 @@ export const getInactiveUserGroups = async (): Promise<UserGroupsResponse> => {
     return response.data;
   } catch (error) {
     console.error('Error fetching inactive user groups:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches information about a specific user group
+ * @param userGroupId The ID of the user group to get information for
+ * @returns Promise with user group information
+ */
+export const getUserGroupInfo = async (userGroupId: string | number): Promise<UserGroupInfoResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-groups/info/', {
+      params: { userGroupId }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user group info:', error);
     throw error;
   }
 };
