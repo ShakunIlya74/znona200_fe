@@ -19,6 +19,12 @@ interface UserGroupInfoResponse {
   message?: string;
 }
 
+// Interface for update group name response
+interface UpdateGroupNameResponse {
+  success: boolean;
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -60,6 +66,25 @@ export const getUserGroupInfo = async (userGroupId: string | number): Promise<Us
     return response.data;
   } catch (error) {
     console.error('Error fetching user group info:', error);
+    throw error;
+  }
+};
+
+/**
+ * Updates the name of a user group
+ * @param groupId The ID of the group to update
+ * @param newName The new name for the group
+ * @returns Promise with success status and optional message
+ */
+export const updateGroupName = async (groupId: number | string, newName: string): Promise<UpdateGroupNameResponse> => {
+  try {
+    const response = await axiosInstance.put('/user-groups/update-name/', {
+      groupId,
+      groupName: newName
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating group name:', error);
     throw error;
   }
 };

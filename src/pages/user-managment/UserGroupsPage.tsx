@@ -13,14 +13,22 @@ import {
     Chip,
     alpha,
     CircularProgress,
-    Collapse
+    Collapse,
+    TextField,
+    IconButton,
+    Tooltip,
+    Snackbar,
+    Alert
 } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import EventIcon from '@mui/icons-material/Event';
 import EventBusyIcon from '@mui/icons-material/EventBusy';
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { getUserGroups, getInactiveUserGroups, getUserGroupInfo } from '../../services/UserService';
+import { getUserGroups, getInactiveUserGroups, getUserGroupInfo, updateGroupName } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
 
 // Define user group interface
@@ -70,6 +78,20 @@ const UserGroupsPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [expandedGroupId, setExpandedGroupId] = useState<number | null>(null);
     const [groupInfo, setGroupInfo] = useState<{ [key: number]: { userCount: number, loading: boolean } }>({});
+    
+    // States for editing group name
+    const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
+    const [editedGroupName, setEditedGroupName] = useState<string>('');
+    const [isUpdatingName, setIsUpdatingName] = useState<boolean>(false);
+    const [notification, setNotification] = useState<{
+        open: boolean;
+        message: string;
+        severity: 'success' | 'error' | 'info' | 'warning';
+    }>({
+        open: false,
+        message: '',
+        severity: 'info'
+    });
 
     // Reset expanded group when changing tabs
     useEffect(() => {
@@ -142,6 +164,12 @@ const UserGroupsPage: React.FC = () => {
     // Handle group card click
     const handleGroupClick = (group: UserGroup) => {
         console.log(`Group clicked: ${group.group_name} (ID: ${group.group_id})`);
+        
+        // If currently editing, don't toggle expansion
+        if (editingGroupId === group.group_id) {
+            return;
+        }
+        
         // Toggle expanded state
         setExpandedGroupId(expandedGroupId === group.group_id ? null : group.group_id);
 
@@ -182,6 +210,87 @@ const UserGroupsPage: React.FC = () => {
         }
     };
 
+    // Start editing group name
+    const handleStartEditing = (group: UserGroup, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent card expansion when clicking edit
+        setEditingGroupId(group.group_id);
+        setEditedGroupName(group.group_name);
+    };
+
+    // Cancel editing
+    const handleCancelEditing = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent event bubbling
+        setEditingGroupId(null);
+        setEditedGroupName('');
+    };
+
+    // Save edited group name
+    const handleSaveGroupName = async (groupId: number, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent event bubbling
+        
+        if (!editedGroupName.trim()) {
+            setNotification({
+                open: true,
+                message: "Назва групи не може бути порожньою",
+                severity: "error"
+            });
+            return;
+        }
+
+        setIsUpdatingName(true);
+        try {
+            const response = await updateGroupName(groupId, editedGroupName);
+            
+            if (response.success) {
+                // Update local state to reflect the change
+                if (tabValue === 0) {
+                    setActiveGroups(groups => 
+                        groups.map(group => 
+                            group.group_id === groupId 
+                                ? { ...group, group_name: editedGroupName } 
+                                : group
+                        )
+                    );
+                } else {
+                    setInactiveGroups(groups => 
+                        groups.map(group => 
+                            group.group_id === groupId 
+                                ? { ...group, group_name: editedGroupName } 
+                                : group
+                        )
+                    );
+                }
+
+                setNotification({
+                    open: true,
+                    message: "Назву групи успішно оновлено",
+                    severity: "success"
+                });
+            } else {
+                setNotification({
+                    open: true,
+                    message: response.message || "Помилка при оновленні назви групи",
+                    severity: "error"
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            setNotification({
+                open: true,
+                message: "Помилка при оновленні назви групи",
+                severity: "error"
+            });
+        } finally {
+            setIsUpdatingName(false);
+            setEditingGroupId(null);
+        }
+    };
+
+    // Handle closing notification
+    const handleCloseNotification = () => {
+        setNotification(prev => ({ ...prev, open: false }));
+    };
+
     // Render group cards
     const renderGroupCards = (groups: UserGroup[]) => {
         return (
@@ -215,7 +324,7 @@ const UserGroupsPage: React.FC = () => {
                                         alignItems: { xs: 'flex-start', sm: 'center' },
                                         width: '100%'
                                     }}>
-                                        {/* Group Name */}
+                                        {/* Group Name - Editable when expandedGroupId matches */}
                                         <Box sx={{
                                             display: 'flex',
                                             alignItems: 'center',
@@ -224,19 +333,96 @@ const UserGroupsPage: React.FC = () => {
                                             mb: { xs: 1, sm: 0 }
                                         }}>
                                             <GroupIcon color="primary" sx={{ opacity: 0.7, flexShrink: 0 }} />
-                                            <Typography
-                                                variant="h6"
-                                                sx={{
-                                                    fontWeight: 600,
-                                                    fontSize: '1.1rem',
-                                                    color: theme.palette.text.primary,
-                                                    whiteSpace: 'nowrap',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                {group.group_name}
-                                            </Typography>
+                                            
+                                            {/* Conditional rendering based on edit state */}
+                                            {editingGroupId === group.group_id ? (
+                                                <Box 
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    sx={{ 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        width: '100%'
+                                                    }}
+                                                >
+                                                    <TextField
+                                                        value={editedGroupName}
+                                                        onChange={(e) => setEditedGroupName(e.target.value)}
+                                                        variant="outlined"
+                                                        size="small"
+                                                        fullWidth
+                                                        autoFocus
+                                                        placeholder="Введіть назву групи"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        sx={{ 
+                                                            '& .MuiOutlinedInput-root': {
+                                                                borderRadius: '8px',
+                                                            }
+                                                        }}
+                                                        InputProps={{
+                                                            endAdornment: (
+                                                                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                                    <Tooltip title="Зберегти">
+                                                                        <IconButton 
+                                                                            size="small"
+                                                                            color="primary"
+                                                                            onClick={(e) => handleSaveGroupName(group.group_id, e)}
+                                                                            disabled={isUpdatingName}
+                                                                            sx={{ padding: '2px' }}
+                                                                        >
+                                                                            {isUpdatingName ? 
+                                                                                <CircularProgress size={16} /> : 
+                                                                                <CheckIcon fontSize="small" sx={{ fontSize: '1rem' }} />
+                                                                            }
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                    <Tooltip title="Скасувати">
+                                                                        <IconButton 
+                                                                            size="small"
+                                                                            color="default"
+                                                                            onClick={handleCancelEditing}
+                                                                            sx={{ padding: '2px' }}
+                                                                        >
+                                                                            <CloseIcon fontSize="small" sx={{ fontSize: '1rem' }} />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                </Box>
+                                                            )
+                                                        }}
+                                                    />
+                                                </Box>
+                                            ) : (
+                                                <Box sx={{ 
+                                                    display: 'flex', 
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    width: '100%'
+                                                }}>
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{
+                                                            fontWeight: 600,
+                                                            fontSize: '1.1rem',
+                                                            color: theme.palette.text.primary,
+                                                            whiteSpace: 'nowrap',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis'
+                                                        }}
+                                                    >
+                                                        {group.group_name}
+                                                    </Typography>
+                                                    {expandedGroupId === group.group_id && (
+                                                        <Tooltip title="Редагувати назву">
+                                                            <IconButton 
+                                                                size="small"
+                                                                onClick={(e) => handleStartEditing(group, e)}
+                                                                sx={{ ml: 1 }}
+                                                            >
+                                                                <EditIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    )}
+                                                </Box>
+                                            )}
                                         </Box>
 
                                         <Box sx={{
@@ -310,7 +496,6 @@ const UserGroupsPage: React.FC = () => {
                                     boxShadow: `0px 2px 8px ${alpha(theme.palette.common.black, 0.05)}`
                                 }}
                             >
-
                                 <Box sx={{
                                     display: 'flex',
                                     flexDirection: { xs: 'column', md: 'row' },
@@ -324,7 +509,6 @@ const UserGroupsPage: React.FC = () => {
                                                 ) : (
                                                     groupInfo[group.group_id]?.userCount || 'N/A'
                                                 )}
-
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -425,6 +609,20 @@ const UserGroupsPage: React.FC = () => {
                     </Typography>
                 )}
             </Box>
+
+            <Snackbar
+                open={notification.open}
+                autoHideDuration={6000}
+                onClose={handleCloseNotification}
+            >
+                <Alert
+                    onClose={handleCloseNotification}
+                    severity={notification.severity}
+                    sx={{ width: '100%' }}
+                >
+                    {notification.message}
+                </Alert>
+            </Snackbar>
         </Container>
     );
 };
