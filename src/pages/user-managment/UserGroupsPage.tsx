@@ -46,6 +46,7 @@ import {
     updateGroupCloseDate,
     toggleGroupActivation,
     addUserToGroup,
+    removeUserFromGroup,
     UserInfo
 } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
@@ -97,7 +98,7 @@ const UserGroupsPage: React.FC = () => {
     const [inactiveTabClicked, setInactiveTabClicked] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [expandedGroupId, setExpandedGroupId] = useState<number | null>(null);
-    const [groupInfo, setGroupInfo] = useState<{ [key: number]: { userCount: number, loading: boolean } }>({});
+    const [groupInfo, setGroupInfo] = useState<{ [key: string]: { userCount: number, loading: boolean } }>({});
 
     // States for editing group name
     const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
@@ -223,7 +224,7 @@ const UserGroupsPage: React.FC = () => {
         if (!groupInfo[group.group_id]) {
             setGroupInfo((prev) => ({
                 ...prev,
-                [group.group_id]: { userCount: 0, loading: true }
+                [group.group_id.toString()]: { userCount: 0, loading: true }
             }));
 
             const fetchGroupInfo = async () => {
@@ -232,7 +233,7 @@ const UserGroupsPage: React.FC = () => {
                     if (response.success && response.user_group_dict) {
                         setGroupInfo((prev) => ({
                             ...prev,
-                            [group.group_id]: {
+                            [group.group_id.toString()]: {
                                 userCount: response.user_group_dict?.user_count || 0,
                                 loading: false
                             }
@@ -240,7 +241,7 @@ const UserGroupsPage: React.FC = () => {
                     } else {
                         setGroupInfo((prev) => ({
                             ...prev,
-                            [group.group_id]: { userCount: 0, loading: false }
+                            [group.group_id.toString()]: { userCount: 0, loading: false }
                         }));
                     }
                 } catch (err) {
@@ -569,9 +570,9 @@ const UserGroupsPage: React.FC = () => {
                 // Update user count in local state
                 setGroupInfo((prev) => ({
                     ...prev,
-                    [groupId]: {
-                        ...prev[groupId],
-                        userCount: prev[groupId].userCount + 1
+                    [groupId.toString()]: {
+                        ...prev[groupId.toString()],
+                        userCount: prev[groupId.toString()].userCount + 1
                     }
                 }));
                 
@@ -597,6 +598,45 @@ const UserGroupsPage: React.FC = () => {
         } finally {
             setIsAddingUser(false);
             setShowUserSearch(null);
+        }
+    };
+
+    // Handle removing a user from the group
+    const handleRemoveUser = async (userId: number | string, groupId: number | string) => {
+        try {
+            const response = await removeUserFromGroup(userId, groupId);
+            if (response.success) {
+                // Update user count in local state
+                setGroupInfo((prev) => ({
+                    ...prev,
+                    [groupId.toString()]: {
+                        ...prev[groupId.toString()],
+                        userCount: Math.max(0, prev[groupId.toString()].userCount - 1)
+                    }
+                }));
+                
+                setNotification({
+                    open: true,
+                    message: "Учня успішно видалено з групи",
+                    severity: "success"
+                });
+                return true;
+            } else {
+                setNotification({
+                    open: true,
+                    message: response.message || "Помилка при видаленні учня з групи",
+                    severity: "error"
+                });
+                return false;
+            }
+        } catch (err) {
+            console.error("Error removing user from group:", err);
+            setNotification({
+                open: true,
+                message: "Помилка при видаленні учня з групи",
+                severity: "error"
+            });
+            return false;
         }
     };
 
@@ -990,10 +1030,10 @@ const UserGroupsPage: React.FC = () => {
                                         }}>
                                             <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1, sm: 0 } }}>
                                                 <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary }}>
-                                                    Кількість учнів: {groupInfo[group.group_id]?.loading ? (
+                                                    Кількість учнів: {groupInfo[group.group_id.toString()]?.loading ? (
                                                         <CircularProgress size={16} />
                                                     ) : (
-                                                        groupInfo[group.group_id]?.userCount || 'N/A'
+                                                        groupInfo[group.group_id.toString()]?.userCount || 'N/A'
                                                     )}
                                                 </Typography>
                                             </Box>
@@ -1030,7 +1070,10 @@ const UserGroupsPage: React.FC = () => {
                                         {/* User search component */}
                                         <Box sx={{ mt: 0, mb: 2 }}>
                                             <Box sx={{ p: 2 }}>
-                                                <UserInGroupSearch groupId={group.group_id} />
+                                                <UserInGroupSearch 
+                                                    groupId={group.group_id} 
+                                                    onRemoveUser={handleRemoveUser}
+                                                />
                                             </Box>
                                         </Box>
 

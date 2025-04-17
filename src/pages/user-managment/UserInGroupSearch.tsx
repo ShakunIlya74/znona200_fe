@@ -13,7 +13,9 @@ import {
     alpha,
     Grid,
     Tooltip,
-    IconButton
+    IconButton,
+    Snackbar,
+    Alert
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
@@ -21,16 +23,29 @@ import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { searchUsersInGroup, UserInfo } from '../../services/UserService';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import { searchUsersInGroup, UserInfo, removeUserFromGroup } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { debounce } from 'lodash';
 
 /**
  * CompactUserCard component displays user information in a compact, modern card layout
  */
-const CompactUserCard: React.FC<{ user: UserInfo }> = ({ user }) => {
+interface CompactUserCardProps {
+    user: UserInfo;
+    groupId: string | number;
+    onUserRemoved?: () => void;
+    onRemoveUser?: (userId: number | string, groupId: number | string) => Promise<boolean>;
+}
+
+const CompactUserCard: React.FC<CompactUserCardProps> = ({ user, groupId, onUserRemoved, onRemoveUser }) => {
     const theme = useTheme();
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
+    const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
+    const [isRemoving, setIsRemoving] = useState(false);
+    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     
     // Generate initials for the avatar
     const getInitials = (name: string, surname: string) => {
@@ -61,9 +76,32 @@ const CompactUserCard: React.FC<{ user: UserInfo }> = ({ user }) => {
                 console.error('Failed to copy: ', err);
             });
     };
+    
+    // Handle remove user
+    const handleRemoveUser = async () => {
+        try {
+            setIsRemoving(true);
+            const response = onRemoveUser ? await onRemoveUser(user.user_id, groupId) : await removeUserFromGroup(user.user_id, groupId);
+            if (response) {
+                // Call the callback to refresh the list
+                if (onUserRemoved) {
+                    onUserRemoved();
+                }
+                setShowSuccessMessage(true);
+            } else {
+                console.error('Failed to remove user');
+            }
+        } catch (error) {
+            console.error('Error removing user:', error);
+        } finally {
+            setIsRemoving(false);
+            setShowRemoveConfirmation(false);
+        }
+    };
 
     return (
-        <Paper
+        <>
+            <Paper
             elevation={0}
             sx={{
                 p: 1,
@@ -71,121 +109,180 @@ const CompactUserCard: React.FC<{ user: UserInfo }> = ({ user }) => {
                 border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
                 mb: 1,
                 transition: 'all 0.2s ease-in-out',
-                // '&:hover': {
-                //     boxShadow: `0px 4px 8px ${alpha(theme.palette.common.black, 0.1)}`,
-                //     transform: 'translateY(-2px)'
-                // }
+                position: 'relative'
             }}
-        >
+            >
             <Box sx={{ display: 'flex' }}>
                 {/* Left Column: Avatar, Name, and Status */}
                 <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'flex-start', 
-                    gap: 1.5,
-                    width: '50%'
+                display: 'flex', 
+                alignItems: 'flex-start', 
+                gap: 1.5,
+                width: '50%'
                 }}>
-                    <Avatar 
-                        sx={{ 
-                            bgcolor: getAvatarColor(user.user_id),
-                            width: 40, 
-                            height: 40
-                        }}
-                    >
-                        {getInitials(user.name, user.surname)}
-                    </Avatar>
-                    <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                            {user.name} {user.surname}
-                        </Typography>
-                        <Chip
-                            size="small"
-                            label={user.is_active ? "Активний" : "Не активний"}
-                            color={user.is_active ? "success" : "default"}
-                            sx={{ height: 20, fontSize: '0.7rem' }}
-                        />
-                    </Box>
+                <Avatar 
+                    sx={{ 
+                    bgcolor: getAvatarColor(user.user_id),
+                    width: 40, 
+                    height: 40
+                    }}
+                >
+                    {getInitials(user.name, user.surname)}
+                </Avatar>
+                <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                    {user.name} {user.surname}
+                    </Typography>
+                    <Chip
+                    size="small"
+                    label={user.is_active ? "Активний" : "Не активний"}
+                    color={user.is_active ? "success" : "default"}
+                    sx={{ height: 20, fontSize: '0.7rem' }}
+                    />
+                </Box>
                 </Box>
                 
                 {/* Right Column: Contact Information with Copy Functions */}
                 <Box sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: 0.5, 
-                    justifyContent: 'center',
-                    width: '50%',
-                    pl: 2
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 0.5, 
+                justifyContent: 'center',
+                width: '50%',
+                pl: 2
                 }}>
-                    {/* Email - always show */}
+                {/* Email - always show */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Tooltip title={copySuccess === 'email' ? 'Copied!' : 'Копіювати email'}>
+                    <IconButton 
+                        size="small" 
+                        onClick={() => copyToClipboard(user.email, 'email')}
+                        color={copySuccess === 'email' ? 'success' : 'default'}
+                        sx={{ p: 0.5 }}
+                    >
+                        <EmailIcon fontSize="small" sx={{ opacity: 0.7 }} />
+                    </IconButton>
+                    </Tooltip>
+                    <Typography 
+                    variant="body2" 
+                    sx={{ 
+                        color: theme.palette.text.secondary,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                    }}
+                    >
+                    {user.email}
+                    </Typography>
+                </Box>
+                
+                {/* Phone - only if present */}
+                {user.phone && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Tooltip title={copySuccess === 'email' ? 'Copied!' : 'Копіювати email'}>
-                            <IconButton 
-                                size="small" 
-                                onClick={() => copyToClipboard(user.email, 'email')}
-                                color={copySuccess === 'email' ? 'success' : 'default'}
-                                sx={{ p: 0.5 }}
-                            >
-                                <EmailIcon fontSize="small" sx={{ opacity: 0.7 }} />
-                            </IconButton>
-                        </Tooltip>
-                        <Typography 
-                            variant="body2" 
-                            sx={{ 
-                                color: theme.palette.text.secondary,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                            }}
+                    <Tooltip title={copySuccess === 'phone' ? 'Copied!' : 'Копіювати телефон'}>
+                        <IconButton 
+                        size="small" 
+                        onClick={() => copyToClipboard(user.phone, 'phone')}
+                        color={copySuccess === 'phone' ? 'success' : 'default'}
+                        sx={{ p: 0.5 }}
                         >
-                            {user.email}
-                        </Typography>
+                        <PhoneIcon fontSize="small" sx={{ opacity: 0.7 }} />
+                        </IconButton>
+                    </Tooltip>
+                    <Typography 
+                        variant="body2" 
+                        sx={{ color: theme.palette.text.secondary }}
+                    >
+                        {user.phone}
+                    </Typography>
                     </Box>
-                    
-                    {/* Phone - only if present */}
-                    {user.phone && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Tooltip title={copySuccess === 'phone' ? 'Copied!' : 'Копіювати телефон'}>
-                                <IconButton 
-                                    size="small" 
-                                    onClick={() => copyToClipboard(user.phone, 'phone')}
-                                    color={copySuccess === 'phone' ? 'success' : 'default'}
-                                    sx={{ p: 0.5 }}
-                                >
-                                    <PhoneIcon fontSize="small" sx={{ opacity: 0.7 }} />
-                                </IconButton>
-                            </Tooltip>
-                            <Typography 
-                                variant="body2" 
-                                sx={{ color: theme.palette.text.secondary }}
-                            >
-                                {user.phone}
-                            </Typography>
-                        </Box>
-                    )}
-                    
-                    {/* Telegram - only if present */}
-                    {user.telegram_username && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Tooltip title={copySuccess === 'telegram' ? 'Copied!' : 'Копіювати Telegram'}>
-                                <IconButton 
-                                    size="small" 
-                                    onClick={() => copyToClipboard(user.telegram_username, 'telegram')}
-                                    color={copySuccess === 'telegram' ? 'success' : 'default'}
-                                    sx={{ p: 0.5 }}
-                                >
-                                    <TelegramIcon fontSize="small" sx={{ opacity: 0.7 }} />
-                                </IconButton>
-                            </Tooltip>
-                            <Typography 
-                                variant="body2" 
-                                sx={{ color: theme.palette.text.secondary }}
-                            >
-                                {user.telegram_username}
-                            </Typography>
-                        </Box>
-                    )}
+                )}
+                
+                {/* Telegram - only if present */}
+                {user.telegram_username && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Tooltip title={copySuccess === 'telegram' ? 'Copied!' : 'Копіювати Telegram'}>
+                        <IconButton 
+                        size="small" 
+                        onClick={() => copyToClipboard(user.telegram_username, 'telegram')}
+                        color={copySuccess === 'telegram' ? 'success' : 'default'}
+                        sx={{ p: 0.5 }}
+                        >
+                        <TelegramIcon fontSize="small" sx={{ opacity: 0.7 }} />
+                        </IconButton>
+                    </Tooltip>
+                    <Typography 
+                        variant="body2" 
+                        sx={{ color: theme.palette.text.secondary }}
+                    >
+                        {user.telegram_username}
+                    </Typography>
+                    </Box>
+                )}
                 </Box>
             </Box>
-        </Paper>
+            
+            {/* Remove User Button/Confirmation */}
+            <Box sx={{ 
+                position: 'absolute', 
+                top: 8, 
+                right: 8, 
+                display: 'flex', 
+                gap: 1
+            }}>
+                {!showRemoveConfirmation ? (
+                <Tooltip title="Видалити учня з групи">
+                    <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => setShowRemoveConfirmation(true)}
+                    sx={{ opacity: 0.7, '&:hover': { opacity: 1 } }}
+                    >
+                    <DeleteIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+                ) : (
+                <>
+                    <Tooltip title="Підтвердити видалення">
+                    <IconButton
+                        size="small"
+                        color="error"
+                        disabled={isRemoving}
+                        onClick={handleRemoveUser}
+                        sx={{ opacity: 0.9, '&:hover': { opacity: 1 } }}
+                    >
+                        {isRemoving ? 
+                        <CircularProgress size={18} color="error" /> : 
+                        <CheckCircleIcon fontSize="small" />
+                        }
+                    </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Скасувати">
+                    <IconButton
+                        size="small"
+                        onClick={() => setShowRemoveConfirmation(false)}
+                        disabled={isRemoving}
+                        sx={{ opacity: 0.7, '&:hover': { opacity: 1 } }}
+                    >
+                        <CancelIcon fontSize="small" />
+                    </IconButton>
+                    </Tooltip>
+                </>
+                )}
+            </Box>
+            </Paper>
+            
+            {/* Success Message Snackbar */}
+            <Snackbar
+                open={showSuccessMessage}
+                autoHideDuration={10000} 
+                onClose={() => setShowSuccessMessage(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }} // Bottom left corner positioning
+            >
+                <Alert onClose={() => setShowSuccessMessage(false)} severity="success" sx={{ width: '100%' }}>
+                    Учня успішно видалено з групи!
+                </Alert>
+            </Snackbar>
+        </>
     );
 };
 
@@ -194,9 +291,10 @@ const CompactUserCard: React.FC<{ user: UserInfo }> = ({ user }) => {
  */
 interface UserInGroupSearchProps {
     groupId: string | number;
+    onRemoveUser?: (userId: number | string, groupId: number | string) => Promise<boolean>;
 }
 
-const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId }) => {
+const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId, onRemoveUser }) => {
     const theme = useTheme();
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [users, setUsers] = useState<UserInfo[]>([]);
@@ -234,6 +332,13 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId }) => {
         }, 500), // 500ms debounce time
         [groupId]
     );
+
+    // Function to refresh search results after removing a user
+    const refreshSearch = useCallback(() => {
+        if (searchQuery.trim()) {
+            debouncedSearch(searchQuery);
+        }
+    }, [searchQuery, debouncedSearch]);
 
     // Update search when query changes
     useEffect(() => {
@@ -337,7 +442,13 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId }) => {
                 
                 {/* User Cards */}
                 {users.map((user) => (
-                    <CompactUserCard key={user.user_id} user={user} />
+                    <CompactUserCard 
+                        key={user.user_id} 
+                        user={user} 
+                        groupId={groupId}
+                        onUserRemoved={refreshSearch}
+                        onRemoveUser={onRemoveUser}
+                    />
                 ))}
                 
                 {/* Initial Empty State
