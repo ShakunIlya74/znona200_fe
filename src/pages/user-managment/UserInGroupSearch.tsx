@@ -15,7 +15,8 @@ import {
     Tooltip,
     IconButton,
     Snackbar,
-    Alert
+    Alert,
+    useMediaQuery
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
@@ -26,6 +27,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import CloseIcon from '@mui/icons-material/Close';
 import { searchUsersInGroup, UserInfo, removeUserFromGroup } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { debounce } from 'lodash';
@@ -42,6 +44,7 @@ interface CompactUserCardProps {
 
 const CompactUserCard: React.FC<CompactUserCardProps> = ({ user, groupId, onUserRemoved, onRemoveUser }) => {
     const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
     const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
     const [isRemoving, setIsRemoving] = useState(false);
@@ -104,7 +107,7 @@ const CompactUserCard: React.FC<CompactUserCardProps> = ({ user, groupId, onUser
             <Paper
             elevation={0}
             sx={{
-                p: 1,
+                p: isMobile ? 0.5 : 1,
                 borderRadius: '12px',
                 border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
                 mb: 1,
@@ -112,23 +115,25 @@ const CompactUserCard: React.FC<CompactUserCardProps> = ({ user, groupId, onUser
                 position: 'relative'
             }}
             >
-            <Box sx={{ display: 'flex' }}>
+            <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
                 {/* Left Column: Avatar, Name, and Status */}
                 <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'flex-start', 
                 gap: 1.5,
-                width: '50%'
+                width: isMobile ? '100%' : '50%'
                 }}>
-                <Avatar 
-                    sx={{ 
-                    bgcolor: getAvatarColor(user.user_id),
-                    width: 40, 
-                    height: 40
-                    }}
-                >
-                    {getInitials(user.name, user.surname)}
-                </Avatar>
+                {!isMobile && (
+                    <Avatar 
+                        sx={{ 
+                        bgcolor: getAvatarColor(user.user_id),
+                        width: 40, 
+                        height: 40
+                        }}
+                    >
+                        {getInitials(user.name, user.surname)}
+                    </Avatar>
+                )}
                 <Box>
                     <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
                     {user.name} {user.surname}
@@ -148,8 +153,8 @@ const CompactUserCard: React.FC<CompactUserCardProps> = ({ user, groupId, onUser
                 flexDirection: 'column', 
                 gap: 0.5, 
                 justifyContent: 'center',
-                width: '50%',
-                pl: 2
+                width: isMobile ? '100%' : '50%',
+                pl: isMobile ? 0 : 2
                 }}>
                 {/* Email - always show */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -224,8 +229,9 @@ const CompactUserCard: React.FC<CompactUserCardProps> = ({ user, groupId, onUser
             {/* Remove User Button/Confirmation */}
             <Box sx={{ 
                 position: 'absolute', 
-                top: 8, 
-                right: 8, 
+                top: '50%', 
+                transform: 'translateY(-50%)',
+                right: isMobile ? 4 : 8, 
                 display: 'flex', 
                 gap: 1
             }}>
@@ -363,17 +369,22 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId, onRemove
                     mb: 2,
                     '& .MuiOutlinedInput-root': {
                         borderRadius: '12px',
+                        padding: theme.spacing(0.7),
+                        height: '36px'
+                    },
+                    '& .MuiInputBase-input': {
+                        padding: theme.spacing(0.7, 1),
                     }
                 }}
                 InputProps={{
                     startAdornment: (
                         <InputAdornment position="start">
-                            <SearchIcon color="action" />
+                            <SearchIcon color="action" sx={{ fontSize: '1.2rem' }} />
                         </InputAdornment>
                     ),
                     endAdornment: loading && (
                         <InputAdornment position="end">
-                            <CircularProgress size={20} />
+                            <CircularProgress size={16} />
                         </InputAdornment>
                     )
                 }}

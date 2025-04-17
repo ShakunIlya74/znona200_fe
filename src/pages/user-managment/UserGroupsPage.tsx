@@ -584,7 +584,7 @@ const UserGroupsPage: React.FC = () => {
             } else {
                 setNotification({
                     open: true,
-                    message: response.message || "Помилка при додаванні користувача до групи",
+                    message: response.message || "Помилка при додаванні учня до групи",
                     severity: "error"
                 });
             }
@@ -592,7 +592,7 @@ const UserGroupsPage: React.FC = () => {
             console.error(err);
             setNotification({
                 open: true,
-                message: "Помилка при додаванні користувача до групи",
+                message: "Помилка при додаванні учня до групи",
                 severity: "error"
             });
         } finally {
@@ -1008,7 +1008,7 @@ const UserGroupsPage: React.FC = () => {
                                     ml: 2,
                                     mr: 2,
                                     mb: 2,
-                                    p: 3,
+                                    p: isMobile ? 1 : 3,
                                     borderRadius: '0 0 12px 12px',
                                     border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                                     backgroundColor: 'white',
@@ -1018,7 +1018,7 @@ const UserGroupsPage: React.FC = () => {
                                 <Box sx={{
                                     display: 'flex',
                                     flexDirection: { xs: 'column', md: 'row' },
-                                    gap: 3
+                                    gap: isMobile ? 1 : 3
                                 }}>
                                     <Box sx={{ flex: '1 1 100%' }}>
                                         <Box sx={{ 
@@ -1046,7 +1046,7 @@ const UserGroupsPage: React.FC = () => {
                                                 {showUserSearch === group.group_id ? (
                                                     <UserSearchDropdown 
                                                         onSelect={(user) => handleAddUserToGroup(user, group.group_id)}
-                                                        placeholder="Пошук користувача для додавання..."
+                                                        placeholder="Пошук учня для додавання..."
                                                         label=""
                                                         size="small"
                                                         disabled={isAddingUser}

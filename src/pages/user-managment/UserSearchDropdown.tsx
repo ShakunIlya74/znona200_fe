@@ -11,9 +11,10 @@ import {
   Typography,
   useTheme,
   alpha,
-  ClickAwayListener
+  ClickAwayListener,
+  useMediaQuery
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import PersonIcon from '@mui/icons-material/Person';
 import { searchUsers, UserInfo } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
@@ -41,6 +42,7 @@ const UserSearchDropdown: React.FC<UserSearchDropdownProps> = ({
   variant = 'outlined',
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -129,9 +131,9 @@ const UserSearchDropdown: React.FC<UserSearchDropdownProps> = ({
           }}
           InputProps={{
             startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon color="action" />
-              </InputAdornment>
+                <InputAdornment position="start">
+                <ZoomInIcon color="action" />
+                </InputAdornment>
             ),
             endAdornment: loading && (
               <InputAdornment position="end">
@@ -198,7 +200,7 @@ const UserSearchDropdown: React.FC<UserSearchDropdownProps> = ({
                 justifyContent: 'center',
                 gap: 1
               }}>
-                <PersonIcon color="disabled" />
+                {!isMobile && <PersonIcon color="disabled" />}
                 <Typography color="textSecondary">
                   Користувачів не знайдено
                 </Typography>
@@ -214,7 +216,7 @@ const UserSearchDropdown: React.FC<UserSearchDropdownProps> = ({
                     component="div"
                     onClick={() => handleSelectUser(user)}
                     sx={{
-                      py: 1,
+                      py: isMobile ? 0 : 1,
                       cursor: 'pointer',
                       borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
                       '&:last-child': {
