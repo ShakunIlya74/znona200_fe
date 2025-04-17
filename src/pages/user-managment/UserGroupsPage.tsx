@@ -548,11 +548,11 @@ const UserGroupsPage: React.FC = () => {
                                                                             color="primary"
                                                                             onClick={(e) => handleSaveGroupName(group.group_id, e)}
                                                                             disabled={isUpdatingName}
-                                                                            sx={{ padding: '2px' }}
+                                                                            sx={{ padding: '4px' }}
                                                                         >
                                                                             {isUpdatingName ? 
                                                                                 <CircularProgress size={16} /> : 
-                                                                                <CheckIcon fontSize="small" sx={{ fontSize: '1rem' }} />
+                                                                                <CheckIcon fontSize="small" sx={{ fontSize: '1.3rem' }} />
                                                                             }
                                                                         </IconButton>
                                                                     </Tooltip>
@@ -561,9 +561,9 @@ const UserGroupsPage: React.FC = () => {
                                                                             size="small"
                                                                             color="default"
                                                                             onClick={handleCancelEditing}
-                                                                            sx={{ padding: '2px' }}
+                                                                            sx={{ padding: '4px' }}
                                                                         >
-                                                                            <CloseIcon fontSize="small" sx={{ fontSize: '1rem' }} />
+                                                                            <CloseIcon fontSize="small" sx={{ fontSize: '1.3rem' }} />
                                                                         </IconButton>
                                                                     </Tooltip>
                                                                 </Box>
@@ -620,10 +620,84 @@ const UserGroupsPage: React.FC = () => {
                                                 width: { xs: '100%', md: '33.3%' },
                                                 mb: { xs: 1, md: 0 }
                                             }}>
-                                                <EventIcon fontSize="small" sx={{ color: theme.palette.success.main, opacity: 0.8 }} />
-                                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                                                    Початок: {formatDate(group.open_date)}
-                                                </Typography>
+                                                {editingOpenDate === group.group_id ? (
+                                                    <Box 
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        sx={{ 
+                                                            display: 'flex', 
+                                                            flexDirection: 'column',
+                                                            gap: 1,
+                                                            width: '100%'
+                                                        }}
+                                                    >
+                                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                                            <DatePicker
+                                                                label="Дата початку"
+                                                                value={selectedOpenDate}
+                                                                onChange={(newValue: React.SetStateAction<Date | null>) => setSelectedOpenDate(newValue)}
+                                                                slotProps={{
+                                                                    textField: {
+                                                                        size: 'small',
+                                                                        fullWidth: true,
+                                                                        sx: { 
+                                                                            width: '100%',
+                                                                            minWidth: { xs: '100%', md: '150px' }
+                                                                        }
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </LocalizationProvider>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                            <Tooltip title="Зберегти">
+                                                                <IconButton 
+                                                                    size="small"
+                                                                    color="primary"
+                                                                    onClick={(e) => handleSaveOpenDate(group.group_id, e)}
+                                                                    disabled={isUpdatingOpenDate}
+                                                                    sx={{ padding: '4px' }}
+                                                                >
+                                                                    {isUpdatingOpenDate ? 
+                                                                        <CircularProgress size={16} /> : 
+                                                                        <CheckIcon fontSize="small" sx={{ fontSize: '1.3rem' }} />
+                                                                    }
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                            <Tooltip title="Скасувати">
+                                                                <IconButton 
+                                                                    size="small"
+                                                                    color="default"
+                                                                    onClick={handleCancelEditingOpenDate}
+                                                                    sx={{ padding: '4px' }}
+                                                                >
+                                                                    <CloseIcon fontSize="small" sx={{ fontSize: '1.3rem' }} />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        </Box>
+                                                    </Box>
+                                                ) : (
+                                                    <Box sx={{ 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        justifyContent: 'flex-start',
+                                                        gap: 1
+                                                    }}>
+                                                        <EventIcon fontSize="small" sx={{ color: theme.palette.success.main, opacity: 0.8 }} />
+                                                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mr: 0.5 }}>
+                                                            Початок: {formatDate(group.open_date)}
+                                                        </Typography>
+                                                        {expandedGroupId === group.group_id && (
+                                                            <Tooltip title="Змінити дату початку">
+                                                                <IconButton 
+                                                                    size="small"
+                                                                    onClick={(e) => handleStartEditingOpenDate(group, e)}
+                                                                    sx={{ p: 0.3, ml: 0, mr: 0 }}
+                                                                >
+                                                                    <EditIcon fontSize="small" sx={{ fontSize: '1.3rem' }} />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        )}
+                                                    </Box>
+                                                )}
                                             </Box>
 
                                             {/* Close Date */}
@@ -634,10 +708,84 @@ const UserGroupsPage: React.FC = () => {
                                                 width: { xs: '100%', md: '33.3%' },
                                                 mb: { xs: 1, md: 0 }
                                             }}>
-                                                <EventBusyIcon fontSize="small" sx={{ color: theme.palette.error.main, opacity: 0.8 }} />
-                                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                                                    Кінець: {formatDate(group.close_date)}
-                                                </Typography>
+                                                {editingCloseDate === group.group_id ? (
+                                                    <Box 
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        sx={{ 
+                                                            display: 'flex', 
+                                                            flexDirection: 'column',
+                                                            gap: 1,
+                                                            width: '100%'
+                                                        }}
+                                                    >
+                                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                                            <DatePicker
+                                                                label="Дата закінчення"
+                                                                value={selectedCloseDate}
+                                                                onChange={(newValue: React.SetStateAction<Date | null>) => setSelectedCloseDate(newValue)}
+                                                                slotProps={{
+                                                                    textField: {
+                                                                        size: 'small',
+                                                                        fullWidth: true,
+                                                                        sx: { 
+                                                                            width: '100%',
+                                                                            minWidth: { xs: '100%', md: '150px' }
+                                                                        }
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </LocalizationProvider>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                            <Tooltip title="Зберегти">
+                                                                <IconButton 
+                                                                    size="small"
+                                                                    color="primary"
+                                                                    onClick={(e) => handleSaveCloseDate(group.group_id, e)}
+                                                                    disabled={isUpdatingCloseDate}
+                                                                    sx={{ padding: '4px' }}
+                                                                >
+                                                                    {isUpdatingCloseDate ? 
+                                                                        <CircularProgress size={16} /> : 
+                                                                        <CheckIcon fontSize="small" sx={{ fontSize: '1.3rem' }} />
+                                                                    }
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                            <Tooltip title="Скасувати">
+                                                                <IconButton 
+                                                                    size="small"
+                                                                    color="default"
+                                                                    onClick={handleCancelEditingCloseDate}
+                                                                    sx={{ padding: '4px' }}
+                                                                >
+                                                                    <CloseIcon fontSize="small" sx={{ fontSize: '1.3rem' }} />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        </Box>
+                                                    </Box>
+                                                ) : (
+                                                    <Box sx={{ 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        justifyContent: 'flex-start',
+                                                        gap: 1
+                                                    }}>
+                                                        <EventBusyIcon fontSize="small" sx={{ color: theme.palette.error.main, opacity: 0.8 }} />
+                                                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mr: 0.5 }}>
+                                                            Кінець: {formatDate(group.close_date)}
+                                                        </Typography>
+                                                        {expandedGroupId === group.group_id && (
+                                                            <Tooltip title="Змінити дату закінчення">
+                                                                <IconButton 
+                                                                    size="small"
+                                                                    onClick={(e) => handleStartEditingCloseDate(group, e)}
+                                                                    sx={{ p: 0.3, ml: 0, mr: 0 }}
+                                                                >
+                                                                    <EditIcon fontSize="small" sx={{ fontSize: '1.3rem' }} />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        )}
+                                                    </Box>
+                                                )}
                                             </Box>
 
                                             {/* Status Chip */}
@@ -682,7 +830,7 @@ const UserGroupsPage: React.FC = () => {
                                     flexDirection: { xs: 'column', md: 'row' },
                                     gap: 3
                                 }}>
-                                    <Box sx={{ flex: '1 1 50%' }}>
+                                    <Box sx={{ flex: '1 1 100%' }}>
                                         <Box sx={{ mb: 2 }}>
                                             <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary, mb: 0.5 }}>
                                                 Кількість учнів: {groupInfo[group.group_id]?.loading ? (
@@ -691,150 +839,6 @@ const UserGroupsPage: React.FC = () => {
                                                     groupInfo[group.group_id]?.userCount || 'N/A'
                                                 )}
                                             </Typography>
-                                        </Box>
-                                        
-                                        {/* Edit Start Date */}
-                                        <Box sx={{ mb: 2 }}>
-                                            {editingOpenDate === group.group_id ? (
-                                                <Box 
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    sx={{ 
-                                                        display: 'flex', 
-                                                        alignItems: 'center',
-                                                        flexWrap: 'wrap',
-                                                        gap: 1
-                                                    }}
-                                                >
-                                                    <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                                        <DatePicker
-                                                            label="Дата початку"
-                                                            value={selectedOpenDate}
-                                                            onChange={(newValue: React.SetStateAction<Date | null>) => setSelectedOpenDate(newValue)}
-                                                            slotProps={{
-                                                                textField: {
-                                                                    size: 'small',
-                                                                    fullWidth: true,
-                                                                    sx: { 
-                                                                        width: { xs: '100%', sm: 'auto', flexGrow: 1 },
-                                                                        minWidth: '200px'
-                                                                    }
-                                                                }
-                                                            }}
-                                                        />
-                                                    </LocalizationProvider>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                        <Tooltip title="Зберегти">
-                                                            <IconButton 
-                                                                size="small"
-                                                                color="primary"
-                                                                onClick={(e) => handleSaveOpenDate(group.group_id, e)}
-                                                                disabled={isUpdatingOpenDate}
-                                                            >
-                                                                {isUpdatingOpenDate ? 
-                                                                    <CircularProgress size={20} /> : 
-                                                                    <CheckIcon />
-                                                                }
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                        <Tooltip title="Скасувати">
-                                                            <IconButton 
-                                                                size="small"
-                                                                color="default"
-                                                                onClick={handleCancelEditingOpenDate}
-                                                            >
-                                                                <CloseIcon />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    </Box>
-                                                </Box>
-                                            ) : (
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary }}>
-                                                        Дата початку: {formatDate(group.open_date)}
-                                                    </Typography>
-                                                    <Tooltip title="Змінити дату початку">
-                                                        <IconButton 
-                                                            size="small"
-                                                            onClick={(e) => handleStartEditingOpenDate(group, e)}
-                                                        >
-                                                            <CalendarMonthIcon fontSize="small" />
-                                                        </IconButton>
-                                                    </Tooltip>
-                                                </Box>
-                                            )}
-                                        </Box>
-                                    </Box>
-
-                                    <Box sx={{ flex: '1 1 50%' }}>
-                                        {/* Edit End Date */}
-                                        <Box sx={{ mb: 2 }}>
-                                            {editingCloseDate === group.group_id ? (
-                                                <Box 
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    sx={{ 
-                                                        display: 'flex', 
-                                                        alignItems: 'center',
-                                                        flexWrap: 'wrap',
-                                                        gap: 1
-                                                    }}
-                                                >
-                                                    <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                                        <DatePicker
-                                                            label="Дата закінчення"
-                                                            value={selectedCloseDate}
-                                                            onChange={(newValue: React.SetStateAction<Date | null>) => setSelectedCloseDate(newValue)}
-                                                            slotProps={{
-                                                                textField: {
-                                                                    size: 'small',
-                                                                    fullWidth: true,
-                                                                    sx: { 
-                                                                        width: { xs: '100%', sm: 'auto', flexGrow: 1 },
-                                                                        minWidth: '200px'
-                                                                    }
-                                                                }
-                                                            }}
-                                                        />
-                                                    </LocalizationProvider>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                        <Tooltip title="Зберегти">
-                                                            <IconButton 
-                                                                size="small"
-                                                                color="primary"
-                                                                onClick={(e) => handleSaveCloseDate(group.group_id, e)}
-                                                                disabled={isUpdatingCloseDate}
-                                                            >
-                                                                {isUpdatingCloseDate ? 
-                                                                    <CircularProgress size={20} /> : 
-                                                                    <CheckIcon />
-                                                                }
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                        <Tooltip title="Скасувати">
-                                                            <IconButton 
-                                                                size="small"
-                                                                color="default"
-                                                                onClick={handleCancelEditingCloseDate}
-                                                            >
-                                                                <CloseIcon />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    </Box>
-                                                </Box>
-                                            ) : (
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary }}>
-                                                        Дата закінчення: {formatDate(group.close_date)}
-                                                    </Typography>
-                                                    <Tooltip title="Змінити дату закінчення">
-                                                        <IconButton 
-                                                            size="small"
-                                                            onClick={(e) => handleStartEditingCloseDate(group, e)}
-                                                        >
-                                                            <CalendarMonthIcon fontSize="small" />
-                                                        </IconButton>
-                                                    </Tooltip>
-                                                </Box>
-                                            )}
                                         </Box>
                                     </Box>
                                 </Box>
