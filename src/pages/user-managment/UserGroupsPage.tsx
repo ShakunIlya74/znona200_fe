@@ -18,17 +18,28 @@ import {
     IconButton,
     Tooltip,
     Snackbar,
-    Alert
+    Alert,
+    Button
 } from '@mui/material';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import GroupIcon from '@mui/icons-material/Group';
 import EventIcon from '@mui/icons-material/Event';
 import EventBusyIcon from '@mui/icons-material/EventBusy';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { getUserGroups, getInactiveUserGroups, getUserGroupInfo, updateGroupName } from '../../services/UserService';
+import { 
+    getUserGroups, 
+    getInactiveUserGroups, 
+    getUserGroupInfo, 
+    updateGroupName,
+    updateGroupOpenDate,
+    updateGroupCloseDate
+} from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
 
 // Define user group interface
@@ -83,6 +94,15 @@ const UserGroupsPage: React.FC = () => {
     const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
     const [editedGroupName, setEditedGroupName] = useState<string>('');
     const [isUpdatingName, setIsUpdatingName] = useState<boolean>(false);
+    
+    // States for editing dates
+    const [editingOpenDate, setEditingOpenDate] = useState<number | null>(null);
+    const [editingCloseDate, setEditingCloseDate] = useState<number | null>(null);
+    const [selectedOpenDate, setSelectedOpenDate] = useState<Date | null>(null);
+    const [selectedCloseDate, setSelectedCloseDate] = useState<Date | null>(null);
+    const [isUpdatingOpenDate, setIsUpdatingOpenDate] = useState(false);
+    const [isUpdatingCloseDate, setIsUpdatingCloseDate] = useState(false);
+    
     const [notification, setNotification] = useState<{
         open: boolean;
         message: string;
@@ -283,6 +303,167 @@ const UserGroupsPage: React.FC = () => {
         } finally {
             setIsUpdatingName(false);
             setEditingGroupId(null);
+        }
+    };
+
+    // Start editing open date
+    const handleStartEditingOpenDate = (group: UserGroup, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingOpenDate(group.group_id);
+        setSelectedOpenDate(new Date(group.open_date));
+    };
+
+    // Start editing close date
+    const handleStartEditingCloseDate = (group: UserGroup, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingCloseDate(group.group_id);
+        setSelectedCloseDate(new Date(group.close_date));
+    };
+
+    // Cancel editing open date
+    const handleCancelEditingOpenDate = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingOpenDate(null);
+        setSelectedOpenDate(null);
+    };
+
+    // Cancel editing close date
+    const handleCancelEditingCloseDate = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingCloseDate(null);
+        setSelectedCloseDate(null);
+    };
+
+    // Format date for API submission (YYYY-MM-DD)
+    const formatDateForApi = (date: Date): string => {
+        return date.toISOString().split('T')[0];
+    };
+
+    // Save edited open date
+    const handleSaveOpenDate = async (groupId: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        
+        if (!selectedOpenDate) {
+            setNotification({
+                open: true,
+                message: "Будь ласка, виберіть дату початку",
+                severity: "error"
+            });
+            return;
+        }
+
+        setIsUpdatingOpenDate(true);
+        try {
+            const formattedDate = formatDateForApi(selectedOpenDate);
+            const response = await updateGroupOpenDate(groupId, formattedDate);
+            
+            if (response.success) {
+                // Update local state to reflect the change
+                if (tabValue === 0) {
+                    setActiveGroups(groups => 
+                        groups.map(group => 
+                            group.group_id === groupId 
+                                ? { ...group, open_date: formattedDate } 
+                                : group
+                        )
+                    );
+                } else {
+                    setInactiveGroups(groups => 
+                        groups.map(group => 
+                            group.group_id === groupId 
+                                ? { ...group, open_date: formattedDate } 
+                                : group
+                        )
+                    );
+                }
+
+                setNotification({
+                    open: true,
+                    message: "Дату початку успішно оновлено",
+                    severity: "success"
+                });
+            } else {
+                setNotification({
+                    open: true,
+                    message: response.message || "Помилка при оновленні дати початку",
+                    severity: "error"
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            setNotification({
+                open: true,
+                message: "Помилка при оновленні дати початку",
+                severity: "error"
+            });
+        } finally {
+            setIsUpdatingOpenDate(false);
+            setEditingOpenDate(null);
+            setSelectedOpenDate(null);
+        }
+    };
+
+    // Save edited close date
+    const handleSaveCloseDate = async (groupId: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        
+        if (!selectedCloseDate) {
+            setNotification({
+                open: true,
+                message: "Будь ласка, виберіть дату закінчення",
+                severity: "error"
+            });
+            return;
+        }
+
+        setIsUpdatingCloseDate(true);
+        try {
+            const formattedDate = formatDateForApi(selectedCloseDate);
+            const response = await updateGroupCloseDate(groupId, formattedDate);
+            
+            if (response.success) {
+                // Update local state to reflect the change
+                if (tabValue === 0) {
+                    setActiveGroups(groups => 
+                        groups.map(group => 
+                            group.group_id === groupId 
+                                ? { ...group, close_date: formattedDate } 
+                                : group
+                        )
+                    );
+                } else {
+                    setInactiveGroups(groups => 
+                        groups.map(group => 
+                            group.group_id === groupId 
+                                ? { ...group, close_date: formattedDate } 
+                                : group
+                        )
+                    );
+                }
+
+                setNotification({
+                    open: true,
+                    message: "Дату закінчення успішно оновлено",
+                    severity: "success"
+                });
+            } else {
+                setNotification({
+                    open: true,
+                    message: response.message || "Помилка при оновленні дати закінчення",
+                    severity: "error"
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            setNotification({
+                open: true,
+                message: "Помилка при оновленні дати закінчення",
+                severity: "error"
+            });
+        } finally {
+            setIsUpdatingCloseDate(false);
+            setEditingCloseDate(null);
+            setSelectedCloseDate(null);
         }
     };
 
@@ -511,9 +692,150 @@ const UserGroupsPage: React.FC = () => {
                                                 )}
                                             </Typography>
                                         </Box>
+                                        
+                                        {/* Edit Start Date */}
+                                        <Box sx={{ mb: 2 }}>
+                                            {editingOpenDate === group.group_id ? (
+                                                <Box 
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    sx={{ 
+                                                        display: 'flex', 
+                                                        alignItems: 'center',
+                                                        flexWrap: 'wrap',
+                                                        gap: 1
+                                                    }}
+                                                >
+                                                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                                        <DatePicker
+                                                            label="Дата початку"
+                                                            value={selectedOpenDate}
+                                                            onChange={(newValue: React.SetStateAction<Date | null>) => setSelectedOpenDate(newValue)}
+                                                            slotProps={{
+                                                                textField: {
+                                                                    size: 'small',
+                                                                    fullWidth: true,
+                                                                    sx: { 
+                                                                        width: { xs: '100%', sm: 'auto', flexGrow: 1 },
+                                                                        minWidth: '200px'
+                                                                    }
+                                                                }
+                                                            }}
+                                                        />
+                                                    </LocalizationProvider>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <Tooltip title="Зберегти">
+                                                            <IconButton 
+                                                                size="small"
+                                                                color="primary"
+                                                                onClick={(e) => handleSaveOpenDate(group.group_id, e)}
+                                                                disabled={isUpdatingOpenDate}
+                                                            >
+                                                                {isUpdatingOpenDate ? 
+                                                                    <CircularProgress size={20} /> : 
+                                                                    <CheckIcon />
+                                                                }
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                        <Tooltip title="Скасувати">
+                                                            <IconButton 
+                                                                size="small"
+                                                                color="default"
+                                                                onClick={handleCancelEditingOpenDate}
+                                                            >
+                                                                <CloseIcon />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    </Box>
+                                                </Box>
+                                            ) : (
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary }}>
+                                                        Дата початку: {formatDate(group.open_date)}
+                                                    </Typography>
+                                                    <Tooltip title="Змінити дату початку">
+                                                        <IconButton 
+                                                            size="small"
+                                                            onClick={(e) => handleStartEditingOpenDate(group, e)}
+                                                        >
+                                                            <CalendarMonthIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Box>
+                                            )}
+                                        </Box>
                                     </Box>
 
                                     <Box sx={{ flex: '1 1 50%' }}>
+                                        {/* Edit End Date */}
+                                        <Box sx={{ mb: 2 }}>
+                                            {editingCloseDate === group.group_id ? (
+                                                <Box 
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    sx={{ 
+                                                        display: 'flex', 
+                                                        alignItems: 'center',
+                                                        flexWrap: 'wrap',
+                                                        gap: 1
+                                                    }}
+                                                >
+                                                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                                        <DatePicker
+                                                            label="Дата закінчення"
+                                                            value={selectedCloseDate}
+                                                            onChange={(newValue: React.SetStateAction<Date | null>) => setSelectedCloseDate(newValue)}
+                                                            slotProps={{
+                                                                textField: {
+                                                                    size: 'small',
+                                                                    fullWidth: true,
+                                                                    sx: { 
+                                                                        width: { xs: '100%', sm: 'auto', flexGrow: 1 },
+                                                                        minWidth: '200px'
+                                                                    }
+                                                                }
+                                                            }}
+                                                        />
+                                                    </LocalizationProvider>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <Tooltip title="Зберегти">
+                                                            <IconButton 
+                                                                size="small"
+                                                                color="primary"
+                                                                onClick={(e) => handleSaveCloseDate(group.group_id, e)}
+                                                                disabled={isUpdatingCloseDate}
+                                                            >
+                                                                {isUpdatingCloseDate ? 
+                                                                    <CircularProgress size={20} /> : 
+                                                                    <CheckIcon />
+                                                                }
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                        <Tooltip title="Скасувати">
+                                                            <IconButton 
+                                                                size="small"
+                                                                color="default"
+                                                                onClick={handleCancelEditingCloseDate}
+                                                            >
+                                                                <CloseIcon />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    </Box>
+                                                </Box>
+                                            ) : (
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary }}>
+                                                        Дата закінчення: {formatDate(group.close_date)}
+                                                    </Typography>
+                                                    <Tooltip title="Змінити дату закінчення">
+                                                        <IconButton 
+                                                            size="small"
+                                                            onClick={(e) => handleStartEditingCloseDate(group, e)}
+                                                        >
+                                                            <CalendarMonthIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Box>
+                                            )}
+                                        </Box>
                                     </Box>
                                 </Box>
                             </Paper>

@@ -25,6 +25,12 @@ interface UpdateGroupNameResponse {
   message?: string;
 }
 
+// Interface for update date response
+interface UpdateDateResponse {
+  success: boolean;
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -85,6 +91,44 @@ export const updateGroupName = async (groupId: number | string, newName: string)
     return response.data;
   } catch (error) {
     console.error('Error updating group name:', error);
+    throw error;
+  }
+};
+
+/**
+ * Updates the open date of a user group
+ * @param groupId The ID of the group to update
+ * @param openDate The new open date for the group (format: YYYY-MM-DD)
+ * @returns Promise with success status and optional message
+ */
+export const updateGroupOpenDate = async (groupId: number | string, openDate: string): Promise<UpdateDateResponse> => {
+  try {
+    const response = await axiosInstance.put('/user-groups/update-date/', {
+      groupId,
+      openDate
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating group open date:', error);
+    throw error;
+  }
+};
+
+/**
+ * Updates the close date of a user group
+ * @param groupId The ID of the group to update
+ * @param closeDate The new close date for the group (format: YYYY-MM-DD)
+ * @returns Promise with success status and optional message
+ */
+export const updateGroupCloseDate = async (groupId: number | string, closeDate: string): Promise<UpdateDateResponse> => {
+  try {
+    const response = await axiosInstance.put('/user-groups/update-date/', {
+      groupId,
+      closeDate
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating group close date:', error);
     throw error;
   }
 };
