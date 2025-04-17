@@ -935,7 +935,7 @@ const UserGroupsPage: React.FC = () => {
                                     gap: 3
                                 }}>
                                     <Box sx={{ flex: '1 1 100%' }}>
-                                        <Box sx={{ mb: 2 }}>
+                                        <Box sx={{ }}>
                                             <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary, mb: 0.5 }}>
                                                 Кількість учнів: {groupInfo[group.group_id]?.loading ? (
                                                     <CircularProgress size={16} />

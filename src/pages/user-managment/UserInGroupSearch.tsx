@@ -77,9 +77,14 @@ const CompactUserCard: React.FC<{ user: UserInfo }> = ({ user }) => {
                 // }
             }}
         >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex' }}>
                 {/* Left Column: Avatar, Name, and Status */}
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'flex-start', 
+                    gap: 1.5,
+                    width: '50%'
+                }}>
                     <Avatar 
                         sx={{ 
                             bgcolor: getAvatarColor(user.user_id),
@@ -95,7 +100,7 @@ const CompactUserCard: React.FC<{ user: UserInfo }> = ({ user }) => {
                         </Typography>
                         <Chip
                             size="small"
-                            label={user.is_active ? "Active" : "Inactive"}
+                            label={user.is_active ? "Активний" : "Не активний"}
                             color={user.is_active ? "success" : "default"}
                             sx={{ height: 20, fontSize: '0.7rem' }}
                         />
@@ -103,10 +108,17 @@ const CompactUserCard: React.FC<{ user: UserInfo }> = ({ user }) => {
                 </Box>
                 
                 {/* Right Column: Contact Information with Copy Functions */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, justifyContent: 'center' }}>
+                <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 0.5, 
+                    justifyContent: 'center',
+                    width: '50%',
+                    pl: 2
+                }}>
                     {/* Email - always show */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Tooltip title={copySuccess === 'email' ? 'Copied!' : 'Копіювати email'}>
+                        <Tooltip title={copySuccess === 'email' ? 'Copied!' : 'Copy email'}>
                             <IconButton 
                                 size="small" 
                                 onClick={() => copyToClipboard(user.email, 'email')}
