@@ -30,6 +30,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import BlockIcon from '@mui/icons-material/Block';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { 
@@ -38,11 +40,10 @@ import {
     getUserGroupInfo, 
     updateGroupName,
     updateGroupOpenDate,
-    updateGroupCloseDate
+    updateGroupCloseDate,
+    toggleGroupActivation
 } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
-
-// Define user group interface
 interface UserGroup {
     group_id: number;
     group_name: string;
@@ -102,6 +103,10 @@ const UserGroupsPage: React.FC = () => {
     const [selectedCloseDate, setSelectedCloseDate] = useState<Date | null>(null);
     const [isUpdatingOpenDate, setIsUpdatingOpenDate] = useState(false);
     const [isUpdatingCloseDate, setIsUpdatingCloseDate] = useState(false);
+    
+    // States for activation/deactivation
+    const [confirmingActivation, setConfirmingActivation] = useState<number | null>(null);
+    const [isUpdatingActivation, setIsUpdatingActivation] = useState(false);
     
     const [notification, setNotification] = useState<{
         open: boolean;
@@ -464,6 +469,73 @@ const UserGroupsPage: React.FC = () => {
             setIsUpdatingCloseDate(false);
             setEditingCloseDate(null);
             setSelectedCloseDate(null);
+        }
+    };
+
+    // Toggle activation/deactivation
+    const handleToggleActivation = async (groupId: number, activate: boolean, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsUpdatingActivation(true);
+        try {
+            const response = await toggleGroupActivation(groupId, activate);
+            if (response.success) {
+                // Update local state to reflect the change
+                if (activate) {
+                    // Moving from inactive to active
+                    if (tabValue === 1) {
+                        // If we're in the inactive tab, remove from inactive and add to active
+                        setInactiveGroups(groups => groups.filter(group => group.group_id !== groupId));
+                        setActiveGroups(groups => [...groups, {...inactiveGroups.find(g => g.group_id === groupId)!, is_active: true}]);
+                    } else {
+                        // Just update the status if we're in the active tab
+                        setActiveGroups(groups =>
+                            groups.map(group =>
+                                group.group_id === groupId
+                                    ? { ...group, is_active: true }
+                                    : group
+                            )
+                        );
+                    }
+                } else {
+                    // Moving from active to inactive
+                    if (tabValue === 0) {
+                        // If we're in the active tab, remove from active and add to inactive
+                        setActiveGroups(groups => groups.filter(group => group.group_id !== groupId));
+                        setInactiveGroups(groups => [...groups, {...activeGroups.find(g => g.group_id === groupId)!, is_active: false}]);
+                    } else {
+                        // Just update the status if we're in the inactive tab
+                        setInactiveGroups(groups =>
+                            groups.map(group =>
+                                group.group_id === groupId
+                                    ? { ...group, is_active: false }
+                                    : group
+                            )
+                        );
+                    }
+                }
+
+                setNotification({
+                    open: true,
+                    message: activate ? "Групу успішно активовано" : "Групу успішно деактивовано",
+                    severity: "success"
+                });
+            } else {
+                setNotification({
+                    open: true,
+                    message: response.message || "Помилка при зміні статусу групи",
+                    severity: "error"
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            setNotification({
+                open: true,
+                message: "Помилка при зміні статусу групи",
+                severity: "error"
+            });
+        } finally {
+            setIsUpdatingActivation(false);
+            setConfirmingActivation(null);
         }
     };
 
@@ -841,6 +913,57 @@ const UserGroupsPage: React.FC = () => {
                                                     groupInfo[group.group_id]?.userCount || 'N/A'
                                                 )}
                                             </Typography>
+                                        </Box>
+                                        
+                                        {/* Activation/Deactivation controls */}
+                                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                                            {confirmingActivation === group.group_id ? (
+                                                // Confirmation UI
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                                        {group.is_active ? 'Деактивувати групу?' : 'Активувати групу?'}
+                                                    </Typography>
+                                                    <Tooltip title="Підтвердити">
+                                                        <IconButton 
+                                                            size="small"
+                                                            color="primary"
+                                                            onClick={(e) => handleToggleActivation(group.group_id, !group.is_active, e)}
+                                                            disabled={isUpdatingActivation}
+                                                        >
+                                                            {isUpdatingActivation ? 
+                                                                <CircularProgress size={16} /> : 
+                                                                <CheckIcon fontSize="small" />
+                                                            }
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title="Скасувати">
+                                                        <IconButton 
+                                                            size="small"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setConfirmingActivation(null);
+                                                            }}
+                                                        >
+                                                            <CloseIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Box>
+                                            ) : (
+                                                // Toggle button
+                                                <Button
+                                                    variant="outlined"
+                                                    size="small"
+                                                    color={group.is_active ? "error" : "success"}
+                                                    startIcon={group.is_active ? <BlockIcon /> : <CheckCircleIcon />}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setConfirmingActivation(group.group_id);
+                                                    }}
+                                                    sx={{ borderRadius: '8px' }}
+                                                >
+                                                    {group.is_active ? 'Деактивувати групу' : 'Активувати групу'}
+                                                </Button>
+                                            )}
                                         </Box>
                                     </Box>
                                 </Box>

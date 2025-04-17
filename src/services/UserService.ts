@@ -31,6 +31,12 @@ interface UpdateDateResponse {
   message?: string;
 }
 
+// Interface for toggle group activation response
+interface ToggleGroupActivationResponse {
+  success: boolean;
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -129,6 +135,25 @@ export const updateGroupCloseDate = async (groupId: number | string, closeDate: 
     return response.data;
   } catch (error) {
     console.error('Error updating group close date:', error);
+    throw error;
+  }
+};
+
+/**
+ * Toggles the activation status of a user group
+ * @param groupId The ID of the group to toggle activation status
+ * @param isActive The new activation status (true for active, false for inactive)
+ * @returns Promise with success status and optional message
+ */
+export const toggleGroupActivation = async (groupId: number | string, isActive: boolean): Promise<ToggleGroupActivationResponse> => {
+  try {
+    const response = await axiosInstance.put('/user-groups/toggle-activation/', {
+      groupId,
+      isActive
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error toggling group activation status:', error);
     throw error;
   }
 };
