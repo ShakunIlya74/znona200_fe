@@ -11,13 +11,16 @@ import {
     Divider,
     useTheme,
     alpha,
-    Grid
+    Grid,
+    Tooltip,
+    IconButton
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import TelegramIcon from '@mui/icons-material/Telegram';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { searchUsersInGroup, UserInfo } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { debounce } from 'lodash';
@@ -27,6 +30,7 @@ import { debounce } from 'lodash';
  */
 const CompactUserCard: React.FC<{ user: UserInfo }> = ({ user }) => {
     const theme = useTheme();
+    const [copySuccess, setCopySuccess] = useState<string | null>(null);
     
     // Generate initials for the avatar
     const getInitials = (name: string, surname: string) => {
@@ -46,52 +50,72 @@ const CompactUserCard: React.FC<{ user: UserInfo }> = ({ user }) => {
         return `hsl(${hue}, 70%, 80%)`;
     };
 
+    // Copy to clipboard function
+    const copyToClipboard = (text: string, type: string) => {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                setCopySuccess(type);
+                setTimeout(() => setCopySuccess(null), 2000);
+            })
+            .catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+    };
+
     return (
         <Paper
             elevation={0}
             sx={{
-                p: 1.5,
+                p: 1,
                 borderRadius: '12px',
                 border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
                 mb: 1,
                 transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                    boxShadow: `0px 4px 8px ${alpha(theme.palette.common.black, 0.1)}`,
-                    transform: 'translateY(-2px)'
-                }
+                // '&:hover': {
+                //     boxShadow: `0px 4px 8px ${alpha(theme.palette.common.black, 0.1)}`,
+                //     transform: 'translateY(-2px)'
+                // }
             }}
         >
-            <Grid container spacing={1} alignItems="center">
-                {/* Avatar and Name */}
-                <Grid item xs={12} sm={4} md={3} lg={3}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Avatar 
-                            sx={{ 
-                                bgcolor: getAvatarColor(user.user_id),
-                                width: 40, 
-                                height: 40
-                            }}
-                        >
-                            {getInitials(user.name, user.surname)}
-                        </Avatar>
-                        <Box>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                {user.name} {user.surname}
-                            </Typography>
-                            <Chip
-                                size="small"
-                                label={user.is_active ? "Active" : "Inactive"}
-                                color={user.is_active ? "success" : "default"}
-                                sx={{ height: 20, fontSize: '0.7rem' }}
-                            />
-                        </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                {/* Left Column: Avatar, Name, and Status */}
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                    <Avatar 
+                        sx={{ 
+                            bgcolor: getAvatarColor(user.user_id),
+                            width: 40, 
+                            height: 40
+                        }}
+                    >
+                        {getInitials(user.name, user.surname)}
+                    </Avatar>
+                    <Box>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                            {user.name} {user.surname}
+                        </Typography>
+                        <Chip
+                            size="small"
+                            label={user.is_active ? "Active" : "Inactive"}
+                            color={user.is_active ? "success" : "default"}
+                            sx={{ height: 20, fontSize: '0.7rem' }}
+                        />
                     </Box>
-                </Grid>
-
-                {/* Email */}
-                <Grid item xs={12} sm={4} md={3} lg={3}>
+                </Box>
+                
+                {/* Right Column: Contact Information with Copy Functions */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, justifyContent: 'center' }}>
+                    {/* Email - always show */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <EmailIcon fontSize="small" color="action" sx={{ opacity: 0.6 }} />
+                        <Tooltip title={copySuccess === 'email' ? 'Copied!' : 'Копіювати email'}>
+                            <IconButton 
+                                size="small" 
+                                onClick={() => copyToClipboard(user.email, 'email')}
+                                color={copySuccess === 'email' ? 'success' : 'default'}
+                                sx={{ p: 0.5 }}
+                            >
+                                <EmailIcon fontSize="small" sx={{ opacity: 0.7 }} />
+                            </IconButton>
+                        </Tooltip>
                         <Typography 
                             variant="body2" 
                             sx={{ 
@@ -103,34 +127,52 @@ const CompactUserCard: React.FC<{ user: UserInfo }> = ({ user }) => {
                             {user.email}
                         </Typography>
                     </Box>
-                </Grid>
-
-                {/* Phone */}
-                <Grid item xs={6} sm={2} md={3} lg={3}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <PhoneIcon fontSize="small" color="action" sx={{ opacity: 0.6 }} />
-                        <Typography 
-                            variant="body2" 
-                            sx={{ color: theme.palette.text.secondary }}
-                        >
-                            {user.phone}
-                        </Typography>
-                    </Box>
-                </Grid>
-
-                {/* Telegram */}
-                <Grid item xs={6} sm={2} md={3} lg={3}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <TelegramIcon fontSize="small" color="primary" sx={{ opacity: 0.7 }} />
-                        <Typography 
-                            variant="body2" 
-                            sx={{ color: theme.palette.text.secondary }}
-                        >
-                            {user.telegram_username || 'N/A'}
-                        </Typography>
-                    </Box>
-                </Grid>
-            </Grid>
+                    
+                    {/* Phone - only if present */}
+                    {user.phone && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Tooltip title={copySuccess === 'phone' ? 'Copied!' : 'Копіювати телефон'}>
+                                <IconButton 
+                                    size="small" 
+                                    onClick={() => copyToClipboard(user.phone, 'phone')}
+                                    color={copySuccess === 'phone' ? 'success' : 'default'}
+                                    sx={{ p: 0.5 }}
+                                >
+                                    <PhoneIcon fontSize="small" sx={{ opacity: 0.7 }} />
+                                </IconButton>
+                            </Tooltip>
+                            <Typography 
+                                variant="body2" 
+                                sx={{ color: theme.palette.text.secondary }}
+                            >
+                                {user.phone}
+                            </Typography>
+                        </Box>
+                    )}
+                    
+                    {/* Telegram - only if present */}
+                    {user.telegram_username && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Tooltip title={copySuccess === 'telegram' ? 'Copied!' : 'Копіювати Telegram'}>
+                                <IconButton 
+                                    size="small" 
+                                    onClick={() => copyToClipboard(user.telegram_username, 'telegram')}
+                                    color={copySuccess === 'telegram' ? 'success' : 'default'}
+                                    sx={{ p: 0.5 }}
+                                >
+                                    <TelegramIcon fontSize="small" sx={{ opacity: 0.7 }} />
+                                </IconButton>
+                            </Tooltip>
+                            <Typography 
+                                variant="body2" 
+                                sx={{ color: theme.palette.text.secondary }}
+                            >
+                                {user.telegram_username}
+                            </Typography>
+                        </Box>
+                    )}
+                </Box>
+            </Box>
         </Paper>
     );
 };
@@ -164,6 +206,7 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId }) => {
             try {
                 const response = await searchUsersInGroup(groupId, query);
                 if (response.success && response.user_dicts) {
+                    console.log('Search results:', response.user_dicts);
                     setUsers(response.user_dicts);
                 } else {
                     setError(response.message || 'Failed to search for users');
@@ -196,7 +239,7 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId }) => {
             <TextField
                 fullWidth
                 variant="outlined"
-                placeholder="Search users by name, email, or phone..."
+                placeholder="Пошук учнів в групі..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 sx={{
@@ -276,7 +319,7 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId }) => {
                         }}
                     >
                         <PersonIcon />
-                        No users found matching "{searchQuery}"
+                        Учнів не знайдено за пошуком "{searchQuery}"
                     </Typography>
                 )}
                 
@@ -285,7 +328,7 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId }) => {
                     <CompactUserCard key={user.user_id} user={user} />
                 ))}
                 
-                {/* Initial Empty State */}
+                {/* Initial Empty State
                 {!searchQuery && (
                     <Box 
                         sx={{ 
@@ -302,7 +345,7 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId }) => {
                             Type to search for users in this group
                         </Typography>
                     </Box>
-                )}
+                )} */}
             </Box>
         </Box>
     );

@@ -946,23 +946,12 @@ const UserGroupsPage: React.FC = () => {
                                         </Box>
 
                                         {/* User search component */}
-                                        <Box sx={{ mt: 3, mb: 3 }}>
-                                            <Typography variant="subtitle2" sx={{ 
-                                                color: theme.palette.text.primary, 
-                                                mb: 1.5,
-                                                fontWeight: 600,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 1
-                                            }}>
-                                                <PersonSearchIcon sx={{ fontSize: '1.2rem' }} />
-                                                Пошук користувачів в групі
-                                            </Typography>
+                                        <Box sx={{ mt: 0, mb: 2 }}>
                                             <Box sx={{ 
                                                 p: 2, 
-                                                borderRadius: '12px',
-                                                border: `1px solid ${alpha(theme.palette.grey[300], 0.7)}`,
-                                                bgcolor: alpha(theme.palette.background.paper, 0.5)
+                                                // borderRadius: '12px',
+                                                // border: `1px solid ${alpha(theme.palette.grey[300], 0.7)}`,
+                                                // bgcolor: alpha(theme.palette.background.paper, 0.5)
                                             }}>
                                                 <UserInGroupSearch groupId={group.group_id} />
                                             </Box>
