@@ -33,6 +33,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
@@ -45,6 +46,7 @@ import {
     toggleGroupActivation
 } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
+import UserInGroupSearch from './UserInGroupSearch';
 interface UserGroup {
     group_id: number;
     group_name: string;
@@ -941,6 +943,29 @@ const UserGroupsPage: React.FC = () => {
                                                     groupInfo[group.group_id]?.userCount || 'N/A'
                                                 )}
                                             </Typography>
+                                        </Box>
+
+                                        {/* User search component */}
+                                        <Box sx={{ mt: 3, mb: 3 }}>
+                                            <Typography variant="subtitle2" sx={{ 
+                                                color: theme.palette.text.primary, 
+                                                mb: 1.5,
+                                                fontWeight: 600,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 1
+                                            }}>
+                                                <PersonSearchIcon sx={{ fontSize: '1.2rem' }} />
+                                                Пошук користувачів в групі
+                                            </Typography>
+                                            <Box sx={{ 
+                                                p: 2, 
+                                                borderRadius: '12px',
+                                                border: `1px solid ${alpha(theme.palette.grey[300], 0.7)}`,
+                                                bgcolor: alpha(theme.palette.background.paper, 0.5)
+                                            }}>
+                                                <UserInGroupSearch groupId={group.group_id} />
+                                            </Box>
                                         </Box>
 
                                         {/* Activation/Deactivation controls */}

@@ -45,7 +45,7 @@ interface UserSearchResponse {
 }
 
 // Interface for user information
-interface UserInfo {
+export interface UserInfo {
   user_id: number | string;
   name: string;
   surname: string;
@@ -183,7 +183,7 @@ export const toggleGroupActivation = async (groupId: number | string, isActive: 
  */
 export const searchUsers = async (searchQuery: string): Promise<UserSearchResponse> => {
   try {
-    const response = await axiosInstance.get('/api/user-groups/all-users-search', {
+    const response = await axiosInstance.get('/user-groups/all-users-search', {
       params: { searchQuery }
     });
     return response.data;
@@ -201,7 +201,7 @@ export const searchUsers = async (searchQuery: string): Promise<UserSearchRespon
  */
 export const searchUsersInGroup = async (userGroupId: string | number, searchQuery: string): Promise<UserSearchResponse> => {
   try {
-    const response = await axiosInstance.get('/api/user-groups/user-group-search', {
+    const response = await axiosInstance.get('/user-groups/user-group-search', {
       params: { userGroupId, searchQuery }
     });
     return response.data;
