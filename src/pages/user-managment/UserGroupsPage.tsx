@@ -32,12 +32,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WarningIcon from '@mui/icons-material/Warning';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { 
-    getUserGroups, 
-    getInactiveUserGroups, 
-    getUserGroupInfo, 
+import {
+    getUserGroups,
+    getInactiveUserGroups,
+    getUserGroupInfo,
     updateGroupName,
     updateGroupOpenDate,
     updateGroupCloseDate,
@@ -90,12 +91,12 @@ const UserGroupsPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [expandedGroupId, setExpandedGroupId] = useState<number | null>(null);
     const [groupInfo, setGroupInfo] = useState<{ [key: number]: { userCount: number, loading: boolean } }>({});
-    
+
     // States for editing group name
     const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
     const [editedGroupName, setEditedGroupName] = useState<string>('');
     const [isUpdatingName, setIsUpdatingName] = useState<boolean>(false);
-    
+
     // States for editing dates
     const [editingOpenDate, setEditingOpenDate] = useState<number | null>(null);
     const [editingCloseDate, setEditingCloseDate] = useState<number | null>(null);
@@ -103,11 +104,11 @@ const UserGroupsPage: React.FC = () => {
     const [selectedCloseDate, setSelectedCloseDate] = useState<Date | null>(null);
     const [isUpdatingOpenDate, setIsUpdatingOpenDate] = useState(false);
     const [isUpdatingCloseDate, setIsUpdatingCloseDate] = useState(false);
-    
+
     // States for activation/deactivation
     const [confirmingActivation, setConfirmingActivation] = useState<number | null>(null);
     const [isUpdatingActivation, setIsUpdatingActivation] = useState(false);
-    
+
     const [notification, setNotification] = useState<{
         open: boolean;
         message: string;
@@ -186,15 +187,24 @@ const UserGroupsPage: React.FC = () => {
         });
     };
 
+    // Check if a date is in the past
+    const isDatePassed = (dateString: string): boolean => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set to beginning of day for accurate comparison
+        const compareDate = new Date(dateString);
+        compareDate.setHours(0, 0, 0, 0);
+        return compareDate < today;
+    };
+
     // Handle group card click
     const handleGroupClick = (group: UserGroup) => {
         console.log(`Group clicked: ${group.group_name} (ID: ${group.group_id})`);
-        
+
         // If currently editing, don't toggle expansion
         if (editingGroupId === group.group_id) {
             return;
         }
-        
+
         // Toggle expanded state
         setExpandedGroupId(expandedGroupId === group.group_id ? null : group.group_id);
 
@@ -252,7 +262,7 @@ const UserGroupsPage: React.FC = () => {
     // Save edited group name
     const handleSaveGroupName = async (groupId: number, e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent event bubbling
-        
+
         if (!editedGroupName.trim()) {
             setNotification({
                 open: true,
@@ -265,22 +275,22 @@ const UserGroupsPage: React.FC = () => {
         setIsUpdatingName(true);
         try {
             const response = await updateGroupName(groupId, editedGroupName);
-            
+
             if (response.success) {
                 // Update local state to reflect the change
                 if (tabValue === 0) {
-                    setActiveGroups(groups => 
-                        groups.map(group => 
-                            group.group_id === groupId 
-                                ? { ...group, group_name: editedGroupName } 
+                    setActiveGroups(groups =>
+                        groups.map(group =>
+                            group.group_id === groupId
+                                ? { ...group, group_name: editedGroupName }
                                 : group
                         )
                     );
                 } else {
-                    setInactiveGroups(groups => 
-                        groups.map(group => 
-                            group.group_id === groupId 
-                                ? { ...group, group_name: editedGroupName } 
+                    setInactiveGroups(groups =>
+                        groups.map(group =>
+                            group.group_id === groupId
+                                ? { ...group, group_name: editedGroupName }
                                 : group
                         )
                     );
@@ -347,7 +357,7 @@ const UserGroupsPage: React.FC = () => {
     // Save edited open date
     const handleSaveOpenDate = async (groupId: number, e: React.MouseEvent) => {
         e.stopPropagation();
-        
+
         if (!selectedOpenDate) {
             setNotification({
                 open: true,
@@ -361,22 +371,22 @@ const UserGroupsPage: React.FC = () => {
         try {
             const formattedDate = formatDateForApi(selectedOpenDate);
             const response = await updateGroupOpenDate(groupId, formattedDate);
-            
+
             if (response.success) {
                 // Update local state to reflect the change
                 if (tabValue === 0) {
-                    setActiveGroups(groups => 
-                        groups.map(group => 
-                            group.group_id === groupId 
-                                ? { ...group, open_date: formattedDate } 
+                    setActiveGroups(groups =>
+                        groups.map(group =>
+                            group.group_id === groupId
+                                ? { ...group, open_date: formattedDate }
                                 : group
                         )
                     );
                 } else {
-                    setInactiveGroups(groups => 
-                        groups.map(group => 
-                            group.group_id === groupId 
-                                ? { ...group, open_date: formattedDate } 
+                    setInactiveGroups(groups =>
+                        groups.map(group =>
+                            group.group_id === groupId
+                                ? { ...group, open_date: formattedDate }
                                 : group
                         )
                     );
@@ -411,7 +421,7 @@ const UserGroupsPage: React.FC = () => {
     // Save edited close date
     const handleSaveCloseDate = async (groupId: number, e: React.MouseEvent) => {
         e.stopPropagation();
-        
+
         if (!selectedCloseDate) {
             setNotification({
                 open: true,
@@ -425,22 +435,22 @@ const UserGroupsPage: React.FC = () => {
         try {
             const formattedDate = formatDateForApi(selectedCloseDate);
             const response = await updateGroupCloseDate(groupId, formattedDate);
-            
+
             if (response.success) {
                 // Update local state to reflect the change
                 if (tabValue === 0) {
-                    setActiveGroups(groups => 
-                        groups.map(group => 
-                            group.group_id === groupId 
-                                ? { ...group, close_date: formattedDate } 
+                    setActiveGroups(groups =>
+                        groups.map(group =>
+                            group.group_id === groupId
+                                ? { ...group, close_date: formattedDate }
                                 : group
                         )
                     );
                 } else {
-                    setInactiveGroups(groups => 
-                        groups.map(group => 
-                            group.group_id === groupId 
-                                ? { ...group, close_date: formattedDate } 
+                    setInactiveGroups(groups =>
+                        groups.map(group =>
+                            group.group_id === groupId
+                                ? { ...group, close_date: formattedDate }
                                 : group
                         )
                     );
@@ -485,7 +495,7 @@ const UserGroupsPage: React.FC = () => {
                     if (tabValue === 1) {
                         // If we're in the inactive tab, remove from inactive and add to active
                         setInactiveGroups(groups => groups.filter(group => group.group_id !== groupId));
-                        setActiveGroups(groups => [...groups, {...inactiveGroups.find(g => g.group_id === groupId)!, is_active: true}]);
+                        setActiveGroups(groups => [...groups, { ...inactiveGroups.find(g => g.group_id === groupId)!, is_active: true }]);
                     } else {
                         // Just update the status if we're in the active tab
                         setActiveGroups(groups =>
@@ -501,7 +511,7 @@ const UserGroupsPage: React.FC = () => {
                     if (tabValue === 0) {
                         // If we're in the active tab, remove from active and add to inactive
                         setActiveGroups(groups => groups.filter(group => group.group_id !== groupId));
-                        setInactiveGroups(groups => [...groups, {...activeGroups.find(g => g.group_id === groupId)!, is_active: false}]);
+                        setInactiveGroups(groups => [...groups, { ...activeGroups.find(g => g.group_id === groupId)!, is_active: false }]);
                     } else {
                         // Just update the status if we're in the inactive tab
                         setInactiveGroups(groups =>
@@ -586,14 +596,14 @@ const UserGroupsPage: React.FC = () => {
                                             mb: { xs: 1, sm: 0 }
                                         }}>
                                             <GroupIcon color="primary" sx={{ opacity: 0.7, flexShrink: 0 }} />
-                                            
+
                                             {/* Conditional rendering based on edit state */}
                                             {editingGroupId === group.group_id ? (
-                                                <Box 
+                                                <Box
                                                     onClick={(e) => e.stopPropagation()}
-                                                    sx={{ 
-                                                        display: 'flex', 
-                                                        alignItems: 'center', 
+                                                    sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
                                                         width: '100%'
                                                     }}
                                                 >
@@ -606,7 +616,7 @@ const UserGroupsPage: React.FC = () => {
                                                         autoFocus
                                                         placeholder="Введіть назву групи"
                                                         onClick={(e) => e.stopPropagation()}
-                                                        sx={{ 
+                                                        sx={{
                                                             '& .MuiOutlinedInput-root': {
                                                                 borderRadius: '8px',
                                                             }
@@ -615,21 +625,21 @@ const UserGroupsPage: React.FC = () => {
                                                             endAdornment: (
                                                                 <Box sx={{ display: 'flex', gap: 0.5 }}>
                                                                     <Tooltip title="Зберегти">
-                                                                        <IconButton 
+                                                                        <IconButton
                                                                             size="small"
                                                                             color="primary"
                                                                             onClick={(e) => handleSaveGroupName(group.group_id, e)}
                                                                             disabled={isUpdatingName}
                                                                             sx={{ padding: '4px' }}
                                                                         >
-                                                                            {isUpdatingName ? 
-                                                                                <CircularProgress size={16} /> : 
+                                                                            {isUpdatingName ?
+                                                                                <CircularProgress size={16} /> :
                                                                                 <CheckIcon fontSize="small" sx={{ fontSize: '1.3rem' }} />
                                                                             }
                                                                         </IconButton>
                                                                     </Tooltip>
                                                                     <Tooltip title="Скасувати">
-                                                                        <IconButton 
+                                                                        <IconButton
                                                                             size="small"
                                                                             color="default"
                                                                             onClick={handleCancelEditing}
@@ -644,8 +654,8 @@ const UserGroupsPage: React.FC = () => {
                                                     />
                                                 </Box>
                                             ) : (
-                                                <Box sx={{ 
-                                                    display: 'flex', 
+                                                <Box sx={{
+                                                    display: 'flex',
                                                     alignItems: 'center',
                                                     gap: 1,
                                                     width: '100%'
@@ -665,7 +675,7 @@ const UserGroupsPage: React.FC = () => {
                                                     </Typography>
                                                     {expandedGroupId === group.group_id && (
                                                         <Tooltip title="Редагувати назву">
-                                                            <IconButton 
+                                                            <IconButton
                                                                 size="small"
                                                                 onClick={(e) => handleStartEditing(group, e)}
                                                                 sx={{ ml: 1 }}
@@ -693,10 +703,10 @@ const UserGroupsPage: React.FC = () => {
                                                 mb: { xs: 1, md: 0 }
                                             }}>
                                                 {editingOpenDate === group.group_id ? (
-                                                    <Box 
+                                                    <Box
                                                         onClick={(e) => e.stopPropagation()}
-                                                        sx={{ 
-                                                            display: 'flex', 
+                                                        sx={{
+                                                            display: 'flex',
                                                             flexDirection: 'column',
                                                             gap: 1,
                                                             width: '100%'
@@ -712,7 +722,7 @@ const UserGroupsPage: React.FC = () => {
                                                                     textField: {
                                                                         size: 'small',
                                                                         fullWidth: true,
-                                                                        sx: { 
+                                                                        sx: {
                                                                             width: '100%',
                                                                             minWidth: { xs: '100%', md: '150px' }
                                                                         }
@@ -722,21 +732,21 @@ const UserGroupsPage: React.FC = () => {
                                                         </LocalizationProvider>
                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                                             <Tooltip title="Зберегти">
-                                                                <IconButton 
+                                                                <IconButton
                                                                     size="small"
                                                                     color="primary"
                                                                     onClick={(e) => handleSaveOpenDate(group.group_id, e)}
                                                                     disabled={isUpdatingOpenDate}
                                                                     sx={{ padding: '4px' }}
                                                                 >
-                                                                    {isUpdatingOpenDate ? 
-                                                                        <CircularProgress size={16} /> : 
+                                                                    {isUpdatingOpenDate ?
+                                                                        <CircularProgress size={16} /> :
                                                                         <CheckIcon fontSize="small" sx={{ fontSize: '1.3rem' }} />
                                                                     }
                                                                 </IconButton>
                                                             </Tooltip>
                                                             <Tooltip title="Скасувати">
-                                                                <IconButton 
+                                                                <IconButton
                                                                     size="small"
                                                                     color="default"
                                                                     onClick={handleCancelEditingOpenDate}
@@ -748,9 +758,9 @@ const UserGroupsPage: React.FC = () => {
                                                         </Box>
                                                     </Box>
                                                 ) : (
-                                                    <Box sx={{ 
-                                                        display: 'flex', 
-                                                        alignItems: 'center', 
+                                                    <Box sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
                                                         justifyContent: 'flex-start',
                                                         gap: 1
                                                     }}>
@@ -760,7 +770,7 @@ const UserGroupsPage: React.FC = () => {
                                                         </Typography>
                                                         {expandedGroupId === group.group_id && (
                                                             <Tooltip title="Змінити дату початку">
-                                                                <IconButton 
+                                                                <IconButton
                                                                     size="small"
                                                                     onClick={(e) => handleStartEditingOpenDate(group, e)}
                                                                     sx={{ p: 0.3, ml: 0, mr: 0 }}
@@ -782,10 +792,10 @@ const UserGroupsPage: React.FC = () => {
                                                 mb: { xs: 1, md: 0 }
                                             }}>
                                                 {editingCloseDate === group.group_id ? (
-                                                    <Box 
+                                                    <Box
                                                         onClick={(e) => e.stopPropagation()}
-                                                        sx={{ 
-                                                            display: 'flex', 
+                                                        sx={{
+                                                            display: 'flex',
                                                             flexDirection: 'column',
                                                             gap: 1,
                                                             width: '100%'
@@ -801,7 +811,7 @@ const UserGroupsPage: React.FC = () => {
                                                                     textField: {
                                                                         size: 'small',
                                                                         fullWidth: true,
-                                                                        sx: { 
+                                                                        sx: {
                                                                             width: '100%',
                                                                             minWidth: { xs: '100%', md: '150px' }
                                                                         }
@@ -811,21 +821,21 @@ const UserGroupsPage: React.FC = () => {
                                                         </LocalizationProvider>
                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                                             <Tooltip title="Зберегти">
-                                                                <IconButton 
+                                                                <IconButton
                                                                     size="small"
                                                                     color="primary"
                                                                     onClick={(e) => handleSaveCloseDate(group.group_id, e)}
                                                                     disabled={isUpdatingCloseDate}
                                                                     sx={{ padding: '4px' }}
                                                                 >
-                                                                    {isUpdatingCloseDate ? 
-                                                                        <CircularProgress size={16} /> : 
+                                                                    {isUpdatingCloseDate ?
+                                                                        <CircularProgress size={16} /> :
                                                                         <CheckIcon fontSize="small" sx={{ fontSize: '1.3rem' }} />
                                                                     }
                                                                 </IconButton>
                                                             </Tooltip>
                                                             <Tooltip title="Скасувати">
-                                                                <IconButton 
+                                                                <IconButton
                                                                     size="small"
                                                                     color="default"
                                                                     onClick={handleCancelEditingCloseDate}
@@ -837,9 +847,9 @@ const UserGroupsPage: React.FC = () => {
                                                         </Box>
                                                     </Box>
                                                 ) : (
-                                                    <Box sx={{ 
-                                                        display: 'flex', 
-                                                        alignItems: 'center', 
+                                                    <Box sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
                                                         justifyContent: 'flex-start',
                                                         gap: 1
                                                     }}>
@@ -849,7 +859,7 @@ const UserGroupsPage: React.FC = () => {
                                                         </Typography>
                                                         {expandedGroupId === group.group_id && (
                                                             <Tooltip title="Змінити дату закінчення">
-                                                                <IconButton 
+                                                                <IconButton
                                                                     size="small"
                                                                     onClick={(e) => handleStartEditingCloseDate(group, e)}
                                                                     sx={{ p: 0.3, ml: 0, mr: 0 }}
@@ -862,12 +872,30 @@ const UserGroupsPage: React.FC = () => {
                                                 )}
                                             </Box>
 
+
+
+
                                             {/* Status Chip */}
                                             <Box sx={{
                                                 display: 'flex',
                                                 justifyContent: { xs: 'flex-start', md: 'flex-end' },
                                                 width: { xs: '100%', md: '33.3%' }
                                             }}>
+
+                                                {/* Warning icon for active groups with passed close date */}
+                                                {group.is_active && isDatePassed(group.close_date) && tabValue === 0 && (
+                                                    <Tooltip title="Термін дії цієї групи закінчився. Рекомендується деактивувати групу.">
+                                                        <WarningIcon
+                                                            color="warning"
+                                                            sx={{
+                                                                opacity: 0.9,
+                                                                flexShrink: 0,
+                                                                fontSize: '1.4rem',
+                                                                mr: 0.5
+                                                            }}
+                                                        />
+                                                    </Tooltip>
+                                                )}
                                                 <Chip
                                                     label={group.is_active ? "Активна" : "Не активна"}
                                                     size="small"
@@ -914,7 +942,7 @@ const UserGroupsPage: React.FC = () => {
                                                 )}
                                             </Typography>
                                         </Box>
-                                        
+
                                         {/* Activation/Deactivation controls */}
                                         <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
                                             {confirmingActivation === group.group_id ? (
@@ -924,20 +952,20 @@ const UserGroupsPage: React.FC = () => {
                                                         {group.is_active ? 'Деактивувати групу?' : 'Активувати групу?'}
                                                     </Typography>
                                                     <Tooltip title="Підтвердити">
-                                                        <IconButton 
+                                                        <IconButton
                                                             size="small"
                                                             color="primary"
                                                             onClick={(e) => handleToggleActivation(group.group_id, !group.is_active, e)}
                                                             disabled={isUpdatingActivation}
                                                         >
-                                                            {isUpdatingActivation ? 
-                                                                <CircularProgress size={16} /> : 
+                                                            {isUpdatingActivation ?
+                                                                <CircularProgress size={16} /> :
                                                                 <CheckIcon fontSize="small" />
                                                             }
                                                         </IconButton>
                                                     </Tooltip>
                                                     <Tooltip title="Скасувати">
-                                                        <IconButton 
+                                                        <IconButton
                                                             size="small"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
