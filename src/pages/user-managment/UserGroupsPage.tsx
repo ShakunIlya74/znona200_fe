@@ -635,6 +635,7 @@ const UserGroupsPage: React.FC = () => {
                                                                 label="Дата початку"
                                                                 value={selectedOpenDate}
                                                                 onChange={(newValue: React.SetStateAction<Date | null>) => setSelectedOpenDate(newValue)}
+                                                                format="dd/MM/yyyy"
                                                                 slotProps={{
                                                                     textField: {
                                                                         size: 'small',
@@ -723,6 +724,7 @@ const UserGroupsPage: React.FC = () => {
                                                                 label="Дата закінчення"
                                                                 value={selectedCloseDate}
                                                                 onChange={(newValue: React.SetStateAction<Date | null>) => setSelectedCloseDate(newValue)}
+                                                                format="dd/MM/yyyy"
                                                                 slotProps={{
                                                                     textField: {
                                                                         size: 'small',
