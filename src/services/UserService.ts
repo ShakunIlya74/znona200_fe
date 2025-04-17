@@ -44,6 +44,12 @@ interface UserSearchResponse {
   message?: string;
 }
 
+// Interface for user group management response
+interface UserGroupManagementResponse {
+  success: boolean;
+  message?: string;
+}
+
 // Interface for user information
 export interface UserInfo {
   user_id: number | string;
@@ -207,6 +213,46 @@ export const searchUsersInGroup = async (userGroupId: string | number, searchQue
     return response.data;
   } catch (error) {
     console.error('Error searching for users in group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Adds a user to a specific user group
+ * @param userId The ID of the user to add to the group
+ * @param groupId The ID of the group to add the user to
+ * @returns Promise with success status and optional message
+ */
+export const addUserToGroup = async (userId: number | string, groupId: number | string): Promise<UserGroupManagementResponse> => {
+  try {
+    const response = await axiosInstance.post('/user-groups/add-user/', {
+      userId,
+      groupId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error adding user to group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Removes a user from a specific user group
+ * @param userId The ID of the user to remove from the group
+ * @param groupId The ID of the group to remove the user from
+ * @returns Promise with success status and optional message
+ */
+export const removeUserFromGroup = async (userId: number | string, groupId: number | string): Promise<UserGroupManagementResponse> => {
+  try {
+    const response = await axiosInstance.delete('/user-groups/remove-user/', {
+      data: { 
+        userId,
+        groupId
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error removing user from group:', error);
     throw error;
   }
 };

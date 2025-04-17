@@ -34,6 +34,7 @@ import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
@@ -43,10 +44,14 @@ import {
     updateGroupName,
     updateGroupOpenDate,
     updateGroupCloseDate,
-    toggleGroupActivation
+    toggleGroupActivation,
+    addUserToGroup,
+    UserInfo
 } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import UserInGroupSearch from './UserInGroupSearch';
+import UserSearchDropdown from './UserSearchDropdown';
+
 interface UserGroup {
     group_id: number;
     group_name: string;
@@ -110,6 +115,10 @@ const UserGroupsPage: React.FC = () => {
     // States for activation/deactivation
     const [confirmingActivation, setConfirmingActivation] = useState<number | null>(null);
     const [isUpdatingActivation, setIsUpdatingActivation] = useState(false);
+
+    // States for adding user
+    const [showUserSearch, setShowUserSearch] = useState<number | null>(null);
+    const [isAddingUser, setIsAddingUser] = useState(false);
 
     const [notification, setNotification] = useState<{
         open: boolean;
@@ -551,6 +560,46 @@ const UserGroupsPage: React.FC = () => {
         }
     };
 
+    // Handle adding a user to the group
+    const handleAddUserToGroup = async (user: UserInfo, groupId: number) => {
+        setIsAddingUser(true);
+        try {
+            const response = await addUserToGroup(user.user_id, groupId);
+            if (response.success) {
+                // Update user count in local state
+                setGroupInfo((prev) => ({
+                    ...prev,
+                    [groupId]: {
+                        ...prev[groupId],
+                        userCount: prev[groupId].userCount + 1
+                    }
+                }));
+                
+                setNotification({
+                    open: true,
+                    message: `${user.name} ${user.surname} успішно додано до групи`,
+                    severity: "success"
+                });
+            } else {
+                setNotification({
+                    open: true,
+                    message: response.message || "Помилка при додаванні користувача до групи",
+                    severity: "error"
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            setNotification({
+                open: true,
+                message: "Помилка при додаванні користувача до групи",
+                severity: "error"
+            });
+        } finally {
+            setIsAddingUser(false);
+            setShowUserSearch(null);
+        }
+    };
+
     // Handle closing notification
     const handleCloseNotification = () => {
         setNotification(prev => ({ ...prev, open: false }));
@@ -874,9 +923,6 @@ const UserGroupsPage: React.FC = () => {
                                                 )}
                                             </Box>
 
-
-
-
                                             {/* Status Chip */}
                                             <Box sx={{
                                                 display: 'flex',
@@ -935,24 +981,55 @@ const UserGroupsPage: React.FC = () => {
                                     gap: 3
                                 }}>
                                     <Box sx={{ flex: '1 1 100%' }}>
-                                        <Box sx={{ }}>
-                                            <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary, mb: 0.5 }}>
-                                                Кількість учнів: {groupInfo[group.group_id]?.loading ? (
-                                                    <CircularProgress size={16} />
+                                        <Box sx={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'space-between',
+                                            flexWrap: 'wrap',
+                                            mb: 2
+                                        }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1, sm: 0 } }}>
+                                                <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary }}>
+                                                    Кількість учнів: {groupInfo[group.group_id]?.loading ? (
+                                                        <CircularProgress size={16} />
+                                                    ) : (
+                                                        groupInfo[group.group_id]?.userCount || 'N/A'
+                                                    )}
+                                                </Typography>
+                                            </Box>
+                                            
+                                            <Box sx={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center',
+                                                width: showUserSearch === group.group_id ? { xs: '100%', sm: '60%', md: '50%', lg: '40%' } : 'auto'
+                                            }}>
+                                                {showUserSearch === group.group_id ? (
+                                                    <UserSearchDropdown 
+                                                        onSelect={(user) => handleAddUserToGroup(user, group.group_id)}
+                                                        placeholder="Пошук користувача для додавання..."
+                                                        label=""
+                                                        size="small"
+                                                        disabled={isAddingUser}
+                                                    />
                                                 ) : (
-                                                    groupInfo[group.group_id]?.userCount || 'N/A'
+                                                    <Button
+                                                        variant="outlined"
+                                                        size="small"
+                                                        color="primary"
+                                                        startIcon={<PersonAddIcon />}
+                                                        onClick={() => setShowUserSearch(group.group_id)}
+                                                        disabled={isAddingUser}
+                                                        sx={{ borderRadius: '8px' }}
+                                                    >
+                                                        Додати учня
+                                                    </Button>
                                                 )}
-                                            </Typography>
+                                            </Box>
                                         </Box>
 
                                         {/* User search component */}
                                         <Box sx={{ mt: 0, mb: 2 }}>
-                                            <Box sx={{ 
-                                                p: 2, 
-                                                // borderRadius: '12px',
-                                                // border: `1px solid ${alpha(theme.palette.grey[300], 0.7)}`,
-                                                // bgcolor: alpha(theme.palette.background.paper, 0.5)
-                                            }}>
+                                            <Box sx={{ p: 2 }}>
                                                 <UserInGroupSearch groupId={group.group_id} />
                                             </Box>
                                         </Box>

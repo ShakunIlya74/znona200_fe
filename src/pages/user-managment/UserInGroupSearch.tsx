@@ -118,7 +118,7 @@ const CompactUserCard: React.FC<{ user: UserInfo }> = ({ user }) => {
                 }}>
                     {/* Email - always show */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Tooltip title={copySuccess === 'email' ? 'Copied!' : 'Copy email'}>
+                        <Tooltip title={copySuccess === 'email' ? 'Copied!' : 'Копіювати email'}>
                             <IconButton 
                                 size="small" 
                                 onClick={() => copyToClipboard(user.email, 'email')}
