@@ -37,6 +37,24 @@ interface ToggleGroupActivationResponse {
   message?: string;
 }
 
+// Interface for user search response
+interface UserSearchResponse {
+  success: boolean;
+  user_dicts?: UserInfo[];
+  message?: string;
+}
+
+// Interface for user information
+interface UserInfo {
+  user_id: number | string;
+  name: string;
+  surname: string;
+  email: string;
+  phone: string;
+  telegram_username: string;
+  is_active: boolean;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -154,6 +172,41 @@ export const toggleGroupActivation = async (groupId: number | string, isActive: 
     return response.data;
   } catch (error) {
     console.error('Error toggling group activation status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Searches for users across the entire system
+ * @param searchQuery The search query to filter users by
+ * @returns Promise with matching users information
+ */
+export const searchUsers = async (searchQuery: string): Promise<UserSearchResponse> => {
+  try {
+    const response = await axiosInstance.get('/api/user-groups/all-users-search', {
+      params: { searchQuery }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching for users:', error);
+    throw error;
+  }
+};
+
+/**
+ * Searches for users within a specific user group
+ * @param userGroupId The ID of the user group to search within
+ * @param searchQuery The search query to filter users by
+ * @returns Promise with matching users information
+ */
+export const searchUsersInGroup = async (userGroupId: string | number, searchQuery: string): Promise<UserSearchResponse> => {
+  try {
+    const response = await axiosInstance.get('/api/user-groups/user-group-search', {
+      params: { userGroupId, searchQuery }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching for users in group:', error);
     throw error;
   }
 };
