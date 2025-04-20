@@ -159,6 +159,7 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                             transition: 'all 0.2s ease-in-out',
                             flex: '0 0 auto', // Prevent card from shrinking
                             minHeight: 'fit-content', // Ensure minimum height based on content
+                            backgroundColor: folder.group_elements_count === 0 ? alpha(theme.palette.grey[100], 0.7) : 'inherit',
                             '&:hover': {
                                 boxShadow: `0px 4px 8px ${alpha(theme.palette.common.black, 0.1)}`,
                                 transform: 'translateY(-2px)'
@@ -172,8 +173,17 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                             <CardContent sx={{ py: 1.5 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                        <FolderIcon color="primary" sx={{ opacity: 0.8 }} />
-                                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                        <FolderIcon 
+                                            color={folder.group_elements_count === 0 ? "action" : "primary"} 
+                                            sx={{ opacity: folder.group_elements_count === 0 ? 0.6 : 0.8 }} 
+                                        />
+                                        <Typography 
+                                            variant="body1" 
+                                            sx={{ 
+                                                fontWeight: 500,
+                                                color: folder.group_elements_count === 0 ? theme.palette.text.secondary : 'inherit'
+                                            }}
+                                        >
                                             {folder.folder_name}
                                         </Typography>
                                     </Box>
@@ -181,7 +191,9 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                                         variant="body2"
                                         sx={{
                                             color: theme.palette.text.secondary,
-                                            bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                            bgcolor: folder.group_elements_count === 0 
+                                                ? alpha(theme.palette.grey[300], 0.4)
+                                                : alpha(theme.palette.primary.main, 0.1),
                                             px: 1.5,
                                             py: 0.5,
                                             borderRadius: '12px',
