@@ -1,5 +1,9 @@
 
-export function declinateWord(number: number, firstForm: string): string {
+export function declinateWord(number: number | undefined, firstForm: string): string {
+    if (number === undefined) {
+        number = 1; // Default to 1 if number is undefined
+    }
+    
     const mod10 = number % 10;
     const mod100 = number % 100;
     
