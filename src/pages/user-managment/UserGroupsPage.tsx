@@ -52,6 +52,7 @@ import {
 import LoadingDots from '../../components/tools/LoadingDots';
 import UserInGroupSearch from './UserInGroupSearch';
 import UserSearchDropdown from './UserSearchDropdown';
+import UserGroupContent from './UserGroupContent';
 
 interface UserGroup {
     group_id: number;
@@ -1075,6 +1076,31 @@ const UserGroupsPage: React.FC = () => {
                                                     onRemoveUser={handleRemoveUser}
                                                 />
                                             </Box>
+                                        </Box>
+
+                                        {/* Group Content component - Lessons and Tests */}
+                                        <Box sx={{ mt: 2, mb: 2 }}>
+                                            <Typography 
+                                                variant="subtitle1" 
+                                                sx={{ 
+                                                    fontWeight: 600, 
+                                                    mb: 2,
+                                                    color: theme.palette.primary.main
+                                                }}
+                                            >
+                                                Навчальні матеріали групи
+                                            </Typography>
+                                            <Paper
+                                                elevation={0}
+                                                sx={{
+                                                    p: 2,
+                                                    borderRadius: '12px',
+                                                    border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                                                    backgroundColor: alpha(theme.palette.background.paper, 0.8)
+                                                }}
+                                            >
+                                                <UserGroupContent groupId={group.group_id} />
+                                            </Paper>
                                         </Box>
 
                                         {/* Activation/Deactivation controls */}

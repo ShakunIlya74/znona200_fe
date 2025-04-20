@@ -50,6 +50,22 @@ interface UserGroupManagementResponse {
   message?: string;
 }
 
+// Interface for folder information
+export interface FolderInfo {
+  folder_name: string;
+  folder_id: number | string;
+  elements_count?: number;
+  group_elements_count?: number;
+}
+
+// Interface for folder response
+interface GroupFoldersResponse {
+  success: boolean;
+  folders?: FolderInfo[];
+  is_admin: boolean;
+  message?: string;
+}
+
 // Interface for user information
 export interface UserInfo {
   user_id: number | string;
@@ -256,4 +272,41 @@ export const removeUserFromGroup = async (userId: number | string, groupId: numb
     throw error;
   }
 };
+
+/**
+ * Fetches lesson folders available for a specific user group
+ * @param groupId The ID of the user group to get lesson folders for
+ * @returns Promise with lesson folders information and admin status
+ */
+export const getGroupLessonFolders = async (groupId: number | string): Promise<GroupFoldersResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-groups/lesson-folders/', {
+      params: { groupId }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching lesson folders for group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches test folders available for a specific user group
+ * @param groupId The ID of the user group to get test folders for
+ * @returns Promise with test folders information and admin status
+ */
+export const getGroupTestFolders = async (groupId: number | string): Promise<GroupFoldersResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-groups/test-folders/', {
+      params: { groupId }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching test folders for group:', error);
+    throw error;
+  }
+};
+
+
+
 
