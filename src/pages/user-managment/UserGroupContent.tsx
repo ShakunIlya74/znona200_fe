@@ -20,7 +20,8 @@ import {
     ListItemButton,
     InputBase,
     InputAdornment,
-    IconButton
+    IconButton,
+    Tooltip
 } from '@mui/material';
 import FolderIcon from '@mui/icons-material/Folder';
 import AddIcon from '@mui/icons-material/Add';
@@ -30,6 +31,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import DoneIcon from '@mui/icons-material/Done'; 
+import CloseIcon from '@mui/icons-material/Close';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { 
     FolderInfo, 
@@ -38,7 +41,11 @@ import {
     getFolderTestsWithGroupMembership,
     getFolderLessonsWithGroupMembership,
     FolderTestInfo,
-    FolderLessonInfo
+    FolderLessonInfo,
+    addTestToGroup,
+    removeTestFromGroup,
+    addLessonToGroup,
+    removeLessonFromGroup
 } from '../../services/UserService';
 import { declinateWord } from '../utils/utils';
 
@@ -68,6 +75,171 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [filteredFolderItems, setFilteredFolderItems] = useState<FolderTestInfo[] | FolderLessonInfo[]>([]);
     const searchInputRef = useRef<HTMLInputElement>(null);
+
+    // Action state for add/remove item operations
+    const [actionItemId, setActionItemId] = useState<string | number | null>(null);
+    const [processingItemAction, setProcessingItemAction] = useState<boolean>(false);
+    const [actionNotification, setActionNotification] = useState<{ message: string, isError: boolean } | null>(null);
+
+    // Clear notification after a delay
+    useEffect(() => {
+        if (actionNotification) {
+            const timer = setTimeout(() => {
+                setActionNotification(null);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [actionNotification]);
+
+    // Handle item action (toggle showing confirmation buttons)
+    const handleItemAction = (itemId: string | number) => {
+        // If clicking on the same item, toggle
+        if (actionItemId === itemId) {
+            setActionItemId(null);
+        } else {
+            setActionItemId(itemId);
+        }
+    };
+
+    // Handle adding a test to the group
+    const handleAddTest = async (testId: number | string) => {
+        setProcessingItemAction(true);
+        try {
+            const response = await addTestToGroup(testId, groupId);
+            
+            if (response.success) {
+                // Update the local state to mark test as added
+                const updatedTests = folderTests.map(test => {
+                    if (test.test_id === testId) {
+                        return { ...test, added_to_group: true };
+                    }
+                    return test;
+                });
+                
+                setFolderTests(updatedTests);
+                setActionNotification({ message: 'Тест успішно додано до групи', isError: false });
+            } else {
+                setActionNotification({ 
+                    message: response.message || 'Помилка при додаванні тесту до групи', 
+                    isError: true 
+                });
+            }
+        } catch (error) {
+            console.error('Error adding test to group:', error);
+            setActionNotification({ 
+                message: 'Помилка при додаванні тесту до групи', 
+                isError: true 
+            });
+        } finally {
+            setProcessingItemAction(false);
+            setActionItemId(null); // Close the confirmation UI
+        }
+    };
+
+    // Handle removing a test from the group
+    const handleRemoveTest = async (testId: number | string) => {
+        setProcessingItemAction(true);
+        try {
+            const response = await removeTestFromGroup(testId, groupId);
+            
+            if (response.success) {
+                // Update the local state to mark test as removed
+                const updatedTests = folderTests.map(test => {
+                    if (test.test_id === testId) {
+                        return { ...test, added_to_group: false };
+                    }
+                    return test;
+                });
+                
+                setFolderTests(updatedTests);
+                setActionNotification({ message: 'Тест видалено з групи', isError: false });
+            } else {
+                setActionNotification({ 
+                    message: response.message || 'Помилка при видаленні тесту з групи', 
+                    isError: true 
+                });
+            }
+        } catch (error) {
+            console.error('Error removing test from group:', error);
+            setActionNotification({ 
+                message: 'Помилка при видаленні тесту з групи', 
+                isError: true 
+            });
+        } finally {
+            setProcessingItemAction(false);
+            setActionItemId(null); // Close the confirmation UI
+        }
+    };
+
+    // Handle adding a lesson to the group
+    const handleAddLesson = async (lessonId: number | string) => {
+        setProcessingItemAction(true);
+        try {
+            const response = await addLessonToGroup(lessonId, groupId);
+            
+            if (response.success) {
+                // Update the local state to mark lesson as added
+                const updatedLessons = folderLessons.map(lesson => {
+                    if (lesson.lesson_id === lessonId) {
+                        return { ...lesson, added_to_group: true };
+                    }
+                    return lesson;
+                });
+                
+                setFolderLessons(updatedLessons);
+                setActionNotification({ message: 'Вебінар успішно додано до групи', isError: false });
+            } else {
+                setActionNotification({ 
+                    message: response.message || 'Помилка при додаванні вебінару до групи', 
+                    isError: true 
+                });
+            }
+        } catch (error) {
+            console.error('Error adding lesson to group:', error);
+            setActionNotification({ 
+                message: 'Помилка при додаванні вебінару до групи', 
+                isError: true 
+            });
+        } finally {
+            setProcessingItemAction(false);
+            setActionItemId(null); // Close the confirmation UI
+        }
+    };
+
+    // Handle removing a lesson from the group
+    const handleRemoveLesson = async (lessonId: number | string) => {
+        setProcessingItemAction(true);
+        try {
+            const response = await removeLessonFromGroup(lessonId, groupId);
+            
+            if (response.success) {
+                // Update the local state to mark lesson as removed
+                const updatedLessons = folderLessons.map(lesson => {
+                    if (lesson.lesson_id === lessonId) {
+                        return { ...lesson, added_to_group: false };
+                    }
+                    return lesson;
+                });
+                
+                setFolderLessons(updatedLessons);
+                setActionNotification({ message: 'Вебінар видалено з групи', isError: false });
+            } else {
+                setActionNotification({ 
+                    message: response.message || 'Помилка при видаленні вебінару з групи', 
+                    isError: true 
+                });
+            }
+        } catch (error) {
+            console.error('Error removing lesson from group:', error);
+            setActionNotification({ 
+                message: 'Помилка при видаленні вебінару з групи', 
+                isError: true 
+            });
+        } finally {
+            setProcessingItemAction(false);
+            setActionItemId(null); // Close the confirmation UI
+        }
+    };
 
     // Handle tab change
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -476,10 +648,13 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                                                                 : (item as FolderTestInfo).test_id;
                                                                     
                                                             const isAddedToGroup = item.added_to_group;
+                                                            const isConfirmationMode = actionItemId === itemId;
                                                                     
                                                             return (
                                                                 <React.Fragment key={itemId}>
                                                                     <ListItemButton
+                                                                        onClick={() => handleItemAction(itemId)}
+                                                                        disabled={processingItemAction}
                                                                         sx={{ 
                                                                             py: 1.5, 
                                                                             px: 3,
@@ -523,18 +698,65 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                                                                                 </Typography>
                                                                             } 
                                                                         />
-                                                                        {isAddedToGroup ? (
-                                                                            <CheckCircleIcon 
-                                                                                color="success" 
-                                                                                fontSize="small"
-                                                                                sx={{ opacity: 0.8 }}
-                                                                            />
+                                                                        {processingItemAction && actionItemId === itemId ? (
+                                                                            <CircularProgress size={20} />
+                                                                        ) : isConfirmationMode ? (
+                                                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                                                                {/* Confirmation buttons */}
+                                                                                <Tooltip title={isAddedToGroup ? "Підтвердити видалення" : "Підтвердити додавання"}>
+                                                                                    <IconButton 
+                                                                                        size="small"
+                                                                                        color={isAddedToGroup ? "error" : "success"}
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            if (isAddedToGroup) {
+                                                                                                if (tabValue === 0) {
+                                                                                                    handleRemoveLesson(itemId);
+                                                                                                } else {
+                                                                                                    handleRemoveTest(itemId);
+                                                                                                }
+                                                                                            } else {
+                                                                                                if (tabValue === 0) {
+                                                                                                    handleAddLesson(itemId);
+                                                                                                } else {
+                                                                                                    handleAddTest(itemId);
+                                                                                                }
+                                                                                            }
+                                                                                        }}
+                                                                                    >
+                                                                                        <DoneIcon fontSize="small" />
+                                                                                    </IconButton>
+                                                                                </Tooltip>
+                                                                                <Tooltip title="Скасувати">
+                                                                                    <IconButton 
+                                                                                        size="small"
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            setActionItemId(null);
+                                                                                        }}
+                                                                                    >
+                                                                                        <CloseIcon fontSize="small" />
+                                                                                    </IconButton>
+                                                                                </Tooltip>
+                                                                            </Box>
                                                                         ) : (
-                                                                            <RemoveCircleOutlineIcon 
-                                                                                color="action" 
-                                                                                fontSize="small"
-                                                                                sx={{ opacity: 0.6 }}
-                                                                            />
+                                                                            isAddedToGroup ? (
+                                                                                <Tooltip title="Видалити з групи">
+                                                                                    <CheckCircleIcon 
+                                                                                        color="success" 
+                                                                                        fontSize="small"
+                                                                                        sx={{ opacity: 0.8 }}
+                                                                                    />
+                                                                                </Tooltip>
+                                                                            ) : (
+                                                                                <Tooltip title="Додати до групи">
+                                                                                    <RemoveCircleOutlineIcon 
+                                                                                        color="action" 
+                                                                                        fontSize="small"
+                                                                                        sx={{ opacity: 0.6 }}
+                                                                                    />
+                                                                                </Tooltip>
+                                                                            )
                                                                         )}
                                                                     </ListItemButton>
                                                                     {index < array.length - 1 && (

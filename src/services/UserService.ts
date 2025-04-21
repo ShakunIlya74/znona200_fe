@@ -109,6 +109,12 @@ interface FolderLessonsResponse {
   message?: string;
 }
 
+// Interface for adding/removing tests and lessons from groups
+interface GroupContentManagementResponse {
+  success: boolean;
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -377,6 +383,98 @@ export const getFolderLessonsWithGroupMembership = async (
     return response.data;
   } catch (error) {
     console.error('Error fetching folder lessons with group membership:', error);
+    throw error;
+  }
+};
+
+/**
+ * Adds a test to a specific user group
+ * @param testId The ID of the test to add to the group
+ * @param groupId The ID of the group to add the test to
+ * @returns Promise with success status and optional message
+ */
+export const addTestToGroup = async (
+  testId: number | string,
+  groupId: number | string
+): Promise<GroupContentManagementResponse> => {
+  try {
+    const response = await axiosInstance.post('/user-groups/add-test/', {
+      testId,
+      groupId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error adding test to group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Removes a test from a specific user group
+ * @param testId The ID of the test to remove from the group
+ * @param groupId The ID of the group to remove the test from
+ * @returns Promise with success status and optional message
+ */
+export const removeTestFromGroup = async (
+  testId: number | string,
+  groupId: number | string
+): Promise<GroupContentManagementResponse> => {
+  try {
+    const response = await axiosInstance.delete('/user-groups/remove-test/', {
+      data: {
+        testId,
+        groupId
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error removing test from group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Adds a lesson to a specific user group
+ * @param lessonId The ID of the lesson to add to the group
+ * @param groupId The ID of the group to add the lesson to
+ * @returns Promise with success status and optional message
+ */
+export const addLessonToGroup = async (
+  lessonId: number | string,
+  groupId: number | string
+): Promise<GroupContentManagementResponse> => {
+  try {
+    const response = await axiosInstance.post('/user-groups/add-lesson/', {
+      lessonId,
+      groupId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error adding lesson to group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Removes a lesson from a specific user group
+ * @param lessonId The ID of the lesson to remove from the group
+ * @param groupId The ID of the group to remove the lesson from
+ * @returns Promise with success status and optional message
+ */
+export const removeLessonFromGroup = async (
+  lessonId: number | string,
+  groupId: number | string
+): Promise<GroupContentManagementResponse> => {
+  try {
+    const response = await axiosInstance.delete('/user-groups/remove-lesson/', {
+      data: {
+        lessonId,
+        groupId
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error removing lesson from group:', error);
     throw error;
   }
 };
