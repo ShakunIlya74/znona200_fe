@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Box,
     Typography,
@@ -63,6 +63,11 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
     const [folderLessons, setFolderLessons] = useState<FolderLessonInfo[]>([]);
     const [loadingItems, setLoadingItems] = useState<boolean>(false);
     const [itemError, setItemError] = useState<string | null>(null);
+    
+    // Search functionality
+    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [filteredFolderItems, setFilteredFolderItems] = useState<FolderTestInfo[] | FolderLessonInfo[]>([]);
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     // Handle tab change
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -132,6 +137,63 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
             fetchFolders();
         }
     }, [tabValue, groupId]);
+
+    // When folder lessons or tests change, reset search and update filtered items
+    useEffect(() => {
+        setSearchQuery('');
+        setFilteredFolderItems(tabValue === 0 ? folderLessons : folderTests);
+    }, [folderLessons, folderTests, tabValue]);
+
+    // Filter items when search query changes
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            setFilteredFolderItems(tabValue === 0 ? folderLessons : folderTests);
+            return;
+        }
+
+        const query = searchQuery.toLowerCase();
+        if (tabValue === 0) {
+            // Filter lessons
+            const filtered = folderLessons.filter(lesson => 
+                (lesson as FolderLessonInfo).lesson_name.toLowerCase().includes(query)
+            );
+            setFilteredFolderItems(filtered);
+        } else {
+            // Filter tests
+            const filtered = folderTests.filter(test => 
+                (test as FolderTestInfo).test_name.toLowerCase().includes(query)
+            );
+            setFilteredFolderItems(filtered);
+        }
+    }, [searchQuery, folderLessons, folderTests, tabValue]);
+
+    // Auto-focus search input when a folder is opened
+    useEffect(() => {
+        if (selectedFolderId !== null && !loadingItems) {
+            setTimeout(() => {
+                searchInputRef.current?.focus();
+            }, 300); // Delay to ensure the transition has completed
+        }
+    }, [selectedFolderId, loadingItems]);
+
+    // Search handlers
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(event.target.value);
+    };
+
+    const clearSearch = () => {
+        setSearchQuery('');
+        searchInputRef.current?.focus();
+    };
+
+    // Find the original index of an item in the unfiltered list
+    const getOriginalIndex = (itemId: number) => {
+        if (tabValue === 0) {
+            return folderLessons.findIndex(lesson => (lesson as FolderLessonInfo).lesson_id === itemId);
+        } else {
+            return folderTests.findIndex(test => (test as FolderTestInfo).test_id === itemId);
+        }
+    };
 
     // Handle folder click
     const handleFolderClick = async (folder: FolderInfo) => {
@@ -350,10 +412,61 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                                             </Box>
                                         ) : (
                                             <>
+                                                {/* Search Input */}
+                                                <Box 
+                                                    sx={{ 
+                                                        p: 1.5, 
+                                                        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                                                        backgroundColor: alpha(theme.palette.primary.main, 0.03)
+                                                    }}
+                                                >
+                                                    <InputBase
+                                                        inputRef={searchInputRef}
+                                                        fullWidth
+                                                        placeholder={`Пошук ${tabValue === 0 ? 'вебінарів' : 'тестів'}...`}
+                                                        value={searchQuery}
+                                                        onChange={handleSearchChange}
+                                                        sx={{
+                                                            backgroundColor: theme.palette.common.white,
+                                                            borderRadius: '8px',
+                                                            px: 2,
+                                                            py: 0.5,
+                                                            '& .MuiInputBase-input': {
+                                                                transition: theme.transitions.create('width'),
+                                                            },
+                                                            boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.04)}`,
+                                                            border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                                                        }}
+                                                        startAdornment={
+                                                            <InputAdornment position="start">
+                                                                <SearchIcon color="action" sx={{ opacity: 0.6 }} />
+                                                            </InputAdornment>
+                                                        }
+                                                        endAdornment={
+                                                            searchQuery && (
+                                                                <InputAdornment position="end">
+                                                                    <IconButton 
+                                                                        size="small" 
+                                                                        edge="end" 
+                                                                        onClick={clearSearch}
+                                                                        sx={{ 
+                                                                            opacity: 0.6,
+                                                                            '&:hover': { opacity: 1 }
+                                                                        }}
+                                                                    >
+                                                                        <ClearIcon fontSize="small" />
+                                                                    </IconButton>
+                                                                </InputAdornment>
+                                                            )
+                                                        }
+                                                    />
+                                                </Box>
+
                                                 {/* Items list */}
-                                                {(tabValue === 0 ? folderLessons : folderTests).length > 0 ? (
+                                                {/* Check if we have items after search filter */}
+                                                {filteredFolderItems.length > 0 ? (
                                                     <List disablePadding>
-                                                        {(tabValue === 0 ? folderLessons : folderTests).map((item, index, array) => {
+                                                        {filteredFolderItems.map((item, index, array) => {
                                                             const itemName = tabValue === 0 
                                                                 ? (item as FolderLessonInfo).lesson_name 
                                                                 : (item as FolderTestInfo).test_name;
@@ -361,9 +474,9 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                                                             const itemId = tabValue === 0 
                                                                 ? (item as FolderLessonInfo).lesson_id 
                                                                 : (item as FolderTestInfo).test_id;
-                                                                
+                                                                    
                                                             const isAddedToGroup = item.added_to_group;
-                                                                
+                                                                    
                                                             return (
                                                                 <React.Fragment key={itemId}>
                                                                     <ListItemButton
@@ -396,7 +509,7 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                                                                                 justifyContent: 'center'
                                                                             }}
                                                                         >
-                                                                            {index + 1}.
+                                                                            {typeof itemId === 'number' ? getOriginalIndex(itemId) + 1 : index + 1}.
                                                                         </Typography>
                                                                         <ListItemText 
                                                                             primary={
@@ -436,6 +549,17 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                                                             );
                                                         })}
                                                     </List>
+                                                ) : (tabValue === 0 ? folderLessons : folderTests).length > 0 && searchQuery ? (
+                                                    <Typography 
+                                                        sx={{ 
+                                                            py: 3, 
+                                                            px: 3, 
+                                                            textAlign: 'center',
+                                                            color: theme.palette.text.secondary
+                                                        }}
+                                                    >
+                                                        Немає {tabValue === 0 ? 'вебінарів' : 'тестів'}, що відповідають вашому пошуковому запиту.
+                                                    </Typography>
                                                 ) : (
                                                     <Typography 
                                                         sx={{ 
@@ -536,7 +660,7 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                                 onClick={toggleShowEmptyFolders}
                                 sx={{ borderRadius: '8px' }}
                             >
-                                Додати матеріали з інших моделей
+                                Додати матеріали з інших модулей
                             </Button>
                         )}
                     </Box>
