@@ -77,6 +77,38 @@ export interface UserInfo {
   is_active: boolean;
 }
 
+// Interface for folder test item information
+export interface FolderTestInfo {
+  test_name: string;
+  test_id: number | string;
+  tfp_sha: string;
+  added_to_group: boolean;
+}
+
+// Interface for folder lesson item information
+export interface FolderLessonInfo {
+  lesson_name: string;
+  lesson_id: number | string;
+  lfp_sha: string;
+  added_to_group: boolean;
+}
+
+// Interface for folder tests response
+interface FolderTestsResponse {
+  success: boolean;
+  tests?: FolderTestInfo[];
+  is_admin: boolean;
+  message?: string;
+}
+
+// Interface for folder lessons response
+interface FolderLessonsResponse {
+  success: boolean;
+  lessons?: FolderLessonInfo[];
+  is_admin: boolean;
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -303,6 +335,48 @@ export const getGroupTestFolders = async (groupId: number | string): Promise<Gro
     return response.data;
   } catch (error) {
     console.error('Error fetching test folders for group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches tests from a specific folder with information about which ones belong to a user group
+ * @param folderId The ID of the folder to get tests from
+ * @param groupId The ID of the user group to check membership against
+ * @returns Promise with tests information and whether they belong to the specified group
+ */
+export const getFolderTestsWithGroupMembership = async (
+  folderId: number | string, 
+  groupId: number | string
+): Promise<FolderTestsResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-groups/folder-tests/', {
+      params: { folderId, groupId }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching folder tests with group membership:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches lessons from a specific folder with information about which ones belong to a user group
+ * @param folderId The ID of the folder to get lessons from
+ * @param groupId The ID of the user group to check membership against
+ * @returns Promise with lessons information and whether they belong to the specified group
+ */
+export const getFolderLessonsWithGroupMembership = async (
+  folderId: number | string, 
+  groupId: number | string
+): Promise<FolderLessonsResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-groups/folder-lessons/', {
+      params: { folderId, groupId }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching folder lessons with group membership:', error);
     throw error;
   }
 };

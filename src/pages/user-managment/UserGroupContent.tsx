@@ -11,12 +11,35 @@ import {
     CircularProgress,
     alpha,
     useTheme,
-    Button
+    Button,
+    List,
+    ListItem,
+    ListItemText,
+    Collapse,
+    Divider,
+    ListItemButton,
+    InputBase,
+    InputAdornment,
+    IconButton
 } from '@mui/material';
 import FolderIcon from '@mui/icons-material/Folder';
 import AddIcon from '@mui/icons-material/Add';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import LoadingDots from '../../components/tools/LoadingDots';
-import { FolderInfo, getGroupLessonFolders, getGroupTestFolders } from '../../services/UserService';
+import { 
+    FolderInfo, 
+    getGroupLessonFolders, 
+    getGroupTestFolders,
+    getFolderTestsWithGroupMembership,
+    getFolderLessonsWithGroupMembership,
+    FolderTestInfo,
+    FolderLessonInfo
+} from '../../services/UserService';
 import { declinateWord } from '../utils/utils';
 
 interface UserGroupContentProps {
@@ -33,6 +56,13 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    
+    // New state variables for folder items
+    const [selectedFolderId, setSelectedFolderId] = useState<string | number | null>(null);
+    const [folderTests, setFolderTests] = useState<FolderTestInfo[]>([]);
+    const [folderLessons, setFolderLessons] = useState<FolderLessonInfo[]>([]);
+    const [loadingItems, setLoadingItems] = useState<boolean>(false);
+    const [itemError, setItemError] = useState<string | null>(null);
 
     // Handle tab change
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -104,9 +134,44 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
     }, [tabValue, groupId]);
 
     // Handle folder click
-    const handleFolderClick = (folder: FolderInfo) => {
-        console.log(`Folder clicked:`, folder);
-        // Future navigation or action would go here
+    const handleFolderClick = async (folder: FolderInfo) => {
+        try {
+            // If clicking the same folder, toggle the display (close it if open)
+            if (selectedFolderId === folder.folder_id) {
+                setSelectedFolderId(null);
+                setFolderTests([]);
+                setFolderLessons([]);
+                return;
+            }
+
+            setSelectedFolderId(folder.folder_id);
+            setLoadingItems(true);
+            setItemError(null);
+
+            // Fetch items based on the current tab (lessons or tests)
+            if (tabValue === 0) { // Lessons tab
+                const response = await getFolderLessonsWithGroupMembership(folder.folder_id, groupId);
+                if (response.success && response.lessons) {
+                    setFolderLessons(response.lessons);
+                    setFolderTests([]); // Clear tests when showing lessons
+                } else {
+                    setItemError(response.message || 'Failed to load lessons');
+                }
+            } else if (tabValue === 1) { // Tests tab
+                const response = await getFolderTestsWithGroupMembership(folder.folder_id, groupId);
+                if (response.success && response.tests) {
+                    setFolderTests(response.tests);
+                    setFolderLessons([]); // Clear lessons when showing tests
+                } else {
+                    setItemError(response.message || 'Failed to load tests');
+                }
+            }
+        } catch (err) {
+            console.error('Error loading folder items:', err);
+            setItemError('An error occurred while loading items');
+        } finally {
+            setLoadingItems(false);
+        }
     };
 
     // Render folders
@@ -132,9 +197,9 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 1.5,
-                    maxHeight: '50vh', // Maximum height of 50vh
-                    overflowY: 'auto',  // Enable vertical scrolling
-                    pr: 1,  // Add padding for the scrollbar
+                    maxHeight: '70vh', // Increased maximum height for better scrolling
+                    overflowY: 'auto',
+                    pr: 1,
                     '&::-webkit-scrollbar': {
                         width: '8px',
                     },
@@ -150,62 +215,246 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                 }}
             >
                 {folders.map((folder) => (
-                    <Card
+                    <Box 
                         key={folder.folder_id}
                         sx={{
-                            borderRadius: '12px',
-                            boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.05)}`,
-                            border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
-                            transition: 'all 0.2s ease-in-out',
-                            flex: '0 0 auto', // Prevent card from shrinking
-                            minHeight: 'fit-content', // Ensure minimum height based on content
-                            backgroundColor: folder.group_elements_count === 0 ? alpha(theme.palette.grey[100], 0.7) : 'inherit',
-                            '&:hover': {
-                                boxShadow: `0px 4px 8px ${alpha(theme.palette.common.black, 0.1)}`,
-                                transform: 'translateY(-2px)'
-                            }
+                            position: 'relative',
+                            zIndex: selectedFolderId === folder.folder_id ? 2 : 1
                         }}
                     >
-                        <CardActionArea
-                            onClick={() => handleFolderClick(folder)}
-                            sx={{ p: 0.5 }}
+                        <Card
+                            sx={{
+                                position: selectedFolderId === folder.folder_id ? 'sticky' : 'static',
+                                top: 0, // Changed from 16 to 0 to position it just at the top
+                                zIndex: 3,
+                                width: '100%',
+                                borderRadius: '12px',
+                                boxShadow: selectedFolderId === folder.folder_id 
+                                    ? `0px 2px 8px ${alpha(theme.palette.common.black, 0.08)}` 
+                                    : `0px 1px 3px ${alpha(theme.palette.common.black, 0.05)}`,
+                                border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                                transition: 'all 0.2s ease-in-out',
+                                backgroundColor: folder.group_elements_count === 0 ? theme.palette.grey[100] : 'white', // Only apply transparency to empty folders
+                                '&:hover': {
+                                    boxShadow: selectedFolderId === folder.folder_id
+                                        ? `0px 2px 8px ${alpha(theme.palette.common.black, 0.08)}`
+                                        : `0px 4px 12px ${alpha(theme.palette.common.black, 0.1)}`,
+                                    transform: selectedFolderId === folder.folder_id
+                                        ? 'none'
+                                        : 'translateY(-2px)'
+                                }
+                            }}
                         >
-                            <CardContent sx={{ py: 1.5 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                        <FolderIcon 
-                                            color={folder.group_elements_count === 0 ? "action" : "primary"} 
-                                            sx={{ opacity: folder.group_elements_count === 0 ? 0.6 : 0.8 }} 
-                                        />
-                                        <Typography 
-                                            variant="body1" 
-                                            sx={{ 
-                                                fontWeight: 500,
-                                                color: folder.group_elements_count === 0 ? theme.palette.text.secondary : 'inherit'
+                            <CardActionArea
+                                onClick={() => handleFolderClick(folder)}
+                                sx={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    pr: 2,
+                                    borderRadius: '12px',
+                                    py: 0.5
+                                }}
+                            >
+                                <CardContent sx={{ flexGrow: 1, py: 1.5 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                            <FolderIcon 
+                                                color={folder.group_elements_count === 0 ? "action" : "primary"} 
+                                                sx={{ opacity: folder.group_elements_count === 0 ? 0.6 : 0.8 }} 
+                                            />
+                                            <Typography 
+                                                variant="body1" 
+                                                sx={{ 
+                                                    fontWeight: 500,
+                                                    color: folder.group_elements_count === 0 ? theme.palette.text.secondary : 'inherit'
+                                                }}
+                                            >
+                                                {folder.folder_name}
+                                            </Typography>
+                                        </Box>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                color: theme.palette.text.secondary,
+                                                bgcolor: folder.group_elements_count === 0 
+                                                    ? alpha(theme.palette.grey[300], 0.4)
+                                                    : alpha(theme.palette.primary.main, 0.1),
+                                                px: 1.5,
+                                                py: 0.5,
+                                                borderRadius: '12px',
+                                                fontWeight: 500
                                             }}
                                         >
-                                            {folder.folder_name}
+                                            Додано {folder.group_elements_count}, всього {tabValue === 0 ? declinateWord(folder.elements_count, 'вебінар') : declinateWord(folder.elements_count, 'тест')}
                                         </Typography>
                                     </Box>
-                                    <Typography
-                                        variant="body2"
-                                        sx={{
-                                            color: theme.palette.text.secondary,
-                                            bgcolor: folder.group_elements_count === 0 
-                                                ? alpha(theme.palette.grey[300], 0.4)
-                                                : alpha(theme.palette.primary.main, 0.1),
-                                            px: 1.5,
-                                            py: 0.5,
-                                            borderRadius: '12px',
-                                            fontWeight: 500
+                                </CardContent>
+                                <IconButton 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleFolderClick(folder);
+                                    }}
+                                    size="small"
+                                    sx={{
+                                        backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                                        color: theme.palette.primary.main,
+                                        '&:hover': {
+                                            backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                                        },
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    {selectedFolderId === folder.folder_id 
+                                        ? <ExpandLessIcon /> 
+                                        : <ExpandMoreIcon />
+                                    }
+                                </IconButton>
+                            </CardActionArea>
+                        </Card>
+                        
+                        {/* Items display directly below the folder, similar to LessonsPage */}
+                        {selectedFolderId === folder.folder_id && (
+                            <Collapse 
+                                in={true} 
+                                timeout="auto"
+                                unmountOnExit
+                            >
+                                <Box 
+                                    sx={{ 
+                                        mt: 0, 
+                                        mb: 2, 
+                                        mr: 1,
+                                        borderLeft: '2px solid', 
+                                        borderColor: alpha(theme.palette.primary.main, 0.2),
+                                        borderRadius: '0 0 16px 16px',
+                                        ml: 2,
+                                        position: 'relative',
+                                    }}
+                                >
+                                    <Paper 
+                                        elevation={0} 
+                                        sx={{ 
+                                            backgroundColor: theme.palette.background.paper,
+                                            borderRadius: '0 0 12px 12px',
+                                            overflow: 'hidden',
+                                            border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                                            borderTop: 'none',
+                                            marginTop: '-1px',
                                         }}
                                     >
-                                        Додано {folder.group_elements_count}, всього {tabValue === 0 ? declinateWord(folder.elements_count, 'вебінар') : declinateWord(folder.elements_count, 'тест')}
-                                    </Typography>
+                                        {/* Loading state */}
+                                        {loadingItems ? (
+                                            <Box sx={{ py: 3, px: 2, display: 'flex', justifyContent: 'center' }}>
+                                                <LoadingDots />
+                                            </Box>
+                                        ) : (
+                                            <>
+                                                {/* Items list */}
+                                                {(tabValue === 0 ? folderLessons : folderTests).length > 0 ? (
+                                                    <List disablePadding>
+                                                        {(tabValue === 0 ? folderLessons : folderTests).map((item, index, array) => {
+                                                            const itemName = tabValue === 0 
+                                                                ? (item as FolderLessonInfo).lesson_name 
+                                                                : (item as FolderTestInfo).test_name;
+                                                            
+                                                            const itemId = tabValue === 0 
+                                                                ? (item as FolderLessonInfo).lesson_id 
+                                                                : (item as FolderTestInfo).test_id;
+                                                                
+                                                            const isAddedToGroup = item.added_to_group;
+                                                                
+                                                            return (
+                                                                <React.Fragment key={itemId}>
+                                                                    <ListItemButton
+                                                                        sx={{ 
+                                                                            py: 1.5, 
+                                                                            px: 3,
+                                                                            transition: 'all 0.15s ease',
+                                                                            bgcolor: isAddedToGroup 
+                                                                                ? alpha(theme.palette.success.light, 0.1)
+                                                                                : 'transparent',
+                                                                            '&:hover': {
+                                                                                bgcolor: isAddedToGroup 
+                                                                                    ? alpha(theme.palette.success.light, 0.2)
+                                                                                    : alpha(theme.palette.primary.main, 0.04),
+                                                                            },
+                                                                            display: 'flex',
+                                                                            gap: 2
+                                                                        }}
+                                                                    >
+                                                                        <Typography 
+                                                                            sx={{ 
+                                                                                fontWeight: 600, 
+                                                                                color: isAddedToGroup 
+                                                                                    ? theme.palette.success.main
+                                                                                    : theme.palette.primary.main,
+                                                                                opacity: 0.8,
+                                                                                minWidth: '24px',
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: 'center'
+                                                                            }}
+                                                                        >
+                                                                            {index + 1}.
+                                                                        </Typography>
+                                                                        <ListItemText 
+                                                                            primary={
+                                                                                <Typography sx={{ 
+                                                                                    fontWeight: isAddedToGroup ? 500 : 400,
+                                                                                    color: isAddedToGroup 
+                                                                                        ? theme.palette.success.dark 
+                                                                                        : theme.palette.text.primary
+                                                                                }}>
+                                                                                    {itemName}
+                                                                                </Typography>
+                                                                            } 
+                                                                        />
+                                                                        {isAddedToGroup ? (
+                                                                            <CheckCircleIcon 
+                                                                                color="success" 
+                                                                                fontSize="small"
+                                                                                sx={{ opacity: 0.8 }}
+                                                                            />
+                                                                        ) : (
+                                                                            <RemoveCircleOutlineIcon 
+                                                                                color="action" 
+                                                                                fontSize="small"
+                                                                                sx={{ opacity: 0.6 }}
+                                                                            />
+                                                                        )}
+                                                                    </ListItemButton>
+                                                                    {index < array.length - 1 && (
+                                                                        <Divider 
+                                                                            component="li" 
+                                                                            sx={{ 
+                                                                                borderColor: alpha(theme.palette.divider, 0.5)
+                                                                            }} 
+                                                                        />
+                                                                    )}
+                                                                </React.Fragment>
+                                                            );
+                                                        })}
+                                                    </List>
+                                                ) : (
+                                                    <Typography 
+                                                        sx={{ 
+                                                            py: 3, 
+                                                            px: 3, 
+                                                            textAlign: 'center',
+                                                            color: theme.palette.text.secondary
+                                                        }}
+                                                    >
+                                                        {itemError || `Немає ${tabValue === 0 ? 'вебінарів' : 'тестів'} для цієї папки.`}
+                                                    </Typography>
+                                                )}
+                                            </>
+                                        )}
+                                    </Paper>
                                 </Box>
-                            </CardContent>
-                        </CardActionArea>
-                    </Card>
+                            </Collapse>
+                        )}
+                    </Box>
                 ))}
             </Box>
         );
@@ -242,8 +491,8 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                                     right: 0,
                                     top: '20%',
                                     height: '60%',
-                                    width: '1px', // Changed from 1 to '1px' for a thin line
-                                    backgroundColor: theme => alpha(theme.palette.divider, 0.3) // Reduced opacity for subtlety
+                                    width: '1px',
+                                    backgroundColor: theme => alpha(theme.palette.divider, 0.3)
                                 }
                             }
                         }
