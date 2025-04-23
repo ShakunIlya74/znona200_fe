@@ -420,55 +420,57 @@ const LessonsPage: React.FC = () => {
                       marginTop: '-1px',
                     }}
                   >
-                    {/* Search Bar */}
-                    <Box 
-                      sx={{ 
-                        p: 1.5, 
-                        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                        backgroundColor: alpha(theme.palette.primary.main, 0.03)
-                      }}
-                    >
-                      <InputBase
-                        inputRef={searchInputRef}
-                        fullWidth
-                        placeholder=""
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        sx={{
-                          backgroundColor: theme.palette.common.white,
-                          borderRadius: '8px',
-                          px: 2,
-                          py: 0.5,
-                          '& .MuiInputBase-input': {
-                            transition: theme.transitions.create('width'),
-                          },
-                          boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.04)}`,
-                          border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                    {/* Search Bar - Only shown if there are more than 10 lessons */}
+                    {folderLessons.length > 10 && (
+                      <Box 
+                        sx={{ 
+                          p: 1.5, 
+                          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                          backgroundColor: alpha(theme.palette.primary.main, 0.03)
                         }}
-                        startAdornment={
-                          <InputAdornment position="start">
-                            <SearchIcon color="action" sx={{ opacity: 0.6 }} />
-                          </InputAdornment>
-                        }
-                        endAdornment={
-                          searchQuery && (
-                            <InputAdornment position="end">
-                              <IconButton 
-                                size="small" 
-                                edge="end" 
-                                onClick={clearSearch}
-                                sx={{ 
-                                  opacity: 0.6,
-                                  '&:hover': { opacity: 1 }
-                                }}
-                              >
-                                <ClearIcon fontSize="small" />
-                              </IconButton>
+                      >
+                        <InputBase
+                          inputRef={searchInputRef}
+                          fullWidth
+                          placeholder=""
+                          value={searchQuery}
+                          onChange={handleSearchChange}
+                          sx={{
+                            backgroundColor: theme.palette.common.white,
+                            borderRadius: '8px',
+                            px: 2,
+                            py: 0.5,
+                            '& .MuiInputBase-input': {
+                              transition: theme.transitions.create('width'),
+                            },
+                            boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.04)}`,
+                            border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                          }}
+                          startAdornment={
+                            <InputAdornment position="start">
+                              <SearchIcon color="action" sx={{ opacity: 0.6 }} />
                             </InputAdornment>
-                          )
-                        }
-                      />
-                    </Box>
+                          }
+                          endAdornment={
+                            searchQuery && (
+                              <InputAdornment position="end">
+                                <IconButton 
+                                  size="small" 
+                                  edge="end" 
+                                  onClick={clearSearch}
+                                  sx={{ 
+                                    opacity: 0.6,
+                                    '&:hover': { opacity: 1 }
+                                  }}
+                                >
+                                  <ClearIcon fontSize="small" />
+                                </IconButton>
+                              </InputAdornment>
+                            )
+                          }
+                        />
+                      </Box>
+                    )}
                     
                     {folderLoading ? (
                       <Box sx={{ py: 3, px: 2, display: 'flex', justifyContent: 'center' }}>
