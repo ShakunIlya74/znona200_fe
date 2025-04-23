@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Container, Paper, Divider, CircularProgress, Button } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GetLessonView, LessonCardMeta, LessonViewResponse } from '../services/LessonService';
-import LoadingDots from '../components/tools/LoadingDots';
+import { GetLessonView, LessonCardMeta, LessonViewResponse } from '../../services/LessonService';
+import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';

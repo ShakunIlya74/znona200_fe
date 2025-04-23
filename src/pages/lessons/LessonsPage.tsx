@@ -21,12 +21,14 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
-import { GetLessonsData, GetFolderLessons, LessonCardMeta } from '../services/LessonService';
-import { declinateWord } from './utils/utils';
-import LoadingDots from '../components/tools/LoadingDots';
+import { GetLessonsData, GetFolderLessons, LessonCardMeta } from '../../services/LessonService';
+import { declinateWord } from '../utils/utils';
+import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useNavigate } from 'react-router-dom';
+import LessonDialogComponent, { LessonCardMeta as DialogLessonCardMeta } from './LessonDialogComponent';
+import { GetSessionData } from '../../services/AuthService';
 
 // Define folder object type
 interface FolderObject {
@@ -65,6 +67,11 @@ const LessonsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [folderLoading, setFolderLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  
+  // Modal state for lesson dialog
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [selectedLesson, setSelectedLesson] = useState<DialogLessonCardMeta | null>(null);
   
   // Create refs for scrolling and sticky behavior
   const folderRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
@@ -80,6 +87,25 @@ const LessonsPage: React.FC = () => {
       }
     });
   }, [folderList]);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const sessionData = await GetSessionData();
+        if (sessionData && sessionData.is_admin) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (err) {
+        console.error('Error checking admin status:', err);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
 
   // load initial lessons folders
   useEffect(() => {
@@ -212,10 +238,49 @@ const LessonsPage: React.FC = () => {
     }
   };
 
-  const handleLessonClick = (lessonId: number, lessonName: string, lfpSha: string) => {
+  const handleLessonClick = (lessonId: number, lessonName: string, lfpSha: string, lesson: LessonCardMeta) => {
     console.log(`Lesson clicked: ${lessonName} (ID: ${lessonId})`);
-    // Navigate to the lesson view page with the lesson's sha parameter
-    navigate(`/webinar-view/${lfpSha}`);
+    
+    if (isAdmin) {
+      // For admin users, open the modal dialog
+      // Map the LessonService type to the DialogComponent type
+      setSelectedLesson({
+        ...lesson,
+        lesson_sha: lfpSha // Add the required lesson_sha property
+      } as DialogLessonCardMeta);
+      setModalOpen(true);
+    } else {
+      // For regular users, navigate directly to the lesson view
+      navigate(`/webinar-view/${lfpSha}`);
+    }
+  };
+  
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+  
+  const handleViewLesson = (lessonSha: string) => {
+    console.log(`Viewing lesson with sha: ${lessonSha}`);
+    navigate(`/webinar-view/${lessonSha}`);
+  };
+  
+  // Handle lesson removal from folder
+  const handleLessonRemoved = async () => {
+    if (openFolderId !== null) {
+      // Reload the lessons for the current folder
+      setFolderLoading(true);
+      try {
+        const response = await GetFolderLessons(openFolderId) as FolderLessons;
+        if (response.success && response.lesson_dicts) {
+          setFolderLessons(response.lesson_dicts);
+          setFilteredLessons(response.lesson_dicts);
+        }
+      } catch (err) {
+        console.error('Error reloading folder lessons:', err);
+      } finally {
+        setFolderLoading(false);
+      }
+    }
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -259,7 +324,7 @@ const LessonsPage: React.FC = () => {
           <InputBase
             inputRef={folderSearchInputRef}
             fullWidth
-            placeholder="Пошук модулей..."
+            placeholder="Пошук модулів..."
             value={folderSearchQuery}
             onChange={handleFolderSearchChange}
             sx={{
@@ -484,7 +549,7 @@ const LessonsPage: React.FC = () => {
                           return (
                             <React.Fragment key={lesson.lesson_id}>
                               <ListItemButton
-                                onClick={() => handleLessonClick(lesson.lesson_id, lesson.lesson_name, lesson.lfp_sha)}
+                                onClick={() => handleLessonClick(lesson.lesson_id, lesson.lesson_name, lesson.lfp_sha, lesson)}
                                 sx={{ 
                                   py: 1.5, 
                                   px: 3,
@@ -581,6 +646,16 @@ const LessonsPage: React.FC = () => {
           Немає доступних папок з вебінарами.
         </Typography>
       )}
+
+      {/* Lesson Dialog Modal */}
+      <LessonDialogComponent
+        open={modalOpen}
+        lesson={selectedLesson}
+        onClose={handleCloseModal}
+        onView={handleViewLesson}
+        isAdmin={isAdmin}
+        onLessonRemoved={handleLessonRemoved}
+      />
     </Container>
   );
 };
