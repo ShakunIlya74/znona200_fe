@@ -7,6 +7,8 @@ import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PDFViewer from '../utils/PDFViewer';
+import PDFDisplay from '../utils/PDFDisplay';
 
 const LessonViewPage: React.FC = () => {
     const { lfp_sha } = useParams<{ lfp_sha: string }>();
@@ -118,14 +120,12 @@ const LessonViewPage: React.FC = () => {
             }
             currentTabIndex++;
         }
-        
-        // Slides tab (second if available)
+          // Slides tab (second if available)
         if (hasSlides) {
             if (tabValue === currentTabIndex) {
                 const slide = slideDicts[0]; // Show first slide
                 return (
-                    <Paper
-                        elevation={0}
+                    <Box
                         sx={{
                             p: 0,
                             borderRadius: '12px',
@@ -137,22 +137,18 @@ const LessonViewPage: React.FC = () => {
                         }}
                     >
                         {slide.slide_content ? (
-                            <iframe 
-                                src={slide.slide_content}
-                                style={{ 
-                                    width: '100%', 
-                                    height: '100%', 
-                                    minHeight: '500px',
-                                    border: 'none' 
-                                }}
-                                title={slide.slide_title || "Slides"}
+                            <PDFDisplay 
+                                pdfUrl={slide.slide_content}
+                                containerHeight={600}
+                                containerWidth={window.innerWidth > 1200 ? 900 : window.innerWidth - 100}
+                                visiblePagePercentage={1}
                             />
                         ) : (
                             <Typography variant="h6" sx={{ color: theme.palette.text.secondary }}>
                                 Slides not available
                             </Typography>
                         )}
-                    </Paper>
+                    </Box>
                 );
             }
             currentTabIndex++;

@@ -20,10 +20,10 @@ import {
 } from '@mui/icons-material';
 
 // Set up worker for react-pdf
-// You'll need to add this to your public folder
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Using the local worker file from the public folder
+pdfjs.GlobalWorkerOptions.workerSrc = `${window.location.origin}/pdf.worker.js`;
 
-interface PDFViewerProps {
+export interface PDFViewerProps {
   pdfUrl: string;
   visiblePagePercentage?: number; // 0-1, percentage of page height to show initially
   containerHeight?: number; // Container height in pixels
@@ -55,7 +55,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   // Function to handle document load error
   const onDocumentLoadError = (error: Error) => {
     console.error('Error loading PDF:', error);
-    setError('Failed to load PDF document. Please check if the URL is correct.');
+    setError('Failed to load PDF document. Please check if the URL is correct: '+ pdfUrl);
     setLoading(false);
   };
 
