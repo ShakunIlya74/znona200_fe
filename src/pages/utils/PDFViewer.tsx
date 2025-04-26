@@ -37,7 +37,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   pdfUrl,
   visiblePagePercentage = 1,
   containerHeight = 800,
-  containerWidth = 600,
+  containerWidth,
 }) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState<number>(1);
@@ -45,10 +45,29 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [pageWidth, setPageWidth] = useState<number | null>(null);
   const theme = useTheme();
 
   // Calculate page height based on visible percentage
   const pageContainerHeight = containerHeight * visiblePagePercentage;
+
+  // Update page width when container resizes or containerWidth prop changes
+  useEffect(() => {
+    const updatePageWidth = () => {
+      if (containerRef.current) {
+        const actualWidth = containerWidth || containerRef.current.offsetWidth - 64; // Subtract padding
+        setPageWidth(actualWidth);
+      }
+    };
+    
+    updatePageWidth();
+    
+    // Add resize listener
+    window.addEventListener('resize', updatePageWidth);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', updatePageWidth);
+  }, [containerWidth]);
 
   // Function to handle document load success
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
@@ -109,7 +128,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     <Paper 
       elevation={2} 
       sx={{ 
-        width: containerWidth, 
+        width: containerWidth || '100%', 
         borderRadius: '12px',
         overflow: 'hidden',
         backgroundColor: theme.palette.background.paper,
@@ -133,7 +152,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           gap: 1
         }}>
             {/* Navigation Controls */}
-            <Tooltip title="Previous page">
+            <Tooltip title="Попередня сторінка">
             <Button 
               onClick={goToPrevPage} 
               disabled={pageNumber <= 1}
@@ -182,7 +201,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             </Typography>
             </Box>
             
-            <Tooltip title="Next page">
+            <Tooltip title="Наступна сторінка">
             <Button 
               onClick={goToNextPage} 
               disabled={!numPages || pageNumber >= numPages}
@@ -240,7 +259,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                 scale={scale}
                 renderAnnotationLayer={false}
                 renderTextLayer={false}
-                width={containerWidth - 64} // Subtract padding
+                width={pageWidth || (containerWidth ? containerWidth - 64 : undefined)} // Use calculated width or undefined
               />
             )}
           </Document>

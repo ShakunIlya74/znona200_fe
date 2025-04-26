@@ -138,8 +138,8 @@ const LessonViewPage: React.FC = () => {
                         {slide.slide_content ? (
                             <PDFDisplay 
                                 pdfUrl={slide.slide_content}
-                                containerHeight={600}
-                                containerWidth={window.innerWidth > 1200 ? 900 : window.innerWidth - 100}
+                                // containerHeight={600}
+                                // containerWidth={window.innerWidth > 1200 ? 900 : window.innerWidth - 100}
                                 visiblePagePercentage={1}
                             />
                         ) : (
