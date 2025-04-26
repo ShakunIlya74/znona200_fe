@@ -133,7 +133,6 @@ const LessonViewPage: React.FC = () => {
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            overflow: 'hidden'
                         }}
                     >
                         {slide.slide_content ? (

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { 
   Box, 
+  Button,
   IconButton, 
   TextField, 
   Typography, 
@@ -9,14 +10,15 @@ import {
   InputAdornment,
   Divider,
   CircularProgress,
-  Tooltip
+  Tooltip,
+  useTheme
 } from '@mui/material';
 import { 
   ArrowBackIos as PrevIcon, 
   ArrowForwardIos as NextIcon,
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
-  Fullscreen as FullscreenIcon
+  RestartAlt as ResetZoomIcon
 } from '@mui/icons-material';
 
 // Set up worker for react-pdf
@@ -42,6 +44,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const theme = useTheme();
 
   // Calculate page height based on visible percentage
   const pageContainerHeight = containerHeight * visiblePagePercentage;
@@ -99,129 +102,99 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     if (containerRef.current) {
       containerRef.current.scrollTop = 0;
     }
-  }, [pageNumber]);
-
+  }, [pageNumber]);  
+  
   return (
     <Paper 
-      elevation={3} 
+      elevation={2} 
       sx={{ 
         width: containerWidth, 
-        borderRadius: 2,
+        borderRadius: '12px',
         overflow: 'hidden',
-        backgroundColor: '#f8f9fa',
+        backgroundColor: theme.palette.background.paper,
       }}
     >
       {/* PDF Controls */}
       <Box 
         sx={{ 
           display: 'flex', 
-          justifyContent: 'space-between', 
+          justifyContent: 'center', 
           alignItems: 'center', 
           padding: 2,
-          backgroundColor: '#fff',
-          borderBottom: '1px solid #eaeaea',
+          backgroundColor: theme.palette.background.paper,
+          borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1
+        }}>
+          {/* Navigation Controls */}
           <Tooltip title="Previous page">
-            <IconButton 
+            <Button 
               onClick={goToPrevPage} 
               disabled={pageNumber <= 1}
               size="small"
-              sx={{ color: '#1da1f2' }}
+              variant="contained"
+              color="primary"
+              sx={{ 
+                minWidth: '40px',
+                borderRadius: '8px', 
+                py: 0.5,
+              }}
             >
-              <PrevIcon />
-            </IconButton>
+              <PrevIcon fontSize="small" />
+            </Button>
           </Tooltip>
           
-          <Box sx={{ display: 'flex', alignItems: 'center', mx: 1 }}>
-            <TextField
-              variant="outlined"
-              size="small"
-              value={pageNumber}
-              onChange={handlePageChange}
+          {/* Page number display (non-editable) */}
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 1.5,
+              backgroundColor: theme.palette.background.default,
+              borderRadius: '8px',
+              padding: '4px 12px',
+              minWidth: numPages ? `${Math.max(50, String(numPages).length * 18 + 20)}px` : '40px',
+            }}
+          >
+            <Typography 
+              variant="body1" 
               sx={{ 
-                width: 65, 
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                }
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
               }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Typography variant="body2" color="text.secondary">
-                      /{numPages || '?'}
-                    </Typography>
-                  </InputAdornment>
-                ),
-              }}
-            />
+            >
+              <span>{pageNumber}</span>
+              <span style={{ margin: '0 4px' }}>/</span>
+              <span>{numPages || '?'}</span>
+            </Typography>
           </Box>
           
           <Tooltip title="Next page">
-            <IconButton 
+            <Button 
               onClick={goToNextPage} 
               disabled={!numPages || pageNumber >= numPages}
               size="small"
-              sx={{ color: '#1da1f2' }}
-            >
-              <NextIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Tooltip title="Zoom out">
-            <IconButton 
-              onClick={zoomOut} 
-              disabled={scale <= 0.5}
-              size="small"
-              sx={{ color: '#536471' }}
-            >
-              <ZoomOutIcon />
-            </IconButton>
-          </Tooltip>
-          
-          <Tooltip title="Reset zoom">
-            <Typography 
-              variant="body2" 
+              variant="contained"
+              color="primary"
               sx={{ 
-                cursor: 'pointer', 
-                mx: 1, 
-                color: '#536471',
-                fontWeight: 'medium',
-                '&:hover': { textDecoration: 'underline' }
+                minWidth: '40px',
+                borderRadius: '8px',
+                py: 0.5,
               }}
-              onClick={resetZoom}
             >
-              {Math.round(scale * 100)}%
-            </Typography>
-          </Tooltip>
-          
-          <Tooltip title="Zoom in">
-            <IconButton 
-              onClick={zoomIn} 
-              disabled={scale >= 3}
-              size="small"
-              sx={{ color: '#536471' }}
-            >
-              <ZoomInIcon />
-            </IconButton>
-          </Tooltip>
-          
-          <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 24 }} />
-          
-          <Tooltip title="Fullscreen">
-            <IconButton 
-              size="small"
-              sx={{ color: '#536471' }}
-            >
-              <FullscreenIcon />
-            </IconButton>
+              <NextIcon fontSize="small" />
+            </Button>
           </Tooltip>
         </Box>
       </Box>
-
+      
       {/* PDF Document Container */}
       <Box 
         ref={containerRef}
@@ -231,36 +204,35 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           display: 'flex',
           justifyContent: 'center',
           padding: 2,
-          backgroundColor: '#f8f9fa',
+          backgroundColor: theme.palette.grey[50],
         }}
       >
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-            <CircularProgress size={40} sx={{ color: '#1da1f2' }} />
+        {error ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', px: 3 }}>
+            <Typography color="error" align="center">{error}</Typography>
           </Box>
+        ) : (
+          <Document
+            file={pdfUrl}
+            onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={onDocumentLoadError}
+            loading={
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <CircularProgress size={40} sx={{ color: theme.palette.primary.main }} />
+              </Box>
+            }
+          >
+            {numPages !== null && numPages > 0 && (
+              <Page
+                pageNumber={pageNumber}
+                scale={scale}
+                renderAnnotationLayer={false}
+                renderTextLayer={false}
+                width={containerWidth - 64} // Subtract padding
+              />
+            )}
+          </Document>
         )}
-        
-        {error && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-            <Typography color="error">{error}</Typography>
-          </Box>
-        )}
-        
-        <Document
-          file={pdfUrl}
-          onLoadSuccess={onDocumentLoadSuccess}
-          onLoadError={onDocumentLoadError}
-          loading={null}
-        >
-          <Page
-            pageNumber={pageNumber}
-            scale={scale}
-            renderAnnotationLayer={false}
-            renderTextLayer={false}
-            loading={null}
-            width={containerWidth - 64} // Subtract padding
-          />
-        </Document>
       </Box>
     </Paper>
   );
