@@ -19,7 +19,15 @@ const LessonViewPage: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [tabValue, setTabValue] = useState<number>(0);
     const theme = useTheme();
-    const navigate = useNavigate();    useEffect(() => {
+    const navigate = useNavigate();    
+    
+    // Track available tabs to correctly map tab index to content
+    const [tabsConfig, setTabsConfig] = useState<{hasVideos: boolean, hasSlides: boolean}>({
+        hasVideos: false,
+        hasSlides: false
+    });
+    
+    useEffect(() => {
         const loadLessonData = async () => {
             if (!lfp_sha) {
                 setError('Lesson ID is missing');
@@ -37,6 +45,12 @@ const LessonViewPage: React.FC = () => {
                     setSlideDicts(response.slide_dicts || []);
                     setTestCards(response.test_cards || []);
                     setIsAdmin(response.is_admin || false);
+                    
+                    // Set tab configuration based on available content
+                    setTabsConfig({
+                        hasVideos: (response.webinar_dicts || []).length > 0,
+                        hasSlides: (response.slide_dicts || []).length > 0
+                    });
                 } else {
                     setError(response.error || 'Failed to load lesson data');
                 }
@@ -57,6 +71,126 @@ const LessonViewPage: React.FC = () => {
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue);
+    };
+    
+    // Function to determine which content to render based on tab index
+    const renderTabContent = () => {
+        let currentTabIndex = 0;
+        const { hasVideos, hasSlides } = tabsConfig;
+        
+        // Videos tab (first if available)
+        if (hasVideos) {
+            if (tabValue === currentTabIndex) {
+                const webinar = webinarDicts[0]; // Show first video
+                return (
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 0,
+                            backgroundColor: theme.palette.common.black,
+                            borderRadius: '12px',
+                            aspectRatio: '16/9',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        {webinar.url ? (
+                            // <iframe 
+                            //     src={webinar.url}
+                            //     style={{ 
+                            //         width: '100%', 
+                            //         height: '100%', 
+                            //         border: 'none' 
+                            //     }}
+                            //     title={webinar.webinar_title || "Webinar video"}
+                            //     allowFullScreen
+                            // />
+                            <>{webinar.url}</>
+                        ) : (
+                            <Typography variant="body1" sx={{ color: theme.palette.common.white }}>
+                                Video not available
+                            </Typography>
+                        )}
+                    </Paper>
+                );
+            }
+            currentTabIndex++;
+        }
+        
+        // Slides tab (second if available)
+        if (hasSlides) {
+            if (tabValue === currentTabIndex) {
+                const slide = slideDicts[0]; // Show first slide
+                return (
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 0,
+                            borderRadius: '12px',
+                            minHeight: '500px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        {slide.slide_content ? (
+                            <iframe 
+                                src={slide.slide_content}
+                                style={{ 
+                                    width: '100%', 
+                                    height: '100%', 
+                                    minHeight: '500px',
+                                    border: 'none' 
+                                }}
+                                title={slide.slide_title || "Slides"}
+                            />
+                        ) : (
+                            <Typography variant="h6" sx={{ color: theme.palette.text.secondary }}>
+                                Slides not available
+                            </Typography>
+                        )}
+                    </Paper>
+                );
+            }
+            currentTabIndex++;
+        }
+        
+        // Test tabs (remaining tabs)
+        const testIndex = tabValue - currentTabIndex;
+        if (testIndex >= 0 && testIndex < testCards.length) {
+            const test = testCards[testIndex];
+            return (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                        {test.test_name}
+                    </Typography>
+                    {test.test_description && (
+                        <Typography variant="body1" sx={{ mb: 2, color: theme.palette.text.secondary }}>
+                            {test.test_description}
+                        </Typography>
+                    )}
+                    <Button 
+                        variant="contained"
+                        color="primary"
+                        component={Link}
+                        to={`/tests/${test.tfp_sha || test.test_id}`}
+                        sx={{ mt: 2 }}
+                    >
+                        Start Test
+                    </Button>
+                </Box>
+            );
+        }
+        
+        // Fallback if no matching content found
+        return (
+            <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
+                No content available for this tab
+            </Typography>
+        );
     };
 
     return (
@@ -163,124 +297,18 @@ const LessonViewPage: React.FC = () => {
                                     }
                                 }}
                             >
-                                {webinarDicts.length > 0 && (
-                                    <Tab label="Videos" />
-                                )}
-                                {slideDicts.length > 0 && (
-                                    <Tab label="Slides" />
-                                )}
-                                {testCards.length > 0 && testCards.map((test, index) => (
+                                {/* Always render tabs in consistent order: Videos, Slides, Tests */}
+                                {webinarDicts.length > 0 && <Tab label="Videos" />}
+                                {slideDicts.length > 0 && <Tab label="Slides" />}
+                                {testCards.map((test, index) => (
                                     <Tab key={`test-${test.test_id}`} label={`Test ${index + 1}`} />
                                 ))}
                             </Tabs>
                         </Paper>
                     )}
-                      {/* Tab content */}
+                    {/* Tab content */}
                     <Box sx={{ mt: 2 }}>
-                        {/* Calculate tab type and index */}
-                        {(() => {
-                            // Determine what content to display based on the tab value
-                            // First come videos, then slides, then tests
-                            const videoCount = webinarDicts.length;
-                            const slideCount = slideDicts.length;
-                            
-                            if (tabValue < videoCount) {
-                                // Video content
-                                const webinar = webinarDicts[tabValue];
-                                return (
-                                    <Paper
-                                        elevation={0}
-                                        sx={{
-                                            p: 0,
-                                            backgroundColor: theme.palette.common.black,
-                                            borderRadius: '12px',
-                                            aspectRatio: '16/9',
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            overflow: 'hidden'
-                                        }}
-                                    >
-                                        {webinar.url ? (
-                                            <iframe 
-                                                src={webinar.url}
-                                                style={{ 
-                                                    width: '100%', 
-                                                    height: '100%', 
-                                                    border: 'none' 
-                                                }}
-                                                title={webinar.webinar_title || "Webinar video"}
-                                                allowFullScreen
-                                            />
-                                        ) : (
-                                            <Typography variant="body1" sx={{ color: theme.palette.common.white }}>
-                                                Video not available
-                                            </Typography>
-                                        )}
-                                    </Paper>
-                                );
-                            } else if (tabValue < videoCount + slideCount) {
-                                // Slides content
-                                const slideIndex = tabValue - videoCount;
-                                const slide = slideDicts[slideIndex];
-                                return (
-                                    <Paper
-                                        elevation={0}
-                                        sx={{
-                                            p: 0,
-                                            borderRadius: '12px',
-                                            minHeight: '500px',
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            overflow: 'hidden'
-                                        }}
-                                    >
-                                        {slide.slide_content ? (
-                                            <iframe 
-                                                src={slide.slide_content}
-                                                style={{ 
-                                                    width: '100%', 
-                                                    height: '100%', 
-                                                    minHeight: '500px',
-                                                    border: 'none' 
-                                                }}
-                                                title={slide.slide_title || "Slides"}
-                                            />
-                                        ) : (
-                                            <Typography variant="h6" sx={{ color: theme.palette.text.secondary }}>
-                                                Slides not available
-                                            </Typography>
-                                        )}
-                                    </Paper>
-                                );
-                            } else {
-                                // Test content
-                                const testIndex = tabValue - (videoCount + slideCount);
-                                const test = testCards[testIndex];
-                                return (
-                                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                                        <Typography variant="h5" gutterBottom>
-                                            {test.test_name}
-                                        </Typography>
-                                        {test.test_description && (
-                                            <Typography variant="body1" sx={{ mb: 2, color: theme.palette.text.secondary }}>
-                                                {test.test_description}
-                                            </Typography>
-                                        )}
-                                        <Button 
-                                            variant="contained"
-                                            color="primary"
-                                            component={Link}
-                                            to={`/tests/${test.tfp_sha || test.test_id}`}
-                                            sx={{ mt: 2 }}
-                                        >
-                                            Start Test
-                                        </Button>
-                                    </Box>
-                                );
-                            }
-                        })()}
+                        {renderTabContent()}
                     </Box>
                 </>
             ) : (
