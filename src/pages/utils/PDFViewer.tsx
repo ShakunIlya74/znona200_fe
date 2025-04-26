@@ -11,7 +11,8 @@ import {
   Divider,
   CircularProgress,
   Tooltip,
-  useTheme
+  useTheme,
+  alpha
 } from '@mui/material';
 import { 
   ArrowBackIos as PrevIcon, 
@@ -131,26 +132,31 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           justifyContent: 'center',
           gap: 1
         }}>
-          {/* Navigation Controls */}
-          <Tooltip title="Previous page">
+            {/* Navigation Controls */}
+            <Tooltip title="Previous page">
             <Button 
               onClick={goToPrevPage} 
               disabled={pageNumber <= 1}
               size="small"
-              variant="contained"
-              color="primary"
+              variant="text"
               sx={{ 
-                minWidth: '40px',
-                borderRadius: '8px', 
-                py: 0.5,
+              minWidth: '40px',
+              borderRadius: '8px', 
+              py: 0.5,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.3),
+              },
               }}
             >
-              <PrevIcon fontSize="small" />
+              <PrevIcon fontSize="small" sx={{ color: theme.palette.primary.main }} />
             </Button>
-          </Tooltip>
-          
-          {/* Page number display (non-editable) */}
-          <Box 
+            </Tooltip>
+            
+            {/* Page number display (non-editable) */}
+            <Box 
             sx={{ 
               display: 'flex', 
               alignItems: 'center',
@@ -161,37 +167,43 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
               padding: '4px 12px',
               minWidth: numPages ? `${Math.max(50, String(numPages).length * 18 + 20)}px` : '40px',
             }}
-          >
+            >
             <Typography 
               variant="body1" 
               sx={{ 
-                fontWeight: 500,
-                display: 'flex',
-                alignItems: 'center',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
               }}
             >
               <span>{pageNumber}</span>
               <span style={{ margin: '0 4px' }}>/</span>
               <span>{numPages || '?'}</span>
             </Typography>
-          </Box>
-          
-          <Tooltip title="Next page">
+            </Box>
+            
+            <Tooltip title="Next page">
             <Button 
               onClick={goToNextPage} 
               disabled={!numPages || pageNumber >= numPages}
               size="small"
-              variant="contained"
-              color="primary"
+              variant="text"
               sx={{ 
-                minWidth: '40px',
-                borderRadius: '8px',
-                py: 0.5,
+              minWidth: '40px',
+              borderRadius: '8px',
+              py: 0.5,
+              pl: 1,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.3),
+              },
               }}
             >
-              <NextIcon fontSize="small" />
+              <NextIcon fontSize="small" sx={{ color: theme.palette.primary.main }} />
             </Button>
-          </Tooltip>
+            </Tooltip>
         </Box>
       </Box>
       
