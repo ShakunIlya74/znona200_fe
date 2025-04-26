@@ -13,10 +13,17 @@ export interface LessonCardMeta {
   // Add any additional fields returned by the API
 }
 
+export interface WebinarDict {
+  webinar_id: number;
+  webinar_title?: string;
+  url: string;
+}
+
 export interface LessonViewResponse {
   success: boolean;
-  webinar_dict?: LessonCardMeta;
+  webinar_card?: LessonCardMeta;
   folder_lesson_dicts?: LessonCardMeta[];
+  webinar_dicts?: WebinarDict[];
   error?: string;
 }
 
@@ -54,8 +61,9 @@ export async function GetLessonView(lfp_sha: string): Promise<LessonViewResponse
       const response = await axiosInstance.get('/webinar-view/' + lfp_sha);
       return {
         success: true,
-        webinar_dict: response.data.webinar_dict,
-        folder_lesson_dicts: response.data.folder_lesson_dicts
+        webinar_card: response.data.webinar_card,
+        folder_lesson_dicts: response.data.folder_lesson_dicts,
+        webinar_dicts: response.data.webinar_dicts,
       };
     }
     catch (err) {
