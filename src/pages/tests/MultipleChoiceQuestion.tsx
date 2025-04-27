@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   Box, 
   Typography, 
@@ -42,6 +42,8 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
   onLastSelect
 }) => {
   const theme = useTheme();
+  // Store crossed out options state with question-specific key
+  const [crossedOutOptions, setCrossedOutOptions] = useState<Record<number, number[]>>({});
 
   // Calculate the number of correct options
   const correctOptionsCount = useMemo(() => 
@@ -52,6 +54,32 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
   // Check if an option is selected
   const isOptionSelected = (optionId: number): boolean => {
     return selectedOptions.includes(optionId);
+  };
+  
+  // Check if option is crossed out for this specific question
+  const isOptionCrossedOut = (optionId: number): boolean => {
+    return (crossedOutOptions[questionId] || []).includes(optionId);
+  };
+  
+  // Toggle crossed out state for an option in this specific question
+  const toggleCrossedOutOption = (optionId: number) => {
+    setCrossedOutOptions(prev => {
+      const questionCrossedOut = prev[questionId] || [];
+      
+      if (questionCrossedOut.includes(optionId)) {
+        // Remove from crossed out options
+        return {
+          ...prev,
+          [questionId]: questionCrossedOut.filter(id => id !== optionId)
+        };
+      } else {
+        // Add to crossed out options
+        return {
+          ...prev,
+          [questionId]: [...questionCrossedOut, optionId]
+        };
+      }
+    });
   };
   
   // Handle option selection with limitation
@@ -99,55 +127,62 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
           <Box 
             key={option.id} 
             sx={{ 
-              mb: 2, 
-              p: 2, 
-              borderRadius: '8px',
-              border: `1px solid ${isOptionSelected(option.id) 
-                ? theme.palette.primary.main 
-                : alpha(theme.palette.grey[300], 0.8)}`,
-              backgroundColor: isOptionSelected(option.id) 
-                ? alpha(theme.palette.primary.main, 0.1) 
-                : 'transparent',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                backgroundColor: isOptionSelected(option.id)
-                  ? alpha(theme.palette.primary.main, 0.15)
-                  : alpha(theme.palette.grey[100], 0.8),
-              }
+              mb: 1.5,
+              display: 'flex',
+              alignItems: 'center',
             }}
-            onClick={() => handleOptionSelect(questionId, option.id)}
           >
-            <FormControlLabel
-              control={
-                <CircleRadio 
-                  checked={isOptionSelected(option.id)}
-                  onClick={(e) => {
-                    // Stop propagation to prevent double handling
-                    e.stopPropagation();
-                    handleOptionSelect(questionId, option.id);
-                  }}
-                />
-              }
-              label={
-                <Typography variant="body1">
-                  <Box component="span" sx={{ fontWeight: 600, mr: 1 }}>
-                    {ANSWER_LABELS[index]}.
-                  </Box>
-                  {option.text}
-                </Typography>
-              }
-              sx={{ 
-                margin: 0,
-                width: '100%',
-                // Make the entire label clickable
-                '& .MuiFormControlLabel-label': {
-                  width: '100%',
-                  cursor: 'pointer'
+            {/* Radio button outside of the option box - now disabled when crossed out */}
+            <CircleRadio 
+              checked={isOptionSelected(option.id)}
+              onClick={() => handleOptionSelect(questionId, option.id)}
+              disabled={isOptionCrossedOut(option.id)}
+              sx={{
+                '&.Mui-disabled': {
+                  color: theme.palette.grey[300],
                 }
               }}
-              onClick={() => handleOptionSelect(questionId, option.id)}
             />
+            
+            {/* Option box */}
+            <Box 
+              sx={{ 
+                flexGrow: 1,
+                p: 1.5, 
+                borderRadius: '8px',
+                border: `1px solid ${isOptionSelected(option.id) 
+                  ? theme.palette.primary.main 
+                  : alpha(theme.palette.grey[300], 0.8)}`,
+                backgroundColor: isOptionSelected(option.id) 
+                  ? alpha(theme.palette.primary.main, 0.1) 
+                  : isOptionCrossedOut(option.id)
+                    ? alpha(theme.palette.grey[100], 0.6)
+                    : 'transparent',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: isOptionSelected(option.id)
+                    ? alpha(theme.palette.primary.main, 0.15)
+                    : isOptionCrossedOut(option.id)
+                      ? alpha(theme.palette.grey[100], 0.8)
+                      : alpha(theme.palette.grey[100], 0.5),
+                }
+              }}
+              onClick={() => toggleCrossedOutOption(option.id)}
+            >
+              <Typography 
+                variant="body1" 
+                sx={{
+                  textDecoration: isOptionCrossedOut(option.id) ? 'line-through' : 'none',
+                  color: isOptionCrossedOut(option.id) ? theme.palette.grey[500] : 'inherit'
+                }}
+              >
+                <Box component="span" sx={{ fontWeight: 600, mr: 1 }}>
+                  {ANSWER_LABELS[index]}.
+                </Box>
+                {option.text}
+              </Typography>
+            </Box>
           </Box>
         ))}
       </Box>
