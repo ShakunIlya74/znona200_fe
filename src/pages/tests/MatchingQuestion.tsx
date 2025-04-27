@@ -11,7 +11,8 @@ import { MatchingCategory, MatchingOption, MatchAnswer } from './interfaces';
 // dnd imports
 import {
   DndContext,
-  closestCenter,
+  rectIntersection,
+  pointerWithin,
   MouseSensor,
   TouchSensor,
   KeyboardSensor,
@@ -109,7 +110,8 @@ const DroppablePlaceholder = memo(({
       marginLeft: '-100px', // Keep left extension
       paddingLeft: '100px', // Keep left padding
       marginRight: '0',    // Ensure no right extension
-      zIndex: isOver ? 2 : 1 // Ensure proper layering when dragging over
+      zIndex: isOver ? 5 : 1, // Increase z-index when being dragged over
+      pointerEvents: 'auto', // Ensure droppable areas always receive pointer events
     }}>
       <Paper
         ref={placeholderRef}
@@ -137,9 +139,21 @@ const DroppablePlaceholder = memo(({
           flexDirection: 'row',
           width: '100%',
           overflowX: 'visible',
-          whiteSpace: 'normal'
+          whiteSpace: 'normal',
+          position: 'relative', // Add relative positioning
+          zIndex: isOver ? 1 : 0, // Lower z-index for the visual part
         }}
       >
+        {/* Add invisible overlay that's always on top to capture drops */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: isOver ? 4 : -1, // Only activate when being dragged over
+        }} />
+        
         {children}
       </Paper>
     </div>
@@ -211,7 +225,7 @@ const DroppableOptionsContainer = memo(({
       paddingTop: '40px',    // Match top padding
       paddingBottom: '40px', // Match bottom padding
       width: '100%',         // Maintain width
-      zIndex: isOver ? 2 : 1,
+      zIndex: isOver ? 5 : 1, // Increase z-index when being dragged over
     }}>
       <Paper
         elevation={0}
@@ -230,9 +244,20 @@ const DroppableOptionsContainer = memo(({
           flexWrap: 'wrap',
           gap: 1.5,
           alignItems: 'center',
-          transition: 'all 0.05s ease'
+          transition: 'all 0.05s ease',
+          position: 'relative', // Add relative positioning
         }}
       >
+        {/* Add invisible overlay to help with drops */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: isOver ? 4 : -1, // Only visible when dragging over
+        }} />
+        
         {children}
       </Paper>
     </div>
@@ -244,12 +269,12 @@ const SortableOption = memo(({
   id, 
   option, 
   theme,
-  isActiveDrag = false
+  activeId
 }: { 
   id: string; 
   option: MatchingOption;
   theme: any;
-  isActiveDrag?: boolean;
+  activeId: UniqueIdentifier | null;
 }) => {
   const {
     attributes,
@@ -260,12 +285,18 @@ const SortableOption = memo(({
     isDragging
   } = useSortable({ id });
 
+  const idStr = id.toString();
+  const isMatched = idStr.startsWith('matched-');
+  
+  // Only disable pointer events for matched items (those already in a target container)
+  // when there's an active drag occurring and this item isn't the one being dragged
+  const isActiveDrag = activeId !== null;
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 999 : 1,
+    zIndex: isDragging && id === activeId ? 999 : isMatched ? 1 : 2, // Lower z-index for matched items
     opacity: isDragging ? 0.5 : 1,
-    pointerEvents: isActiveDrag && id.toString().startsWith('matched-') ? 'none' as const : 'auto' as const,
+    pointerEvents: isActiveDrag && isMatched && id !== activeId ? 'none' as const : 'auto' as const,
   };
 
   return (
@@ -325,7 +356,6 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   // Track active dragging item
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activeOption, setActiveOption] = useState<MatchingOption | null>(null);
-  const [isDraggingActive, setIsDraggingActive] = useState<boolean>(false);
 
   // State to track row heights for synchronized sizing
   const [rowHeights, setRowHeights] = useState<RowHeights>({});
@@ -419,7 +449,6 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     
     const { option } = getOptionFromId(active.id);
     setActiveOption(option);
-    setIsDraggingActive(true);
   }, [getOptionFromId]);
   
   // Handle drag end (memoized)
@@ -427,12 +456,25 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     const { active, over } = event;
     setActiveId(null);
     setActiveOption(null);
-    setIsDraggingActive(false);
     
     if (!over) return;
 
+    // 1) normalize any "matched-<optId>-<catId>" into "placeholder-<catId>"
+    let overId = over.id.toString();
+    if (overId.startsWith('matched-')) {
+      const [, , catId] = overId.split('-');
+      overId = `placeholder-${catId}`;
+    }
+
+    // 2) if it's still not a placeholder or the available-list, bail
+    if (
+      !overId.startsWith('placeholder-') &&
+      overId !== 'availableOptions'
+    ) {
+      return;
+    }
+
     const activeId = active.id.toString();
-    const overId = over.id.toString();
     
     // If dropped in the same place
     if (activeId === overId) return;
@@ -441,7 +483,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     const { option, categoryId: sourceCategoryId } = getOptionFromId(activeId);
     if (!option) return;
 
-    // Handle drop to a category placeholder
+    // 3) now handle placeholder drops just as before
     if (overId.startsWith('placeholder-')) {
       const categoryId = parseInt(overId.replace('placeholder-', ''), 10);
       
@@ -553,7 +595,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
       
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={pointerWithin}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
@@ -620,7 +662,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
                         id={`matched-${matchedOptions[category.id]!.id}-${category.id}`}
                         option={matchedOptions[category.id]!}
                         theme={theme}
-                        isActiveDrag={isDraggingActive}
+                        activeId={activeId}
                       />
                     )}
                   </DroppablePlaceholder>
@@ -651,6 +693,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
                 id={`option-${option.id}`}
                 option={option}
                 theme={theme}
+                activeId={activeId}
               />
             ))}
           </DroppableOptionsContainer>
