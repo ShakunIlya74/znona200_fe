@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Box, Typography, Container, Paper, Divider, CircularProgress, Button, Tooltip, Tabs, Tab } from '@mui/material';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict } from '../../services/LessonService';
@@ -75,118 +75,103 @@ const LessonViewPage: React.FC = () => {
         setTabValue(newValue);
     };
     
-    // Function to determine which content to render based on tab index
-    const renderTabContent = () => {
-        let currentTabIndex = 0;
-        const { hasVideos, hasSlides } = tabsConfig;
-        
-        // Videos tab (first if available)
-        if (hasVideos) {
-            if (tabValue === currentTabIndex) {
-                const webinar = webinarDicts[0]; // Show first video
-                return (
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: 0,
-                            backgroundColor: theme.palette.common.black,
-                            borderRadius: '12px',
-                            aspectRatio: '16/9',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            overflow: 'hidden'
-                        }}
-                    >
-                        {webinar.url ? (
-                            // <iframe 
-                            //     src={webinar.url}
-                            //     style={{ 
-                            //         width: '100%', 
-                            //         height: '100%', 
-                            //         border: 'none' 
-                            //     }}
-                            //     title={webinar.webinar_title || "Webinar video"}
-                            //     allowFullScreen
-                            // />
-                            <>{webinar.url}</>
-                        ) : (
-                            <Typography variant="body1" sx={{ color: theme.palette.common.white }}>
-                                Video not available
-                            </Typography>
-                        )}
-                    </Paper>
-                );
-            }
-            currentTabIndex++;
-        }
-          // Slides tab (second if available)
-        if (hasSlides) {
-            if (tabValue === currentTabIndex) {
-                const slide = slideDicts[0]; // Show first slide
-                return (
-                    <Box
-                        sx={{
-                            p: 0,
-                            borderRadius: '12px',
-                            minHeight: '500px',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                        }}
-                    >
-                        {slide.slide_content ? (
-                            <PDFDisplay 
-                                pdfUrl={slide.slide_content}
-                                // containerHeight={600}
-                                // containerWidth={window.innerWidth > 1200 ? 900 : window.innerWidth - 100}
-                                visiblePagePercentage={1}
-                            />
-                        ) : (
-                            <Typography variant="h6" sx={{ color: theme.palette.text.secondary }}>
-                                Slides not available
-                            </Typography>
-                        )}
-                    </Box>
-                );
-            }
-            currentTabIndex++;
-        }
-        
-        // Test tabs (remaining tabs)
-        const testIndex = tabValue - currentTabIndex;
-        if (testIndex >= 0 && testIndex < testCards.length) {
-            const test = testCards[testIndex];
+    // Memoize the video component to keep it mounted
+    const videoComponent = useMemo(() => {
+        if (webinarDicts.length > 0) {
+            const webinar = webinarDicts[0];
             return (
-                <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <Typography variant="h5" gutterBottom>
-                        {test.test_name}
-                    </Typography>
-                    {test.test_description && (
-                        <Typography variant="body1" sx={{ mb: 2, color: theme.palette.text.secondary }}>
-                            {test.test_description}
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: 0,
+                        backgroundColor: theme.palette.common.black,
+                        borderRadius: '12px',
+                        aspectRatio: '16/9',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        overflow: 'hidden'
+                    }}
+                >
+                    {webinar.url ? (
+                        <>{webinar.url}</>
+                    ) : (
+                        <Typography variant="body1" sx={{ color: theme.palette.common.white }}>
+                            Video not available
                         </Typography>
                     )}
-                    <Button 
-                        variant="contained"
-                        color="primary"
-                        component={Link}
-                        to={`/tests/${test.tfp_sha || test.test_id}`}
-                        sx={{ mt: 2 }}
-                    >
-                        Start Test
-                    </Button>
-                </Box>
+                </Paper>
             );
         }
-        
-        // Fallback if no matching content found
-        return (
-            <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
-                No content available for this tab
-            </Typography>
-        );
+        return null;
+    }, [webinarDicts, theme.palette.common.black, theme.palette.common.white]);
+    
+    // Memoize the PDFDisplay component to keep it mounted
+    const pdfDisplayComponent = useMemo(() => {
+        if (slideDicts.length > 0 && slideDicts[0].slide_content) {
+            console.log('PDF URL:', slideDicts[0].slide_content);
+            return (
+                <PDFDisplay 
+                    pdfUrl={slideDicts[0].slide_content}
+                    visiblePagePercentage={0.8}
+                />
+            );
+        }
+        return null;
+    }, [slideDicts]);
+    
+    // Memoize the test components to keep them mounted
+    const testComponents = useMemo(() => {
+        return testCards.map((test, index) => (
+            <Box 
+                key={`test-content-${test.test_id}`} 
+                sx={{ textAlign: 'center', py: 4 }}
+            >
+                <Typography variant="h5" gutterBottom>
+                    {test.test_name}
+                </Typography>
+                {test.test_description && (
+                    <Typography variant="body1" sx={{ mb: 2, color: theme.palette.text.secondary }}>
+                        {test.test_description}
+                    </Typography>
+                )}
+                <Button 
+                    variant="contained"
+                    color="primary"
+                    component={Link}
+                    to={`/tests/${test.tfp_sha || test.test_id}`}
+                    sx={{ mt: 2 }}
+                >
+                    Start Test
+                </Button>
+            </Box>
+        ));
+    }, [testCards, theme.palette.text.secondary]);
+    
+    // Function to determine if a tab content should be visible
+    const isTabVisible = (tabIndex: number): boolean => {
+        return tabValue === tabIndex;
     };
+    
+    // Calculate tab indices
+    const getTabIndices = useMemo(() => {
+        const { hasVideos, hasSlides } = tabsConfig;
+        let videoTabIndex = -1;
+        let slideTabIndex = -1;
+        let testStartIndex = 0;
+        
+        if (hasVideos) {
+            videoTabIndex = 0;
+            testStartIndex++;
+        }
+        
+        if (hasSlides) {
+            slideTabIndex = hasVideos ? 1 : 0;
+            testStartIndex++;
+        }
+        
+        return { videoTabIndex, slideTabIndex, testStartIndex };
+    }, [tabsConfig]);
 
     return (
         <Container maxWidth="lg" sx={{ py: 2 }}>
@@ -301,9 +286,50 @@ const LessonViewPage: React.FC = () => {
                             </Tabs>
                         </Paper>
                     )}
-                    {/* Tab content */}
+                    {/* Tab content - all content is always mounted but only visible based on the active tab */}
                     <Box sx={{ mt: 2 }}>
-                        {renderTabContent()}
+                        {/* Video Tab Content */}
+                        {tabsConfig.hasVideos && (
+                            <Box sx={{ display: isTabVisible(getTabIndices.videoTabIndex) ? 'block' : 'none' }}>
+                                {videoComponent}
+                            </Box>
+                        )}
+                          {/* Slides Tab Content */}
+                        {tabsConfig.hasSlides && (
+                            <Box 
+                                sx={{
+                                    visibility: isTabVisible(getTabIndices.slideTabIndex) ? 'visible' : 'hidden',
+                                    position: isTabVisible(getTabIndices.slideTabIndex) ? 'static' : 'absolute',
+                                    zIndex: isTabVisible(getTabIndices.slideTabIndex) ? 'auto' : -1,
+                                    height: isTabVisible(getTabIndices.slideTabIndex) ? 'auto' : 0,
+                                    overflow: isTabVisible(getTabIndices.slideTabIndex) ? 'auto' : 'hidden',
+                                    p: 0,
+                                    borderRadius: '12px',
+                                    minHeight: isTabVisible(getTabIndices.slideTabIndex) ? '500px' : 0,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    width: '100%',
+                                }}
+                            >
+                                {pdfDisplayComponent || (
+                                    <Typography variant="h6" sx={{ color: theme.palette.text.secondary }}>
+                                        Slides not available
+                                    </Typography>
+                                )}
+                            </Box>
+                        )}
+                        
+                        {/* Test Tabs Content */}
+                        {testComponents.map((testComponent, index) => (
+                            <Box 
+                                key={`test-wrapper-${index}`}
+                                sx={{ 
+                                    display: isTabVisible(getTabIndices.testStartIndex + index) ? 'block' : 'none' 
+                                }}
+                            >
+                                {testComponent}
+                            </Box>
+                        ))}
                     </Box>
                 </>
             ) : (
