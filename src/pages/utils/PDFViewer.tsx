@@ -12,7 +12,8 @@ import {
   CircularProgress,
   Tooltip,
   useTheme,
-  alpha
+  alpha,
+  useMediaQuery
 } from '@mui/material';
 import { 
   ArrowBackIos as PrevIcon, 
@@ -30,7 +31,7 @@ export interface PDFViewerProps {
   pdfUrl: string;
   visiblePagePercentage?: number; // 0-1, percentage of page height to show initially
   containerHeight?: number; // Container height in pixels
-  containerWidth?: number; // Container width in pixels
+  containerWidth?: number; // Container width in pixels, overrides responsive widths if provided
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({
@@ -47,6 +48,23 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [pageWidth, setPageWidth] = useState<number | null>(null);
   const theme = useTheme();
+  
+  // Add responsive breakpoints
+  const isXLargeScreen = useMediaQuery(theme.breakpoints.up('xl'));
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up('lg'));
+  const isMediumScreen = useMediaQuery(theme.breakpoints.up('md'));
+  
+  // Define fixed widths for different screen sizes
+  const getResponsiveWidth = () => {
+    if (containerWidth) return containerWidth; // Custom width takes precedence
+    if (isXLargeScreen) return 1100; // xl screens
+    if (isLargeScreen) return 900; // lg screens
+    if (isMediumScreen) return 700; // md screens
+    return 350; // xs screens
+  };
+  
+  // Calculate responsive width
+  const responsiveWidth = getResponsiveWidth();
 
   // Calculate page height based on visible percentage
   const pageContainerHeight = containerHeight * visiblePagePercentage;
@@ -55,7 +73,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   useEffect(() => {
     const updatePageWidth = () => {
       if (containerRef.current) {
-        const actualWidth = containerWidth || containerRef.current.offsetWidth - 64; // Subtract padding
+        const actualWidth = responsiveWidth - 64; // Subtract padding
         setPageWidth(actualWidth);
       }
     };
@@ -67,7 +85,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     
     // Clean up
     return () => window.removeEventListener('resize', updatePageWidth);
-  }, [containerWidth]);
+  }, [responsiveWidth]);
 
   // Function to handle document load success
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
@@ -128,10 +146,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     <Paper 
       elevation={2} 
       sx={{ 
-        width: containerWidth || '100%', 
+        width: responsiveWidth, 
+        maxWidth: '100%', // Ensures it doesn't overflow on small screens
         borderRadius: '12px',
         overflow: 'hidden',
         backgroundColor: theme.palette.background.paper,
+        mx: 'auto', // Center the container
       }}
     >
       {/* PDF Controls */}

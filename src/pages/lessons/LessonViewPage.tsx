@@ -21,14 +21,14 @@ const LessonViewPage: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [tabValue, setTabValue] = useState<number>(0);
     const theme = useTheme();
-    const navigate = useNavigate();    
-    
+    const navigate = useNavigate();
+
     // Track available tabs to correctly map tab index to content
-    const [tabsConfig, setTabsConfig] = useState<{hasVideos: boolean, hasSlides: boolean}>({
+    const [tabsConfig, setTabsConfig] = useState<{ hasVideos: boolean, hasSlides: boolean }>({
         hasVideos: false,
         hasSlides: false
     });
-    
+
     useEffect(() => {
         const loadLessonData = async () => {
             if (!lfp_sha) {
@@ -47,7 +47,7 @@ const LessonViewPage: React.FC = () => {
                     setSlideDicts(response.slide_dicts || []);
                     setTestCards(response.test_cards || []);
                     setIsAdmin(response.is_admin || false);
-                    
+
                     // Set tab configuration based on available content
                     setTabsConfig({
                         hasVideos: (response.webinar_dicts || []).length > 0,
@@ -74,7 +74,7 @@ const LessonViewPage: React.FC = () => {
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue);
     };
-    
+
     // Memoize the video component to keep it mounted
     const videoComponent = useMemo(() => {
         if (webinarDicts.length > 0) {
@@ -105,13 +105,13 @@ const LessonViewPage: React.FC = () => {
         }
         return null;
     }, [webinarDicts, theme.palette.common.black, theme.palette.common.white]);
-    
+
     // Memoize the PDFDisplay component to keep it mounted
     const pdfDisplayComponent = useMemo(() => {
         if (slideDicts.length > 0 && slideDicts[0].slide_content) {
             console.log('PDF URL:', slideDicts[0].slide_content);
             return (
-                <PDFDisplay 
+                <PDFDisplay
                     pdfUrl={slideDicts[0].slide_content}
                     visiblePagePercentage={0.8}
                 />
@@ -119,12 +119,12 @@ const LessonViewPage: React.FC = () => {
         }
         return null;
     }, [slideDicts]);
-    
+
     // Memoize the test components to keep them mounted
     const testComponents = useMemo(() => {
         return testCards.map((test, index) => (
-            <Box 
-                key={`test-content-${test.test_id}`} 
+            <Box
+                key={`test-content-${test.test_id}`}
                 sx={{ textAlign: 'center', py: 4 }}
             >
                 <Typography variant="h5" gutterBottom>
@@ -135,7 +135,7 @@ const LessonViewPage: React.FC = () => {
                         {test.test_description}
                     </Typography>
                 )}
-                <Button 
+                <Button
                     variant="contained"
                     color="primary"
                     component={Link}
@@ -147,47 +147,47 @@ const LessonViewPage: React.FC = () => {
             </Box>
         ));
     }, [testCards, theme.palette.text.secondary]);
-    
+
     // Function to determine if a tab content should be visible
     const isTabVisible = (tabIndex: number): boolean => {
         return tabValue === tabIndex;
     };
-    
+
     // Calculate tab indices
     const getTabIndices = useMemo(() => {
         const { hasVideos, hasSlides } = tabsConfig;
         let videoTabIndex = -1;
         let slideTabIndex = -1;
         let testStartIndex = 0;
-        
+
         if (hasVideos) {
             videoTabIndex = 0;
             testStartIndex++;
         }
-        
+
         if (hasSlides) {
             slideTabIndex = hasVideos ? 1 : 0;
             testStartIndex++;
         }
-        
+
         return { videoTabIndex, slideTabIndex, testStartIndex };
     }, [tabsConfig]);
 
     return (
         <Container maxWidth="lg" sx={{ py: 2 }}>
             {/* Header section with back button and title */}
-            <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+            <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
                 mb: 3,
                 flexDirection: 'row',
                 gap: 2
             }}>
                 <Tooltip title="Назад до вебінарів" arrow placement="right">
-                    <Button 
-                        startIcon={<ArrowBackIcon />} 
+                    <Button
+                        startIcon={<ArrowBackIcon />}
                         onClick={handleBackClick}
-                        sx={{ 
+                        sx={{
                             borderRadius: '8px',
                             color: theme.palette.primary.main,
                             borderColor: theme.palette.primary.main,
@@ -197,10 +197,10 @@ const LessonViewPage: React.FC = () => {
                         }}
                     />
                 </Tooltip>
-                
+
                 {lessonData && (
-                    <Typography variant="h4" sx={{ 
-                        fontWeight: 600, 
+                    <Typography variant="h4" sx={{
+                        fontWeight: 600,
                         color: theme.palette.primary.main,
                         flexGrow: 1,
                         fontSize: 'calc(2.125rem / 1.4)' // h4 default size is 2.125rem, dividing by 1.4
@@ -209,17 +209,17 @@ const LessonViewPage: React.FC = () => {
                     </Typography>
                 )}
             </Box>
-            
+
             {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
                     <LoadingDots />
                 </Box>
             ) : error ? (
-                <Paper 
+                <Paper
                     elevation={0}
-                    sx={{ 
-                        p: 3, 
-                        borderRadius: '16px', 
+                    sx={{
+                        p: 3,
+                        borderRadius: '16px',
                         border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
                         backgroundColor: alpha(theme.palette.error.main, 0.05)
                     }}
@@ -251,7 +251,7 @@ const LessonViewPage: React.FC = () => {
                             </Typography>
                         )}
                     </Box>
-                      {/* Tabs section */}
+                    {/* Tabs section */}
                     {(webinarDicts.length > 0 || slideDicts.length > 0 || testCards.length > 0) && (
                         <Paper
                             elevation={0}
@@ -294,21 +294,17 @@ const LessonViewPage: React.FC = () => {
                                 {videoComponent}
                             </Box>
                         )}
-                          {/* Slides Tab Content */}
+                        {/* Slides Tab Content */}
                         {tabsConfig.hasSlides && (
-                            <Box 
+                            <Box
                                 sx={{
                                     visibility: isTabVisible(getTabIndices.slideTabIndex) ? 'visible' : 'hidden',
                                     position: isTabVisible(getTabIndices.slideTabIndex) ? 'static' : 'absolute',
                                     zIndex: isTabVisible(getTabIndices.slideTabIndex) ? 'auto' : -1,
-                                    height: isTabVisible(getTabIndices.slideTabIndex) ? 'auto' : 0,
-                                    overflow: isTabVisible(getTabIndices.slideTabIndex) ? 'auto' : 'hidden',
                                     p: 0,
                                     borderRadius: '12px',
-                                    minHeight: isTabVisible(getTabIndices.slideTabIndex) ? '500px' : 0,
                                     justifyContent: 'center',
                                     alignItems: 'center',
-                                    width: '100%',
                                 }}
                             >
                                 {pdfDisplayComponent || (
@@ -318,13 +314,13 @@ const LessonViewPage: React.FC = () => {
                                 )}
                             </Box>
                         )}
-                        
+
                         {/* Test Tabs Content */}
                         {testComponents.map((testComponent, index) => (
-                            <Box 
+                            <Box
                                 key={`test-wrapper-${index}`}
-                                sx={{ 
-                                    display: isTabVisible(getTabIndices.testStartIndex + index) ? 'block' : 'none' 
+                                sx={{
+                                    display: isTabVisible(getTabIndices.testStartIndex + index) ? 'block' : 'none'
                                 }}
                             >
                                 {testComponent}
