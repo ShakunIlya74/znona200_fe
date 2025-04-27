@@ -103,7 +103,14 @@ const DroppablePlaceholder = memo(({
   }, [children, updateRowHeight, rowIndex]);
 
   return (
-    <div ref={setNodeRef} style={{ width: '100%' }}>
+    <div ref={setNodeRef} style={{ 
+      width: '100%',
+      position: 'relative',
+      marginLeft: '-100px', // Keep left extension
+      paddingLeft: '100px', // Keep left padding
+      marginRight: '0',    // Ensure no right extension
+      zIndex: isOver ? 2 : 1 // Ensure proper layering when dragging over
+    }}>
       <Paper
         ref={placeholderRef}
         elevation={0}
@@ -163,6 +170,8 @@ const VariantBox = memo(({
         display: 'flex',
         alignItems: 'center',
         transition: 'all 0.05s ease',
+        position: 'relative',
+        zIndex: 0, // Add lower z-index to prevent overlap issues
       }}
     >
       <Box sx={{ width: '100%' }}>
@@ -195,7 +204,15 @@ const DroppableOptionsContainer = memo(({
   });
 
   return (
-    <div ref={setNodeRef}>
+    <div ref={setNodeRef} style={{
+      position: 'relative',
+      marginTop: '-40px',    // Only extend top
+      marginBottom: '-40px', // Only extend bottom
+      paddingTop: '40px',    // Match top padding
+      paddingBottom: '40px', // Match bottom padding
+      width: '100%',         // Maintain width
+      zIndex: isOver ? 2 : 1,
+    }}>
       <Paper
         elevation={0}
         sx={{
