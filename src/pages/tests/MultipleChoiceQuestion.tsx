@@ -29,6 +29,7 @@ interface MultipleChoiceQuestionProps {
   options: MultipleChoiceOption[];
   selectedOptions: number[];
   onOptionSelect: (questionId: number, optionId: number) => void;
+  onLastSelect?: () => void; // New prop for triggering next question
 }
 
 const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
@@ -37,7 +38,8 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
   questionText,
   options,
   selectedOptions,
-  onOptionSelect
+  onOptionSelect,
+  onLastSelect
 }) => {
   const theme = useTheme();
 
@@ -68,6 +70,15 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
       } else {
         // Otherwise, just select it normally
         onOptionSelect(questionId, optionId);
+        
+        // Check if we've now reached the number of correct options
+        if (selectedOptions.length + 1 === correctOptionsCount && correctOptionsCount > 0) {
+          // If we've reached the limit and onLastSelect is provided, call it
+          if (onLastSelect) {
+            // Use setTimeout to ensure the state update completes first
+            setTimeout(() => onLastSelect(), 300);
+          }
+        }
       }
     }
   };

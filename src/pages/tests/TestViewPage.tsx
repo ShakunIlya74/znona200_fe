@@ -540,6 +540,7 @@ const TestViewPage: React.FC = () => {
                           options={options as any[]}
                           selectedOptions={userResponses[currentQuestion.question_id]?.selectedOptions || []}
                           onOptionSelect={handleOptionSelect}
+                          onLastSelect={handleNextQuestion}
                         />
                       );
                     } else if (currentQuestion.question_type === 'MATCHING') {
