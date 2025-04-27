@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Box, 
   Typography, 
@@ -41,9 +41,35 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
 }) => {
   const theme = useTheme();
 
+  // Calculate the number of correct options
+  const correctOptionsCount = useMemo(() => 
+    options.filter(option => option.is_correct).length, 
+    [options]
+  );
+
   // Check if an option is selected
   const isOptionSelected = (optionId: number): boolean => {
     return selectedOptions.includes(optionId);
+  };
+  
+  // Handle option selection with limitation
+  const handleOptionSelect = (questionId: number, optionId: number) => {
+    if (isOptionSelected(optionId)) {
+      // If already selected, just deselect it
+      onOptionSelect(questionId, optionId);
+    } else {
+      // If not selected and we've reached the limit, remove the first selection first
+      if (selectedOptions.length >= correctOptionsCount && correctOptionsCount > 0) {
+        // Create a new array without the first selected option
+        const updatedSelections = [...selectedOptions.slice(1), optionId];
+        // Call onOptionSelect twice: once to remove first option, once to add new option
+        onOptionSelect(questionId, selectedOptions[0]);
+        onOptionSelect(questionId, optionId);
+      } else {
+        // Otherwise, just select it normally
+        onOptionSelect(questionId, optionId);
+      }
+    }
   };
 
   return (
@@ -79,7 +105,7 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
                   : alpha(theme.palette.grey[100], 0.8),
               }
             }}
-            onClick={() => onOptionSelect(questionId, option.id)}
+            onClick={() => handleOptionSelect(questionId, option.id)}
           >
             <FormControlLabel
               control={
@@ -88,7 +114,7 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
                   onClick={(e) => {
                     // Stop propagation to prevent double handling
                     e.stopPropagation();
-                    onOptionSelect(questionId, option.id);
+                    handleOptionSelect(questionId, option.id);
                   }}
                 />
               }
@@ -109,7 +135,7 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
                   cursor: 'pointer'
                 }
               }}
-              onClick={() => onOptionSelect(questionId, option.id)}
+              onClick={() => handleOptionSelect(questionId, option.id)}
             />
           </Box>
         ))}

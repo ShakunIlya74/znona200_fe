@@ -135,6 +135,45 @@ export async function RemoveTestFromFolder(tfp_sha: string) {
   }
 }
 
+// Function to get test data by ID
+export async function GetTestDataById(testId: number) {
+  try {
+    const response = await axiosInstance.get(`/get-test-data/${testId}`);
+    return {
+      success: true,
+      isAdmin: response.data.is_admin,
+      full_test_with_answers: response.data.full_test_with_answers
+    };
+  }
+  catch (err) {
+    console.error('Error fetching test data by ID:', err);
+    return { 
+      success: false, 
+      error: err instanceof Error ? err.message : 'Unknown error occurred'
+    };
+  }
+}
+
+// Function to submit test answers by ID
+export async function SubmitTestAnswersById(testId: number, answers: UserTestResponse[]) {
+  try {
+    const response = await axiosInstance.post(`/submit-test-data/${testId}`, {
+      answers: answers
+    });
+    return {
+      success: true,
+      result: response.data
+    };
+  }
+  catch (err) {
+    console.error('Error submitting test answers by ID:', err);
+    return { 
+      success: false, 
+      error: err instanceof Error ? err.message : 'Unknown error occurred'
+    };
+  }
+}
+
 
 
 
