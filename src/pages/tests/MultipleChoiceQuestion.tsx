@@ -172,15 +172,20 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
             >
               <Typography 
                 variant="body1" 
-                sx={{
-                  textDecoration: isOptionCrossedOut(option.id) ? 'line-through' : 'none',
-                  color: isOptionCrossedOut(option.id) ? theme.palette.grey[500] : 'inherit'
-                }}
               >
-                <Box component="span" sx={{ fontWeight: 600, mr: 1 }}>
+                <Box component="span" sx={{ fontWeight: 600, mr: 1, 
+                  color: isOptionCrossedOut(option.id) ? theme.palette.grey[500] : 'inherit' }}>
                   {ANSWER_LABELS[index]}.
                 </Box>
-                {option.text}
+                <Box 
+                  component="span" 
+                  sx={{
+                    textDecoration: isOptionCrossedOut(option.id) ? 'line-through' : 'none',
+                    color: isOptionCrossedOut(option.id) ? theme.palette.grey[500] : 'inherit'
+                  }}
+                >
+                  {option.text}
+                </Box>
               </Typography>
             </Box>
           </Box>
