@@ -243,11 +243,13 @@ const DroppableOptionsContainer = memo(({
 const SortableOption = memo(({ 
   id, 
   option, 
-  theme 
+  theme,
+  isActiveDrag = false
 }: { 
   id: string; 
   option: MatchingOption;
   theme: any;
+  isActiveDrag?: boolean;
 }) => {
   const {
     attributes,
@@ -263,6 +265,7 @@ const SortableOption = memo(({
     transition,
     zIndex: isDragging ? 999 : 1,
     opacity: isDragging ? 0.5 : 1,
+    pointerEvents: isActiveDrag && id.toString().startsWith('matched-') ? 'none' as const : 'auto' as const,
   };
 
   return (
@@ -288,7 +291,11 @@ const SortableOption = memo(({
         '&:active': {
           cursor: 'grabbing'
         },
-        ...style
+        transform: style.transform,
+        transition: style.transition,
+        zIndex: style.zIndex,
+        opacity: style.opacity,
+        pointerEvents: style.pointerEvents as 'none' | 'auto',
       }}
     >
       <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -318,6 +325,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   // Track active dragging item
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activeOption, setActiveOption] = useState<MatchingOption | null>(null);
+  const [isDraggingActive, setIsDraggingActive] = useState<boolean>(false);
 
   // State to track row heights for synchronized sizing
   const [rowHeights, setRowHeights] = useState<RowHeights>({});
@@ -411,6 +419,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     
     const { option } = getOptionFromId(active.id);
     setActiveOption(option);
+    setIsDraggingActive(true);
   }, [getOptionFromId]);
   
   // Handle drag end (memoized)
@@ -418,6 +427,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     const { active, over } = event;
     setActiveId(null);
     setActiveOption(null);
+    setIsDraggingActive(false);
     
     if (!over) return;
 
@@ -610,6 +620,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
                         id={`matched-${matchedOptions[category.id]!.id}-${category.id}`}
                         option={matchedOptions[category.id]!}
                         theme={theme}
+                        isActiveDrag={isDraggingActive}
                       />
                     )}
                   </DroppablePlaceholder>
