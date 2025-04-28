@@ -22,7 +22,8 @@ import {
   DragStartEvent,
   UniqueIdentifier,
   DragOverlay,
-  useDroppable
+  useDroppable,
+  useDndContext
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -65,9 +66,26 @@ const DroppablePlaceholder = memo(({
   updateRowHeight: (index: number, height: number) => void;
   rowHeight: number;
 }) => {
-  const { setNodeRef, isOver } = useDroppable({
+  const { setNodeRef } = useDroppable({
     id
   });
+  
+  // grab the live "over" target from context
+  const { over } = useDndContext();
+  
+  // normalize any matched-<optId>-<catId> into placeholder-<catId>
+  const normalizedOverId = (() => {
+    if (!over?.id) return null;
+    const oid = over.id.toString();
+    if (oid.startsWith("matched-")) {
+      const [, , cat] = oid.split("-");
+      return `placeholder-${cat}`;
+    }
+    return oid;
+  })();
+  
+  // use *this* to drive your highlight, not the raw useDroppable.isOver
+  const isOverPlaceholder = normalizedOverId === id;
   
   const placeholderRef = useRef<HTMLDivElement>(null);
   const prevHeightRef = useRef<number>(rowHeight);
@@ -110,7 +128,7 @@ const DroppablePlaceholder = memo(({
       marginLeft: '-100px', // Keep left extension
       paddingLeft: '100px', // Keep left padding
       marginRight: '0',    // Ensure no right extension
-      zIndex: isOver ? 5 : 1, // Increase z-index when being dragged over
+      zIndex: isOverPlaceholder ? 5 : 1, // Increase z-index when being dragged over
       pointerEvents: 'auto', // Ensure droppable areas always receive pointer events
     }}>
       <Paper
@@ -121,12 +139,12 @@ const DroppablePlaceholder = memo(({
           px: hasItem ? 1.5 : 0.5,
           mb: 1,
           borderRadius: '8px',
-          border: `1px solid ${isOver 
+          border: `1px solid ${isOverPlaceholder 
             ? theme.palette.primary.main 
             : hasItem
               ? theme.palette.primary.light
               : alpha(theme.palette.grey[300], 0.8)}`,
-          backgroundColor: isOver 
+          backgroundColor: isOverPlaceholder 
             ? alpha(theme.palette.primary.main, 0.05)
             : hasItem
               ? alpha(theme.palette.primary.light, 0.05)
@@ -141,7 +159,7 @@ const DroppablePlaceholder = memo(({
           overflowX: 'visible',
           whiteSpace: 'normal',
           position: 'relative', // Add relative positioning
-          zIndex: isOver ? 1 : 0, // Lower z-index for the visual part
+          zIndex: isOverPlaceholder ? 1 : 0, // Lower z-index for the visual part
         }}
       >
         {/* Add invisible overlay that's always on top to capture drops */}
@@ -151,7 +169,7 @@ const DroppablePlaceholder = memo(({
           left: 0,
           right: 0,
           bottom: 0,
-          zIndex: isOver ? 4 : -1, // Only activate when being dragged over
+          zIndex: isOverPlaceholder ? 4 : -1, // Only activate when being dragged over
         }} />
         
         {children}
