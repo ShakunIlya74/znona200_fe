@@ -125,9 +125,10 @@ const DroppablePlaceholder = memo(({
     <div ref={setNodeRef} style={{ 
       width: '100%',
       position: 'relative',
-      marginLeft: '-100px', // Keep left extension
-      paddingLeft: '100px', // Keep left padding
-      marginRight: '0',    // Ensure no right extension
+      // marginLeft: '-100px', // Keep left extension
+      // paddingLeft: '100px', // Keep left padding
+      // marginRight: '-100px', // Keep right extension
+      // paddingRight: '100px', // Keep right padding
       zIndex: isOverPlaceholder ? 5 : 1, // Increase z-index when being dragged over
       pointerEvents: 'auto', // Ensure droppable areas always receive pointer events
     }}>
@@ -239,9 +240,9 @@ const DroppableOptionsContainer = memo(({
     <div ref={setNodeRef} style={{
       position: 'relative',
       marginTop: '-40px',    // Only extend top
-      marginBottom: '-40px', // Only extend bottom
+      // marginBottom: '-40px', // Only extend bottom
       paddingTop: '40px',    // Match top padding
-      paddingBottom: '40px', // Match bottom padding
+      // paddingBottom: '40px', // Match bottom padding
       width: '100%',         // Maintain width
       zIndex: isOver ? 5 : 1, // Increase z-index when being dragged over
     }}>
