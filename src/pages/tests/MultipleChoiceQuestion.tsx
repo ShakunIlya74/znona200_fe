@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { 
-  Box, 
-  Typography, 
+import {
+  Box,
+  Typography,
   Radio,
   FormControlLabel,
   useTheme
@@ -46,8 +46,8 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
   const [crossedOutOptions, setCrossedOutOptions] = useState<Record<number, number[]>>({});
 
   // Calculate the number of correct options
-  const correctOptionsCount = useMemo(() => 
-    options.filter(option => option.is_correct).length, 
+  const correctOptionsCount = useMemo(() =>
+    options.filter(option => option.is_correct).length,
     [options]
   );
 
@@ -55,17 +55,17 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
   const isOptionSelected = (optionId: number): boolean => {
     return selectedOptions.includes(optionId);
   };
-  
+
   // Check if option is crossed out for this specific question
   const isOptionCrossedOut = (optionId: number): boolean => {
     return (crossedOutOptions[questionId] || []).includes(optionId);
   };
-  
+
   // Toggle crossed out state for an option in this specific question
   const toggleCrossedOutOption = (optionId: number) => {
     setCrossedOutOptions(prev => {
       const questionCrossedOut = prev[questionId] || [];
-      
+
       if (questionCrossedOut.includes(optionId)) {
         // Remove from crossed out options
         return {
@@ -81,7 +81,7 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
       }
     });
   };
-  
+
   // Handle option selection with limitation
   const handleOptionSelect = (questionId: number, optionId: number) => {
     if (isOptionSelected(optionId)) {
@@ -98,7 +98,7 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
       } else {
         // Otherwise, just select it normally
         onOptionSelect(questionId, optionId);
-        
+
         // Check if we've now reached the number of correct options
         if (selectedOptions.length + 1 === correctOptionsCount && correctOptionsCount > 0) {
           // If we've reached the limit and onLastSelect is provided, call it
@@ -113,27 +113,52 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ 
-        mb: 3, 
-        fontWeight: 600, 
-        color: theme.palette.primary.main 
-      }}>
-        {questionNumber}. {questionText}
-      </Typography>
-      
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+        }}
+      >
+        <Typography variant="h6" sx={{
+          mb: 2,
+          fontWeight: 500,
+          color: theme.palette.primary.main,
+        }}
+        >
+          {questionNumber}.&nbsp;
+        </Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            mb: 2,
+            fontWeight: 500,
+            color: theme.palette.primary.main,
+            '& p': {
+              margin: 0, // Override margin
+              padding: 0, // Override padding
+            },
+            '& h3': {
+              margin: 0, // Override margin
+              padding: 0, // Override padding
+            },
+          }}
+          dangerouslySetInnerHTML={{ __html: `${questionText}` }}
+        />
+      </Box>
+
       {/* Options list */}
       <Box sx={{ mb: 4 }}>
         {options.map((option, index) => (
-          <Box 
-            key={option.id} 
-            sx={{ 
+          <Box
+            key={option.id}
+            sx={{
               mb: 1.5,
               display: 'flex',
               alignItems: 'center',
             }}
           >
             {/* Radio button outside of the option box - now disabled when crossed out */}
-            <CircleRadio 
+            <CircleRadio
               checked={isOptionSelected(option.id)}
               onClick={() => handleOptionSelect(questionId, option.id)}
               disabled={isOptionCrossedOut(option.id)}
@@ -143,18 +168,18 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
                 }
               }}
             />
-            
+
             {/* Option box */}
-            <Box 
-              sx={{ 
+            <Box
+              sx={{
                 flexGrow: 1,
-                p: 1.5, 
+                p: 1.5,
                 borderRadius: '8px',
-                border: `1px solid ${isOptionSelected(option.id) 
-                  ? theme.palette.primary.main 
+                border: `1px solid ${isOptionSelected(option.id)
+                  ? theme.palette.primary.main
                   : alpha(theme.palette.grey[300], 0.8)}`,
-                backgroundColor: isOptionSelected(option.id) 
-                  ? alpha(theme.palette.primary.main, 0.1) 
+                backgroundColor: isOptionSelected(option.id)
+                  ? alpha(theme.palette.primary.main, 0.1)
                   : isOptionCrossedOut(option.id)
                     ? alpha(theme.palette.grey[100], 0.6)
                     : 'transparent',
@@ -170,15 +195,17 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
               }}
               onClick={() => toggleCrossedOutOption(option.id)}
             >
-              <Typography 
-                variant="body1" 
+              <Typography
+                variant="body1"
               >
-                <Box component="span" sx={{ fontWeight: 600, mr: 1, 
-                  color: isOptionCrossedOut(option.id) ? theme.palette.grey[500] : 'inherit' }}>
+                <Box component="span" sx={{
+                  fontWeight: 600, mr: 1,
+                  color: isOptionCrossedOut(option.id) ? theme.palette.grey[500] : 'inherit'
+                }}>
                   {ANSWER_LABELS[index]}.
                 </Box>
-                <Box 
-                  component="span" 
+                <Box
+                  component="span"
                   sx={{
                     textDecoration: isOptionCrossedOut(option.id) ? 'line-through' : 'none',
                     color: isOptionCrossedOut(option.id) ? theme.palette.grey[500] : 'inherit'

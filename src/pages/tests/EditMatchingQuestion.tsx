@@ -12,6 +12,8 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import { MatchingCategory, MatchingOption } from './interfaces';
+import ReactQuill from 'react-quill'; // Added
+import 'react-quill/dist/quill.snow.css'; // Added
 
 interface EditMatchingQuestionProps {
   questionId?: number;
@@ -33,7 +35,8 @@ const EditableText = ({
   onBlur,
   placeholder = 'Enter text...', 
   multiline = false, 
-  isNew = false 
+  isNew = false,
+  allowHtml = false // Added
 }: {
   value: string;
   onChange: (newValue: string) => void;
@@ -41,6 +44,7 @@ const EditableText = ({
   placeholder?: string;
   multiline?: boolean;
   isNew?: boolean;
+  allowHtml?: boolean; // Added
 }) => {
   const theme = useTheme();
   const [isEditing, setIsEditing] = useState(isNew);
@@ -53,6 +57,10 @@ const EditableText = ({
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
+  };
+
+  const handleQuillChange = (content: string) => { // Added
+    setText(content);
   };
   
   const handleBlur = () => {
@@ -78,20 +86,38 @@ const EditableText = ({
   
   if (isEditing) {
     return (
-      <TextField
-        fullWidth
-        multiline={multiline}
-        rows={multiline ? 2 : 1}
-        variant="outlined"
-        size="small"
-        autoFocus
-        value={text}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        sx={{ borderRadius: '6px' }}
-      />
+      <> 
+        {allowHtml ? (
+          <ReactQuill
+            theme="snow"
+            value={text}
+            onChange={handleQuillChange}
+            onBlur={handleBlur}
+            placeholder={placeholder}
+            modules={{
+              toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],
+              ],
+            }}
+            style={{ backgroundColor: theme.palette.background.paper }}
+          />
+        ) : (
+          <TextField
+            fullWidth
+            multiline={multiline}
+            rows={multiline ? 2 : 1}
+            variant="outlined"
+            size="small"
+            autoFocus
+            value={text}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            sx={{ borderRadius: '6px' }}
+          />
+        )}
+      </>
     );
   }
   
@@ -112,13 +138,26 @@ const EditableText = ({
         }
       }}
     >
-      <Typography variant="body2" sx={{ 
-        color: value ? 'inherit' : 'text.disabled',
-        flex: 1,
-        mr: 1
-      }}>
-        {value || placeholder}
-      </Typography>
+      {allowHtml ? (
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            color: value ? 'inherit' : 'text.disabled',
+            flex: 1,
+            mr: 1,
+            '& p': { margin: 0 }, // Reset paragraph margin from Quill
+          }}
+          dangerouslySetInnerHTML={{ __html: value || placeholder }}
+        />
+      ) : (
+        <Typography variant="body2" sx={{ 
+          color: value ? 'inherit' : 'text.disabled',
+          flex: 1,
+          mr: 1
+        }}>
+          {value || placeholder}
+        </Typography>
+      )}
       <EditIcon fontSize="small" sx={{ opacity: 0.6 }} />
     </Box>
   );
@@ -296,6 +335,7 @@ const EditMatchingQuestion = ({
             onChange={setQuestionText}
             placeholder="Введіть текст питання"
             multiline
+            allowHtml // Added
           />
         </Box>
       </Box>

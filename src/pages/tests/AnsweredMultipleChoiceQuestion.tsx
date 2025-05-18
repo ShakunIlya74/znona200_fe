@@ -1,7 +1,7 @@
 import React from 'react';
-import { 
-  Box, 
-  Typography, 
+import {
+  Box,
+  Typography,
   useTheme
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -40,7 +40,7 @@ const AnsweredMultipleChoiceQuestion: React.FC<AnsweredMultipleChoiceQuestionPro
   // Determine the styling and icon for each option based on correctness
   const getOptionStatus = (option: MultipleChoiceOption) => {
     const isSelected = isOptionSelected(option.id);
-    
+
     // Case 1: User selected this option and it's correct
     if (isSelected && option.is_correct) {
       return {
@@ -50,7 +50,7 @@ const AnsweredMultipleChoiceQuestion: React.FC<AnsweredMultipleChoiceQuestionPro
         textColor: theme.palette.success.main
       };
     }
-    
+
     // Case 2: User selected this option but it's incorrect
     if (isSelected && !option.is_correct) {
       return {
@@ -60,7 +60,7 @@ const AnsweredMultipleChoiceQuestion: React.FC<AnsweredMultipleChoiceQuestionPro
         textColor: theme.palette.error.main
       };
     }
-    
+
     // Case 3: User did not select this option but it's correct (show what they missed)
     // Only show if we're not hiding correct answers
     if (!isSelected && option.is_correct && !hideCorrectAnswers) {
@@ -71,7 +71,7 @@ const AnsweredMultipleChoiceQuestion: React.FC<AnsweredMultipleChoiceQuestionPro
         textColor: theme.palette.success.light
       };
     }
-    
+
     // Case 4: User did not select this option and it's incorrect (neutral)
     // Case 5: Correct option but we're hiding correct answers
     return {
@@ -84,27 +84,52 @@ const AnsweredMultipleChoiceQuestion: React.FC<AnsweredMultipleChoiceQuestionPro
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ 
-        mb: 1, // Reduced from mb: 3
-        fontWeight: 600, 
-        color: theme.palette.primary.main 
-      }}>
-        {questionNumber}. {questionText}
-      </Typography>
-      
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+        }}
+      >
+        <Typography variant="h6" sx={{
+          mb: 2,
+          fontWeight: 500,
+          color: theme.palette.primary.main,
+        }}
+        >
+          {questionNumber}.&nbsp;
+        </Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            mb: 2,
+            fontWeight: 500,
+            color: theme.palette.primary.main,
+            '& p': {
+              margin: 0, // Override margin
+              padding: 0, // Override padding
+            },
+            '& h3': {
+              margin: 0, // Override margin
+              padding: 0, // Override padding
+            },
+          }}
+          dangerouslySetInnerHTML={{ __html: `${questionText}` }}
+        />
+      </Box>
+
       {/* Options list with feedback */}
       <Box sx={{ mb: 1.5 }}> {/* Reduced from mb: 4 */}
         {options.map((option, index) => {
           const status = getOptionStatus(option);
-          
+
           // If we're hiding correct answers and this one was correct but not selected,
           // don't show any special styling
           const shouldDisplay = !(hideCorrectAnswers && option.is_correct && !isOptionSelected(option.id));
-          
+
           return (
-            <Box 
-              key={option.id} 
-              sx={{ 
+            <Box
+              key={option.id}
+              sx={{
                 mb: 0.75, // Reduced from mb: 2
                 p: 1, // Reduced from p: 2
                 borderRadius: '8px',
@@ -117,9 +142,9 @@ const AnsweredMultipleChoiceQuestion: React.FC<AnsweredMultipleChoiceQuestionPro
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography 
+                <Typography
                   variant="body2" // Changed from body1 to body2 for more compact text
-                  sx={{ 
+                  sx={{
                     fontWeight: isOptionSelected(option.id) ? 600 : 400,
                     color: shouldDisplay ? status.textColor : theme.palette.text.primary
                   }}
@@ -130,7 +155,7 @@ const AnsweredMultipleChoiceQuestion: React.FC<AnsweredMultipleChoiceQuestionPro
                   {option.text}
                 </Typography>
               </Box>
-              
+
               {/* Display icon if needed and we should display it */}
               {shouldDisplay && status.icon && (
                 <Box sx={{ ml: 1 }}> {/* Reduced from ml: 2 */}

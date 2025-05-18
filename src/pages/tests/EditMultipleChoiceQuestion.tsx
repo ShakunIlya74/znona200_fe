@@ -15,6 +15,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
 import { MultipleChoiceOption } from './interfaces';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css'; // import styles
 
 // Answer labels for options
 const ANSWER_LABELS = ['А', 'Б', 'В', 'Г','Ґ', 'Д', 'Е', 'Є', 'Ж', 'З'];
@@ -41,13 +43,15 @@ const EditableContent: React.FC<{
   placeholder?: string;
   multiline?: boolean;
   isNew?: boolean;
+  allowHtml?: boolean; // New prop
 }> = ({
   value,
   onChange,
   onBlur,
   placeholder = 'Enter text...',
   multiline = false,
-  isNew = false
+  isNew = false,
+  allowHtml = false // Default to false
 }) => {
   const theme = useTheme();
   const [isEditing, setIsEditing] = useState(isNew);
@@ -59,6 +63,10 @@ const EditableContent: React.FC<{
   
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditValue(e.target.value);
+  };
+
+  const handleQuillChange = (content: string) => {
+    setEditValue(content);
   };
   
   // Simple blur handler that only saves once when focus is lost
@@ -84,24 +92,42 @@ const EditableContent: React.FC<{
   
   if (isEditing) {
     return (
-      <TextField
-        fullWidth
-        multiline={multiline}
-        rows={multiline ? 2 : 1}
-        variant="outlined"
-        size="small"
-        autoFocus
-        value={editValue}
-        onChange={handleTextChange}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            borderRadius: '6px',
-          }
-        }}
-      />
+      <Box>
+        {allowHtml ? (
+          <ReactQuill
+            theme="snow"
+            value={editValue}
+            onChange={handleQuillChange}
+            onBlur={handleBlur}
+            placeholder={placeholder}
+            modules={{
+              toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],
+              ],
+            }}
+            style={{ backgroundColor: theme.palette.background.paper }}
+          />
+        ) : (
+          <TextField
+            fullWidth
+            multiline={multiline}
+            rows={multiline ? 2 : 1}
+            variant="outlined"
+            size="small"
+            autoFocus
+            value={editValue}
+            onChange={handleTextChange}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '6px',
+              }
+            }}
+          />
+        )}
+      </Box>
     );
   }
   
@@ -116,18 +142,32 @@ const EditableContent: React.FC<{
       }}
       onClick={() => setIsEditing(true)}
     >
-      <Typography 
-        variant="body2" 
-        sx={{ 
-          flex: 1,
-          color: value ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.5),
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word'
-        }}
-      >
-        {value || placeholder}
-      </Typography>
-      <IconButton 
+      {allowHtml ? (
+        <Typography
+          variant="body2"
+          sx={{
+            flex: 1,
+            color: value ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.5),
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            '& p': { margin: 0 }, // Reset paragraph margin from Quill
+          }}
+          dangerouslySetInnerHTML={{ __html: value || placeholder }}
+        />
+      ) : (
+        <Typography
+          variant="body2"
+          sx={{
+            flex: 1,
+            color: value ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.5),
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word'
+          }}
+        >
+          {value || placeholder}
+        </Typography>
+      )}
+      <IconButton
         size="small" 
         onClick={(e) => {
           e.stopPropagation();
@@ -262,6 +302,7 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
             onChange={handleQuestionTextChange}
             placeholder="Введіть текст питання"
             multiline
+            allowHtml // Enable HTML for question text
           />
         </Paper>
       </Box>
@@ -327,6 +368,7 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
                   placeholder={`Варіант ${index + 1}`}
                   multiline
                   isNew={option.text === ''}
+                  // allowHtml // Enable HTML for option text
                 />
               </Box>
               

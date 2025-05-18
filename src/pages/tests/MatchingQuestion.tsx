@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, memo } from 'react';
-import { 
-  Box, 
+import {
+  Box,
   Typography,
   Paper,
   useTheme
@@ -49,17 +49,17 @@ interface RowHeights {
 }
 
 // Custom droppable placeholder for the category items
-const DroppablePlaceholder = memo(({ 
-  id, 
-  children, 
+const DroppablePlaceholder = memo(({
+  id,
+  children,
   hasItem = false,
   theme,
   rowIndex,
   updateRowHeight,
   rowHeight
-}: { 
-  id: string; 
-  children: React.ReactNode; 
+}: {
+  id: string;
+  children: React.ReactNode;
   hasItem?: boolean;
   theme: any;
   rowIndex: number;
@@ -69,10 +69,10 @@ const DroppablePlaceholder = memo(({
   const { setNodeRef } = useDroppable({
     id
   });
-  
+
   // grab the live "over" target from context
   const { over } = useDndContext();
-  
+
   // normalize any matched-<optId>-<catId> into placeholder-<catId>
   const normalizedOverId = (() => {
     if (!over?.id) return null;
@@ -83,20 +83,20 @@ const DroppablePlaceholder = memo(({
     }
     return oid;
   })();
-  
+
   // use *this* to drive your highlight, not the raw useDroppable.isOver
   const isOverPlaceholder = normalizedOverId === id;
-  
+
   const placeholderRef = useRef<HTMLDivElement>(null);
   const prevHeightRef = useRef<number>(rowHeight);
-  
+
   // Update row height when content changes
   useEffect(() => {
     const updateHeight = () => {
       if (placeholderRef.current) {
         // Get the actual content height
         const height = placeholderRef.current.scrollHeight;
-        
+
         // Only update if height has changed significantly (by more than 2px)
         if (Math.abs(height - prevHeightRef.current) > 2) {
           prevHeightRef.current = height;
@@ -104,25 +104,25 @@ const DroppablePlaceholder = memo(({
         }
       }
     };
-    
+
     // Set up a resize observer to detect content height changes
     const resizeObserver = new ResizeObserver(() => {
       updateHeight();
     });
-    
+
     if (placeholderRef.current) {
       // Initial height check
       updateHeight();
       resizeObserver.observe(placeholderRef.current);
     }
-    
+
     return () => {
       resizeObserver.disconnect();
     };
   }, [children, updateRowHeight, rowIndex]);
 
   return (
-    <div ref={setNodeRef} style={{ 
+    <div ref={setNodeRef} style={{
       width: '100%',
       position: 'relative',
       // marginLeft: '-100px', // Keep left extension
@@ -140,12 +140,12 @@ const DroppablePlaceholder = memo(({
           px: hasItem ? 1.5 : 0.5,
           mb: 1,
           borderRadius: '8px',
-          border: `1px solid ${isOverPlaceholder 
-            ? theme.palette.primary.main 
+          border: `1px solid ${isOverPlaceholder
+            ? theme.palette.primary.main
             : hasItem
               ? theme.palette.primary.light
               : alpha(theme.palette.grey[300], 0.8)}`,
-          backgroundColor: isOverPlaceholder 
+          backgroundColor: isOverPlaceholder
             ? alpha(theme.palette.primary.main, 0.05)
             : hasItem
               ? alpha(theme.palette.primary.light, 0.05)
@@ -172,7 +172,7 @@ const DroppablePlaceholder = memo(({
           bottom: 0,
           zIndex: isOverPlaceholder ? 4 : -1, // Only activate when being dragged over
         }} />
-        
+
         {children}
       </Paper>
     </div>
@@ -208,7 +208,7 @@ const VariantBox = memo(({
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Typography 
+        <Typography
           variant="body2"
           sx={{
             wordWrap: 'break-word',
@@ -223,13 +223,13 @@ const VariantBox = memo(({
 });
 
 // Droppable container for the available options
-const DroppableOptionsContainer = memo(({ 
-  id, 
-  children, 
-  theme 
-}: { 
-  id: string; 
-  children: React.ReactNode; 
+const DroppableOptionsContainer = memo(({
+  id,
+  children,
+  theme
+}: {
+  id: string;
+  children: React.ReactNode;
   theme: any;
 }) => {
   const { setNodeRef, isOver } = useDroppable({
@@ -252,10 +252,10 @@ const DroppableOptionsContainer = memo(({
           p: 1.5,
           mb: 1,
           borderRadius: '8px',
-          border: `1px solid ${isOver 
-            ? theme.palette.primary.main 
+          border: `1px solid ${isOver
+            ? theme.palette.primary.main
             : alpha(theme.palette.grey[400], 0.5)}`,
-          backgroundColor: isOver 
+          backgroundColor: isOver
             ? alpha(theme.palette.primary.main, 0.05)
             : alpha(theme.palette.grey[100], 0.3),
           minHeight: '50px',
@@ -276,7 +276,7 @@ const DroppableOptionsContainer = memo(({
           bottom: 0,
           zIndex: isOver ? 4 : -1, // Only visible when dragging over
         }} />
-        
+
         {children}
       </Paper>
     </div>
@@ -284,13 +284,13 @@ const DroppableOptionsContainer = memo(({
 });
 
 // Draggable option item
-const SortableOption = memo(({ 
-  id, 
-  option, 
+const SortableOption = memo(({
+  id,
+  option,
   theme,
   activeId
-}: { 
-  id: string; 
+}: {
+  id: string;
   option: MatchingOption;
   theme: any;
   activeId: UniqueIdentifier | null;
@@ -306,7 +306,7 @@ const SortableOption = memo(({
 
   const idStr = id.toString();
   const isMatched = idStr.startsWith('matched-');
-  
+
   // Only disable pointer events for matched items (those already in a target container)
   // when there's an active drag occurring and this item isn't the one being dragged
   const isActiveDrag = activeId !== null;
@@ -327,11 +327,11 @@ const SortableOption = memo(({
       sx={{
         p: 0.5,
         borderRadius: '6px',
-        backgroundColor: isDragging 
+        backgroundColor: isDragging
           ? alpha(theme.palette.primary.main, 0.1)
           : theme.palette.background.paper,
-        border: `1px solid ${isDragging 
-          ? theme.palette.primary.main 
+        border: `1px solid ${isDragging
+          ? theme.palette.primary.main
           : alpha(theme.palette.grey[300], 0.8)}`,
         minWidth: '120px',
         width: 'fit-content',
@@ -365,13 +365,13 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   onMatchSelect
 }) => {
   const theme = useTheme();
-  
+
   // State to track available options (ones not yet matched)
   const [availableOptions, setAvailableOptions] = useState<MatchingOption[]>([]);
-  
+
   // State to track matched options
-  const [matchedOptions, setMatchedOptions] = useState<{[key: number]: MatchingOption | null}>({});
-  
+  const [matchedOptions, setMatchedOptions] = useState<{ [key: number]: MatchingOption | null }>({});
+
   // Track active dragging item
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activeOption, setActiveOption] = useState<MatchingOption | null>(null);
@@ -384,7 +384,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     setRowHeights(prev => {
       // Skip update if height hasn't changed
       if (prev[rowIndex] === height) return prev;
-      
+
       return {
         ...prev,
         [rowIndex]: height
@@ -409,19 +409,19 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-  
+
   // Initialize the component state based on props
   useEffect(() => {
     // Initialize matched options object with null values for all categories
-    const initialMatchedOptions: {[key: number]: MatchingOption | null} = {};
+    const initialMatchedOptions: { [key: number]: MatchingOption | null } = {};
     categories.forEach(category => {
       initialMatchedOptions[category.id] = null;
     });
-    
+
     // Set already matched options in our state
-    const matched: {[key: number]: MatchingOption | null} = {...initialMatchedOptions};
+    const matched: { [key: number]: MatchingOption | null } = { ...initialMatchedOptions };
     const alreadyMatchedOptionIds = new Set<number>();
-    
+
     matches.forEach(match => {
       const matchedOption = options.find(o => o.id === match.option_id);
       if (matchedOption) {
@@ -429,10 +429,10 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         alreadyMatchedOptionIds.add(match.option_id);
       }
     });
-    
+
     // Set available options (those that are not matched yet)
     const availableOpts = options.filter(option => !alreadyMatchedOptionIds.has(option.id));
-    
+
     setMatchedOptions(matched);
     setAvailableOptions(availableOpts);
   }, [options, categories, matches]);
@@ -440,24 +440,24 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   // Get option from ID (memoized)
   const getOptionFromId = useCallback((id: UniqueIdentifier): { option: MatchingOption | null, categoryId?: number } => {
     const idStr = id.toString();
-    
+
     // Handle available options
     if (idStr.startsWith('option-')) {
       const optionId = parseInt(idStr.replace('option-', ''), 10);
       const option = availableOptions.find(opt => opt.id === optionId) || null;
       return { option };
     }
-    
+
     // Handle matched options
     if (idStr.startsWith('matched-')) {
       const parts = idStr.replace('matched-', '').split('-');
       const optionId = parseInt(parts[0], 10);
       const categoryId = parseInt(parts[1], 10);
       const option = matchedOptions[categoryId] || null;
-      
+
       return { option, categoryId };
     }
-    
+
     return { option: null };
   }, [availableOptions, matchedOptions]);
 
@@ -465,17 +465,17 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id);
-    
+
     const { option } = getOptionFromId(active.id);
     setActiveOption(option);
   }, [getOptionFromId]);
-  
+
   // Handle drag end (memoized)
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
     setActiveOption(null);
-    
+
     if (!over) return;
 
     // 1) normalize any "matched-<optId>-<catId>" into "placeholder-<catId>"
@@ -494,10 +494,10 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     }
 
     const activeId = active.id.toString();
-    
+
     // If dropped in the same place
     if (activeId === overId) return;
-    
+
     // Get the option being dragged
     const { option, categoryId: sourceCategoryId } = getOptionFromId(activeId);
     if (!option) return;
@@ -505,38 +505,38 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     // 3) now handle placeholder drops just as before
     if (overId.startsWith('placeholder-')) {
       const categoryId = parseInt(overId.replace('placeholder-', ''), 10);
-      
+
       // If drag from available options
       if (activeId.startsWith('option-')) {
         const optionIndex = availableOptions.findIndex(opt => opt.id === option.id);
         if (optionIndex === -1) return;
-        
+
         // If there's already an option in the destination, swap them
         const existingOption = matchedOptions[categoryId];
-        
+
         // Create new state objects
         const newAvailableOptions = [...availableOptions];
-        const newMatchedOptions = {...matchedOptions};
-        
+        const newMatchedOptions = { ...matchedOptions };
+
         // Remove the dragged option from available options
         newAvailableOptions.splice(optionIndex, 1);
-        
+
         // If there was an option already in the destination, add it back to available options
         if (existingOption) {
           newAvailableOptions.push(existingOption);
-          
+
           // Also notify parent component about the removal of the existing option
           // from this category before we assign the new one
           onMatchSelect(questionId, existingOption.id, 0);
         }
-        
+
         // Put the dragged option in the destination
         newMatchedOptions[categoryId] = option;
-        
+
         // Update state
         setAvailableOptions(newAvailableOptions);
         setMatchedOptions(newMatchedOptions);
-        
+
         // Notify parent component
         onMatchSelect(questionId, option.id, categoryId);
       }
@@ -544,30 +544,30 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
       else if (activeId.startsWith('matched-') && sourceCategoryId !== undefined) {
         // Don't do anything if dropping in the same category
         if (sourceCategoryId === categoryId) return;
-        
+
         const destOption = matchedOptions[categoryId];
-        
+
         // Create new matched options state
-        const newMatchedOptions = {...matchedOptions};
-        
+        const newMatchedOptions = { ...matchedOptions };
+
         // If there was an option in the destination, first notify that it's being moved
         if (destOption) {
           onMatchSelect(questionId, destOption.id, 0);
         }
-        
+
         // Notify that the source option is being removed from its current category
         onMatchSelect(questionId, option.id, 0);
-        
+
         // Swap options (or just move if destination was empty)
         newMatchedOptions[sourceCategoryId] = destOption;
         newMatchedOptions[categoryId] = option;
-        
+
         // Update state
         setMatchedOptions(newMatchedOptions);
-        
+
         // Notify parent component that options are being assigned to new categories
         onMatchSelect(questionId, option.id, categoryId);
-        
+
         // If there was an option in the destination, update that match too
         if (destOption) {
           onMatchSelect(questionId, destOption.id, sourceCategoryId);
@@ -578,25 +578,25 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     else if (overId === 'availableOptions' && activeId.startsWith('matched-') && sourceCategoryId !== undefined) {
       // Create new state objects
       const newAvailableOptions = [...availableOptions];
-      const newMatchedOptions = {...matchedOptions};
-      
+      const newMatchedOptions = { ...matchedOptions };
+
       // Add the option back to available options
       newAvailableOptions.push(option);
-      
+
       // Remove the option from matched options
       newMatchedOptions[sourceCategoryId] = null;
-      
+
       // Update state
       setAvailableOptions(newAvailableOptions);
       setMatchedOptions(newMatchedOptions);
-      
+
       // Notify parent component - passing 0 as categoryId to indicate removal
       onMatchSelect(questionId, option.id, 0);
     }
   }, [availableOptions, getOptionFromId, matchedOptions, onMatchSelect, questionId]);
-  
+
   // Sort categories by display_order if available
-  const sortedCategories = React.useMemo(() => 
+  const sortedCategories = React.useMemo(() =>
     [...categories].sort((a, b) => (a.display_order || 0) - (b.display_order || 0)),
     [categories]
   );
@@ -604,14 +604,38 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   // Render the component
   return (
     <Box>
-      <Typography variant="h6" sx={{ 
-        mb: 2, 
-        fontWeight: 600, 
-        color: theme.palette.primary.main 
-      }}>
-        {questionNumber}. {questionText}
-      </Typography>
-      
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+        }}
+      >
+        <Typography variant="h6" sx={{
+          mb: 2,
+          fontWeight: 500,
+          color: theme.palette.primary.main,
+        }}
+        >
+          {questionNumber}.&nbsp;
+        </Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            mb: 2,
+            fontWeight: 500,
+            color: theme.palette.primary.main,
+            '& p': {
+              margin: 0, // Override margin
+              padding: 0, // Override padding
+            },
+            '& h3': {
+              margin: 0, // Override margin
+              padding: 0, // Override padding
+            },
+          }}
+          dangerouslySetInnerHTML={{ __html: `${questionText}` }}
+        />
+      </Box>
       <DndContext
         sensors={sensors}
         collisionDetection={pointerWithin}
@@ -619,26 +643,26 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         onDragEnd={handleDragEnd}
       >
         {/* Main matching area - two columns */}
-        <Box sx={{ 
-          display: 'flex', 
+        <Box sx={{
+          display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           gap: 0,
           mb: 2
         }}>
           {/* Left column - Variants */}
-          <Box sx={{ 
+          <Box sx={{
             flex: { sm: '0 0 45%' },
             mr: { sm: 2 }
           }}>
-            <Typography variant="subtitle1" sx={{ 
-              mb: 1, 
+            <Typography variant="subtitle1" sx={{
+              mb: 1,
               fontWeight: 600,
               borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
               pb: 0.5
             }}>
               Варіанти:
             </Typography>
-            
+
             {sortedCategories.map((category, index) => (
               <VariantBox
                 key={`variant-${category.id}`}
@@ -648,27 +672,27 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
               />
             ))}
           </Box>
-          
+
           {/* Right column - Placeholders for answers */}
-          <Box sx={{ 
+          <Box sx={{
             flex: { sm: '0 0 55%' },
             width: '100%'
           }}>
-            <Typography variant="subtitle1" sx={{ 
-              mb: 1, 
+            <Typography variant="subtitle1" sx={{
+              mb: 1,
               fontWeight: 600,
               borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
               pb: 0.5
             }}>
               Відповідності:
             </Typography>
-            
+
             {sortedCategories.map((category, index) => {
               const placeholderId = `placeholder-${category.id}`;
               const hasItem = !!matchedOptions[category.id];
               return (
                 <Box key={placeholderId} sx={{ width: '100%' }}>
-                  <DroppablePlaceholder 
+                  <DroppablePlaceholder
                     id={placeholderId}
                     hasItem={hasItem}
                     theme={theme}
@@ -677,7 +701,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
                     rowHeight={rowHeights[index] || 0}
                   >
                     {matchedOptions[category.id] && (
-                      <SortableOption 
+                      <SortableOption
                         id={`matched-${matchedOptions[category.id]!.id}-${category.id}`}
                         option={matchedOptions[category.id]!}
                         theme={theme}
@@ -690,24 +714,24 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
             })}
           </Box>
         </Box>
-        
+
         {/* Available options - bottom section */}
         <Box sx={{ mt: 3 }}>
-          <Typography variant="subtitle1" sx={{ 
-            mb: 1, 
+          <Typography variant="subtitle1" sx={{
+            mb: 1,
             fontWeight: 600,
             borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
             pb: 0.5
           }}>
             Перетягніть варіанти відповідей:
           </Typography>
-          
-          <DroppableOptionsContainer 
+
+          <DroppableOptionsContainer
             id="availableOptions"
             theme={theme}
           >
             {availableOptions.map((option) => (
-              <SortableOption 
+              <SortableOption
                 key={`option-${option.id}`}
                 id={`option-${option.id}`}
                 option={option}

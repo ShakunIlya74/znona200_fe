@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { 
-  Box, 
+import {
+  Box,
   Typography,
   Paper,
   useTheme
@@ -35,12 +35,12 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
   hideCorrectAnswers = false // Default to false to maintain backward compatibility
 }) => {
   const theme = useTheme();
-  
+
   // State to track row heights for synchronized sizing
   const [rowHeights, setRowHeights] = useState<RowHeights>({});
-  
+
   // Sort categories by display_order if available
-  const sortedCategories = [...categories].sort((a, b) => 
+  const sortedCategories = [...categories].sort((a, b) =>
     (a.display_order || 0) - (b.display_order || 0)
   );
 
@@ -48,7 +48,7 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
   const findUserMatchForCategory = (categoryId: number): MatchingOption | null => {
     const match = userMatches.find(m => m.matched_to_category_id === categoryId);
     if (!match) return null;
-    
+
     const option = options.find(o => o.id === match.option_id);
     return option || null;
   };
@@ -79,27 +79,52 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ 
-        mb: 1, // Reduced from mb: 2
-        fontWeight: 600, 
-        color: theme.palette.primary.main 
-      }}>
-        {questionNumber}. {questionText}
-      </Typography>
-      
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+        }}
+      >
+        <Typography variant="h6" sx={{
+          mb: 2,
+          fontWeight: 500,
+          color: theme.palette.primary.main,
+        }}
+        >
+          {questionNumber}.&nbsp;
+        </Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            mb: 2,
+            fontWeight: 500,
+            color: theme.palette.primary.main,
+            '& p': {
+              margin: 0, // Override margin
+              padding: 0, // Override padding
+            },
+            '& h3': {
+              margin: 0, // Override margin
+              padding: 0, // Override padding
+            },
+          }}
+          dangerouslySetInnerHTML={{ __html: `${questionText}` }}
+        />
+      </Box>
+
       {/* Main matching area - two columns */}
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: { xs: 'column', md: 'row' }, 
+      <Box sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
         gap: 1, // Reduced from gap: 2
         mb: 1.5 // Reduced from mb: , 2
       }}>
         {/* Left column - Categories */}
-        <Box sx={{ 
+        <Box sx={{
           flex: { md: '0 0 45%' },
           mr: { md: 1 } // Reduced from mr: { md: 2 }
         }}>
-          <Typography variant="subtitle1" sx={{ 
+          <Typography variant="subtitle1" sx={{
             mb: 0.5, // Reduced from mb: 1
             fontWeight: 600,
             borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
@@ -107,7 +132,7 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
           }}>
             Варіанти:
           </Typography>
-          
+
           {sortedCategories.map((category, index) => (
             <VariantBox
               key={`variant-${category.id}`}
@@ -117,14 +142,14 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
             />
           ))}
         </Box>
-        
+
         {/* Right column - User matches with feedback */}
-        <Box sx={{ 
-          width: '100%', 
+        <Box sx={{
+          width: '100%',
           mr: 2, // Reduced from mr: 3
-          flex: { md: '0 0 55%' } 
+          flex: { md: '0 0 55%' }
         }}>
-          <Typography variant="subtitle1" sx={{ 
+          <Typography variant="subtitle1" sx={{
             mb: 0.5, // Reduced from mb: 1
             fontWeight: 600,
             borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
@@ -132,19 +157,19 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
           }}>
             Ваші відповідності:
           </Typography>
-          
+
           {sortedCategories.map((category, index) => {
             const userMatchedOption = findUserMatchForCategory(category.id);
             const correctOption = findCorrectOptionForCategory(category.id);
-            
+
             // Determine styling based on correctness
             let borderColor = theme.palette.grey[300];
             let bgColor = 'transparent';
             let icon = null;
-            
+
             if (userMatchedOption) {
               const isCorrect = isMatchCorrect(userMatchedOption, category.id);
-              
+
               if (isCorrect) {
                 borderColor = theme.palette.success.main;
                 bgColor = alpha(theme.palette.success.main, 0.1);
@@ -155,7 +180,7 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
                 icon = <CancelOutlinedIcon sx={{ color: theme.palette.error.main, fontSize: '1.1rem' }} />;
               }
             }
-            
+
             return (
               <AnswerBox
                 key={`answer-${category.id}`}
@@ -206,7 +231,7 @@ const VariantBox = ({
         transition: 'all 0.05s ease'
       }}
     >
-      <Typography 
+      <Typography
         variant="body2"
         sx={{
           wordWrap: 'break-word',
@@ -248,7 +273,7 @@ const AnswerBox = ({
   rowHeight: number;
 }) => {
   const boxRef = useRef<HTMLDivElement>(null);
-  
+
   // Update row height when content changes
   useEffect(() => {
     const updateHeight = () => {
@@ -258,19 +283,19 @@ const AnswerBox = ({
         updateRowHeight(rowIndex, height);
       }
     };
-    
+
     // Update on initial render and when children change
     updateHeight();
-    
+
     // Also set up a resize observer to detect content height changes
     const resizeObserver = new ResizeObserver(() => {
       updateHeight();
     });
-    
+
     if (boxRef.current) {
       resizeObserver.observe(boxRef.current);
     }
-    
+
     return () => {
       if (boxRef.current) {
         resizeObserver.unobserve(boxRef.current);
@@ -299,12 +324,12 @@ const AnswerBox = ({
     >
       <Box sx={{ width: icon ? 'calc(100% - 24px)' : '100%' }}>
         {userMatchedOption ? (
-          <Typography 
-            variant="body2" 
-            sx={{ 
+          <Typography
+            variant="body2"
+            sx={{
               fontWeight: 500,
               color: isCorrect
-                ? theme.palette.success.main 
+                ? theme.palette.success.main
                 : theme.palette.error.main
             }}
           >
@@ -315,24 +340,24 @@ const AnswerBox = ({
             Немає відповіді
           </Typography>
         )}
-        
+
         {/* Show correct answer if user got it wrong or didn't answer, but only if not hiding correct answers */}
-        {!hideCorrectAnswers && 
-         ((userMatchedOption && !isCorrect) || !userMatchedOption) && 
-         correctOption && (
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: theme.palette.success.main,
-              mt: 0.3,
-              fontStyle: 'italic'
-            }}
-          >
-            Правильна відповідь: {correctOption.text}
-          </Typography>
-        )}
+        {!hideCorrectAnswers &&
+          ((userMatchedOption && !isCorrect) || !userMatchedOption) &&
+          correctOption && (
+            <Typography
+              variant="body2"
+              sx={{
+                color: theme.palette.success.main,
+                mt: 0.3,
+                fontStyle: 'italic'
+              }}
+            >
+              Правильна відповідь: {correctOption.text}
+            </Typography>
+          )}
       </Box>
-      
+
       {icon && (
         <Box sx={{ ml: 1 }}>
           {icon}
