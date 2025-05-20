@@ -555,7 +555,7 @@ const EditTestPage: React.FC = () => {
         <Button
           variant="text"
           startIcon={<ArrowBackIcon />}
-          onClick={handleBackClick}
+          onClick={handleExitClick}
           sx={{ color: theme.palette.primary.main }}
         >
           Назад до тестів
@@ -1185,6 +1185,7 @@ const EditTestPage: React.FC = () => {
               borderRadius: '8px',
               py: 1,
               px: 3,
+              ml: 1,
               textTransform: 'none',
               fontWeight: 600
             }}
