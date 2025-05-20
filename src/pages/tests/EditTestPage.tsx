@@ -622,10 +622,9 @@ const EditTestPage: React.FC = () => {
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
             gap: 3
-          }}>
-            {/* Question Navigation Column - Now sticky */}
+          }}>            {/* Question Navigation Column - Now sticky */}
             <Box sx={{
-              width: { xs: '100%', md: '40%', lg: '40%' },
+              width: { xs: '100%', md: '30%', lg: '30%' },
               borderRight: { md: `1px solid ${alpha(theme.palette.grey[300], 0.5)}` },
               paddingRight: { md: 3 },
               display: 'flex',
@@ -634,7 +633,7 @@ const EditTestPage: React.FC = () => {
               position: { md: 'sticky' },
               top: { md: `${headerOffset + 16}px` },
               alignSelf: { md: 'flex-start' },
-              maxHeight: { md: `calc(100vh - ${headerOffset + 150}px)` },
+              maxHeight: { md: `calc(100vh - ${headerOffset + 90}px)` },
               overflow: { md: 'auto' },
             }}>
 
@@ -754,11 +753,9 @@ const EditTestPage: React.FC = () => {
                   Вийти
                 </Button>
               </Box>
-            </Box>
-
-            {/* Question Display/Edit Area - Now shows all questions */}
+            </Box>            {/* Question Display/Edit Area - Now shows all questions */}
             <Box sx={{
-              width: { xs: '100%', md: '60%', lg: '60%' },
+              width: { xs: '100%', md: '70%', lg: '70%' },
               display: 'flex',
               flexDirection: 'column',
               gap: 4
