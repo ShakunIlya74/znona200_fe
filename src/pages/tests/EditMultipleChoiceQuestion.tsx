@@ -34,6 +34,7 @@ interface EditMultipleChoiceQuestionProps {
     }> 
   }) => void;
 }
+// TODO: ensure that editable content has the same font size as static text content
 
 // EditableContent component for text that transforms into editable field on demand
 const EditableContent: React.FC<{
@@ -89,24 +90,65 @@ const EditableContent: React.FC<{
       setEditValue(value); // Reset to original value
     }
   };
+
+  // Use theme's body2 typography for consistent font styling
+  const consistentTypographyStyles = {
+    fontSize: theme.typography.body2.fontSize,
+    fontFamily: theme.typography.body2.fontFamily,
+    fontWeight: theme.typography.body2.fontWeight,
+    lineHeight: theme.typography.body2.lineHeight,
+  };
   
   if (isEditing) {
     return (
       <Box>
         {allowHtml ? (
-          <ReactQuill
-            theme="snow"
-            value={editValue}
-            onChange={handleQuillChange}
-            onBlur={handleBlur}
-            placeholder={placeholder}
-            modules={{
-              toolbar: [
-                ['bold', 'italic', 'underline', 'strike'],
-              ],
+          <Box
+            sx={{
+              '& .ql-editor': {
+                ...consistentTypographyStyles,
+                padding: '8.5px 14px', // Mimic TextField small padding
+                minHeight: multiline ? `calc(2 * ${consistentTypographyStyles.lineHeight}em)` : `${consistentTypographyStyles.lineHeight}em`,
+                backgroundColor: theme.palette.background.paper,
+              },
+              '& .ql-editor.ql-blank::before': {
+                ...consistentTypographyStyles,
+                color: theme.palette.text.disabled,
+                fontStyle: 'italic',
+                left: '14px',
+                top: '8.5px',
+                right: '14px',
+                position: 'absolute',
+                pointerEvents: 'none',
+              },
+              '& .ql-container.ql-snow': {
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: '6px', 
+              },
+              '& .ql-toolbar.ql-snow': {
+                border: `1px solid ${theme.palette.divider}`,
+                borderBottom: 'none',
+                borderRadius: '6px 6px 0 0',
+                padding: '4px 8px',
+                boxSizing: 'border-box',
+              },
+              backgroundColor: theme.palette.background.paper,
+              borderRadius: '6px',
             }}
-            style={{ backgroundColor: theme.palette.background.paper }}
-          />
+          >
+            <ReactQuill
+              theme="snow"
+              value={editValue}
+              onChange={handleQuillChange}
+              onBlur={handleBlur}
+              placeholder={placeholder}
+              modules={{
+                toolbar: [
+                  ['bold', 'italic', 'underline', 'strike'],
+                ],
+              }}
+            />
+          </Box>
         ) : (
           <TextField
             fullWidth
@@ -123,7 +165,15 @@ const EditableContent: React.FC<{
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: '6px',
-              }
+                backgroundColor: theme.palette.background.paper,
+              },
+              '& .MuiInputBase-input': {
+                ...consistentTypographyStyles,
+              },
+              '& .MuiInputBase-input::placeholder': {
+                ...consistentTypographyStyles,
+                color: theme.palette.text.disabled, 
+              },
             }}
           />
         )}
@@ -137,26 +187,29 @@ const EditableContent: React.FC<{
         display: 'flex', 
         alignItems: 'center', 
         width: '100%',
-        minHeight: '32px',
+        minHeight: '32px', // Original minHeight
         cursor: 'pointer',
+        // Consistent horizontal padding with TextField's input area
+        paddingLeft: '14px', 
+        paddingRight: '14px',
       }}
       onClick={() => setIsEditing(true)}
     >
       {allowHtml ? (
         <Typography
-          variant="body2"
+          variant="body2" // This inherently uses the desired font styles
           sx={{
             flex: 1,
             color: value ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.5),
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
-            '& p': { margin: 0 }, // Reset paragraph margin from Quill
+            '& p': { margin: 0 }, 
           }}
           dangerouslySetInnerHTML={{ __html: value || placeholder }}
         />
       ) : (
         <Typography
-          variant="body2"
+          variant="body2" // This inherently uses the desired font styles
           sx={{
             flex: 1,
             color: value ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.5),

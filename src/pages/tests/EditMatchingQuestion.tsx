@@ -36,7 +36,7 @@ const EditableText = ({
   placeholder = 'Enter text...', 
   multiline = false, 
   isNew = false,
-  allowHtml = false // Added
+  allowHtml = false
 }: {
   value: string;
   onChange: (newValue: string) => void;
@@ -44,13 +44,12 @@ const EditableText = ({
   placeholder?: string;
   multiline?: boolean;
   isNew?: boolean;
-  allowHtml?: boolean; // Added
+  allowHtml?: boolean;
 }) => {
   const theme = useTheme();
   const [isEditing, setIsEditing] = useState(isNew);
   const [text, setText] = useState(value);
   
-  // Update local text if the value prop changes
   React.useEffect(() => {
     setText(value);
   }, [value]);
@@ -59,7 +58,7 @@ const EditableText = ({
     setText(e.target.value);
   };
 
-  const handleQuillChange = (content: string) => { // Added
+  const handleQuillChange = (content: string) => {
     setText(content);
   };
   
@@ -68,7 +67,6 @@ const EditableText = ({
       onChange(text);
     }
     setIsEditing(false);
-    // Delay onBlur to allow parent's state update to settle
     if (onBlur) {
       setTimeout(() => onBlur(), 0);
     }
@@ -83,29 +81,70 @@ const EditableText = ({
       setText(value);
     }
   };
+
+  const consistentTypographyStyles = {
+    fontSize: theme.typography.body2.fontSize,
+    fontFamily: theme.typography.body2.fontFamily,
+    fontWeight: theme.typography.body2.fontWeight,
+    lineHeight: theme.typography.body2.lineHeight,
+  };
   
   if (isEditing) {
     return (
-      <> 
+      <Box> 
         {allowHtml ? (
-          <ReactQuill
-            theme="snow"
-            value={text}
-            onChange={handleQuillChange}
-            onBlur={handleBlur}
-            placeholder={placeholder}
-            modules={{
-              toolbar: [
-                ['bold', 'italic', 'underline', 'strike'],
-              ],
+          <Box
+            sx={{
+              '& .ql-editor': {
+                ...consistentTypographyStyles,
+                padding: '8.5px 14px', // Mimic TextField small padding
+                minHeight: multiline ? `calc(2 * ${consistentTypographyStyles.lineHeight}em)` : `${consistentTypographyStyles.lineHeight}em`,
+                backgroundColor: theme.palette.background.paper,
+              },
+              '& .ql-editor.ql-blank::before': {
+                ...consistentTypographyStyles,
+                color: theme.palette.text.disabled,
+                fontStyle: 'italic',
+                left: '14px',
+                top: '8.5px',
+                right: '14px',
+                position: 'absolute',
+                pointerEvents: 'none',
+              },
+              '& .ql-container.ql-snow': {
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: '6px', 
+              },
+              '& .ql-toolbar.ql-snow': {
+                border: `1px solid ${theme.palette.divider}`,
+                borderBottom: 'none',
+                borderRadius: '6px 6px 0 0',
+                padding: '4px 8px',
+                boxSizing: 'border-box',
+              },
+              backgroundColor: theme.palette.background.paper,
+              borderRadius: '6px',
             }}
-            style={{ backgroundColor: theme.palette.background.paper }}
-          />
+          >
+            <ReactQuill
+              theme="snow"
+              value={text}
+              onChange={handleQuillChange}
+              onBlur={handleBlur}
+              placeholder={placeholder}
+              modules={{
+                toolbar: [
+                  ['bold', 'italic', 'underline', 'strike'],
+                ],
+              }}
+            />
+          </Box>
         ) : (
           <TextField
             fullWidth
-            multiline={multiline}
-            rows={multiline ? 2 : 1}
+            multiline={true} // Always use multiline for better text display
+            minRows={multiline ? 2 : 1}
+            maxRows={20} // Allow growth up to 20 rows before scrolling
             variant="outlined"
             size="small"
             autoFocus
@@ -114,10 +153,26 @@ const EditableText = ({
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            sx={{ borderRadius: '6px' }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '6px',
+                backgroundColor: theme.palette.background.paper,
+              },
+              '& .MuiInputBase-input': {
+                ...consistentTypographyStyles,
+                overflow: 'visible', // Prevent scroll within the input
+              },
+              '& .MuiInputBase-inputMultiline': {
+                resize: 'none', // Disable manual resizing
+              },
+              '& .MuiInputBase-input::placeholder': {
+                ...consistentTypographyStyles,
+                color: theme.palette.text.disabled, 
+              },
+            }}
           />
         )}
-      </>
+      </Box>
     );
   }
   
@@ -125,16 +180,18 @@ const EditableText = ({
     <Box 
       onClick={() => setIsEditing(true)}
       sx={{ 
-        minHeight: '32px',
+        minHeight: '32px', // Consistent min height
         cursor: 'pointer',
-        border: `1px dashed ${alpha(theme.palette.grey[400], 0.5)}`,
-        borderRadius: '6px',
-        padding: '8px 12px',
+        // border: `1px solid transparent`, // Keep border for layout consistency, make transparent
+        borderRadius: '6px', // Consistent border radius
+        padding: '8.5px 14px', // Match TextField small padding
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        width: '100%', // Ensure it takes full width like TextField
         '&:hover': {
-          backgroundColor: alpha(theme.palette.grey[100], 0.5),
+          // backgroundColor: alpha(theme.palette.action.hover, 0.04), // Subtle hover
+          // borderColor: theme.palette.divider, // Show border on hover
         }
       }}
     >
@@ -142,23 +199,43 @@ const EditableText = ({
         <Typography 
           variant="body2" 
           sx={{ 
-            color: value ? 'inherit' : 'text.disabled',
+            color: value ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.5),
             flex: 1,
-            mr: 1,
-            '& p': { margin: 0 }, // Reset paragraph margin from Quill
+            // mr: 1, // Remove margin if EditIcon is positioned absolutely or handled differently
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            '& p': { margin: 0 }, 
           }}
           dangerouslySetInnerHTML={{ __html: value || placeholder }}
         />
       ) : (
         <Typography variant="body2" sx={{ 
-          color: value ? 'inherit' : 'text.disabled',
+          color: value ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.5),
           flex: 1,
-          mr: 1
+          // mr: 1,
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
         }}>
           {value || placeholder}
         </Typography>
       )}
-      <EditIcon fontSize="small" sx={{ opacity: 0.6 }} />
+      <IconButton
+        size="small"
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent Box onClick from firing
+          setIsEditing(true);
+        }}
+        sx={{
+          opacity: 0.6,
+          ml: 1, // Add some margin to the left of the icon
+          '&:hover': {
+            opacity: 1,
+            backgroundColor: alpha(theme.palette.primary.main, 0.1),
+          }
+        }}
+      >
+        <EditIcon fontSize="small" />
+      </IconButton>
     </Box>
   );
 };
