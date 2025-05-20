@@ -11,7 +11,7 @@ import { alpha } from '@mui/material/styles';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditIcon from '@mui/icons-material/Edit';
-import { MatchingCategory, MatchingOption } from './interfaces';
+import { MatchingCategory, MatchingOption } from '../interfaces';
 import ReactQuill from 'react-quill'; // Added
 import 'react-quill/dist/quill.snow.css'; // Added
 

@@ -6,7 +6,7 @@ import {
   useTheme
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { MatchingCategory, MatchingOption, MatchAnswer } from './interfaces';
+import { MatchingCategory, MatchingOption, MatchAnswer } from '../interfaces';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 

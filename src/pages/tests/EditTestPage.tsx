@@ -29,8 +29,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import EditIcon from '@mui/icons-material/Edit';
 import { getHeaderOffset } from '../../components/Header';
 import { FullTestWithAnswers, MatchingCategory, MatchingOption, Question, TestCardMeta } from './interfaces';
-import EditMultipleChoiceQuestion from './EditMultipleChoiceQuestion';
-import EditMatchingQuestion from './EditMatchingQuestion';
+import EditMultipleChoiceQuestion from './components/EditMultipleChoiceQuestion';
+import EditMatchingQuestion from './components/EditMatchingQuestion';
 import QuizIcon from '@mui/icons-material/Quiz';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 

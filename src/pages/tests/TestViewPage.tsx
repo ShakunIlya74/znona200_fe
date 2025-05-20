@@ -29,8 +29,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { getHeaderOffset } from '../../components/Header';
 import { FullTestWithAnswers, Question, TestCardMeta, MatchAnswer, UserTestResponse } from './interfaces';
-import MultipleChoiceQuestion from './MultipleChoiceQuestion';
-import MatchingQuestion from './MatchingQuestion';
+import MultipleChoiceQuestion from './components/MultipleChoiceQuestion';
+import MatchingQuestion from './components/MatchingQuestion';
 
 // Styled components
 interface QuestionButtonProps {

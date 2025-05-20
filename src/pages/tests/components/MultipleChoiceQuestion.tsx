@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
-import { MultipleChoiceOption } from './interfaces';
+import { MultipleChoiceOption } from '../interfaces';
 
 // Answer labels for options
 const ANSWER_LABELS = ['А', 'Б', 'В', 'Г', 'Д'];

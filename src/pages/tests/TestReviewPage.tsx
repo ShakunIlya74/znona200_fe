@@ -22,8 +22,8 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
 import { getHeaderOffset } from '../../components/Header';
 import { FullTestWithAnswers, Question, TestCardMeta } from './interfaces';
-import AnsweredMultipleChoiceQuestion from './AnsweredMultipleChoiceQuestion';
-import AnsweredMatchingQuestion from './AnsweredMatchingQuestion';
+import AnsweredMultipleChoiceQuestion from './components/AnsweredMultipleChoiceQuestion';
+import AnsweredMatchingQuestion from './components/AnsweredMatchingQuestion';
 
 // Styled components
 interface QuestionButtonProps {

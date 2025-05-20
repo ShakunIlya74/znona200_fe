@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
-import { MultipleChoiceOption } from './interfaces';
+import { MultipleChoiceOption } from '../interfaces';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
