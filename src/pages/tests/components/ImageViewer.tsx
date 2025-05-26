@@ -26,8 +26,8 @@ import './ImageViewer.css';
 export interface ImageViewerProps {
   /** Array of image paths from Flask share directory */
   imagePaths: string[];
-  /** Maximum width for images in pixels */
-  maxWidth?: number;
+  /** Maximum width for images in pixels or percentage */
+  maxWidth?: number | string;
   /** Maximum height for images in pixels */
   maxHeight?: number;
   /** Show thumbnails in gallery mode */
@@ -49,7 +49,7 @@ export interface ImageViewerProps {
 interface ImageItemProps {
   src: string;
   alt: string;
-  maxWidth?: number;
+  maxWidth?: number | string;
   maxHeight?: number;
   onClick?: () => void;
 }
@@ -57,8 +57,8 @@ interface ImageItemProps {
 const ImageItem: React.FC<ImageItemProps> = ({
   src,
   alt,
-  maxWidth = 400,
-  maxHeight = 300,
+  maxWidth = '100%',
+  maxHeight,
   onClick
 }) => {
   const [loading, setLoading] = useState(true);
@@ -73,17 +73,16 @@ const ImageItem: React.FC<ImageItemProps> = ({
     setLoading(false);
     setError(true);
   }, []);
-
   if (error) {
     return (
       <Card
         sx={{
           maxWidth,
-          maxHeight,
+          ...(maxHeight && { maxHeight }),
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          minHeight: 200,
+          minHeight: maxHeight || 200,
           cursor: 'pointer'
         }}
         onClick={onClick}
@@ -97,14 +96,19 @@ const ImageItem: React.FC<ImageItemProps> = ({
       </Card>
     );
   }
-
   return (
-    <Box sx={{ position: 'relative', display: 'inline-block' }}>
+    <Box sx={{ 
+      position: 'relative', 
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: '100%'
+    }}>
       {loading && (
         <Skeleton
           variant="rectangular"
           width={maxWidth}
-          height={maxHeight}
+          height={maxHeight || 200}
           sx={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
         />
       )}
@@ -116,11 +120,12 @@ const ImageItem: React.FC<ImageItemProps> = ({
         onError={handleImageError}
         sx={{
           maxWidth,
-          maxHeight,
-          width: 'auto',
+          ...(maxHeight && { maxHeight }),
+          width: typeof maxWidth === 'string' ? maxWidth : 'auto',
           height: 'auto',
           cursor: onClick ? 'pointer' : 'default',
           transition: 'transform 0.2s ease-in-out',
+          display: 'block',
           '&:hover': onClick ? {
             transform: 'scale(1.02)',
           } : {}
@@ -133,13 +138,13 @@ const ImageItem: React.FC<ImageItemProps> = ({
 
 const ImageViewer: React.FC<ImageViewerProps> = ({
   imagePaths = [],
-  maxWidth = 400,
-  maxHeight = 300,
+  maxWidth = '100%',
+  maxHeight,
   showThumbnails = true,
   enableFullscreen = true,
   enableDownload = false,
   title,
-  gridMode = false,
+  gridMode = true,
   gridColumns = 3,
   baseUrl = ''
 }) => {
@@ -194,10 +199,9 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       </Box>
     );
   }
-
   if (gridMode) {
     return (
-      <Box>
+      <Box sx={{ width: '100%' }}>
         {title && (
           <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="h6">{title}</Typography>
@@ -211,9 +215,10 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
           <Box 
           sx={{ 
             display: 'flex', 
-            flexWrap: 'wrap', 
+            flexDirection: imagePaths.length > 1 ? 'column' : 'row',
             gap: 2,
-            justifyContent: 'flex-start'
+            width: '100%',
+            alignItems: 'center'
           }}
         >
           {imagePaths.map((path, index) => {
@@ -222,11 +227,12 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
               <Box 
                 key={index}
                 sx={{ 
-                  flex: `0 0 calc(${100 / responsiveColumns}% - ${8 * (responsiveColumns - 1) / responsiveColumns}px)`,
-                  position: 'relative'
+                  width: '100%',
+                  position: 'relative',
+                  display: 'flex',
+                  justifyContent: 'center'
                 }}
-              >
-                <ImageItem
+              >                <ImageItem
                   src={fullPath}
                   alt={`Image ${index + 1}`}
                   maxWidth={maxWidth}

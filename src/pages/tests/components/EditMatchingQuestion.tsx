@@ -417,17 +417,13 @@ const EditMatchingQuestion = ({
             multiline
             allowHtml // Added
           />        </Box>
-      </Box>
-      
-      {/* Image Viewer Section - Display images if available */}
+      </Box>      {/* Image Viewer Section - Display images if available */}
       {imagePaths && imagePaths.length > 0 && (
         <Box sx={{ mb: 3 }}>
           <ImageViewer
             imagePaths={imagePaths}
             gridMode={true}
-            gridColumns={imagePaths.length === 1 ? 1 : 2}
-            maxWidth={300}
-            maxHeight={200}
+            maxWidth={"80%"}
             enableFullscreen={true}
             enableDownload={false}
             showThumbnails={true}
