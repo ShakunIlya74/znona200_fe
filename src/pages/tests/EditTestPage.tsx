@@ -31,7 +31,6 @@ import { getHeaderOffset } from '../../components/Header';
 import { FullTestWithAnswers, MatchingCategory, MatchingOption, Question, TestCardMeta } from './interfaces';
 import EditMultipleChoiceQuestion from './components/EditMultipleChoiceQuestion';
 import EditMatchingQuestion from './components/EditMatchingQuestion';
-import ImageViewer from './components/ImageViewer';
 import QuizIcon from '@mui/icons-material/Quiz';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 
@@ -816,29 +815,12 @@ const EditTestPage: React.FC = () => {
                           >
                             Видалити
                           </Button>                        </Box>
-                        
-                        {/* Images Section - Display images if available */}
-                        {question.image_paths && question.image_paths.length > 0 && (
-                          <Box sx={{ mb: 3 }}>
-                            <ImageViewer
-                              imagePaths={question.image_paths}
-                              gridMode={true}
-                              gridColumns={question.image_paths.length === 1 ? 1 : 2}
-                              maxWidth={300}
-                              maxHeight={200}
-                              enableFullscreen={true}
-                              enableDownload={false}
-                              showThumbnails={true}
-                              baseUrl=""
-                            />
-                          </Box>
-                        )}
-                        
-                        {question.question_type === 'MULTIPLE_CHOICE' && (
+                          {question.question_type === 'MULTIPLE_CHOICE' && (
                           <EditMultipleChoiceQuestion
                             questionId={question.question_id > 0 ? question.question_id : undefined}
                             initialQuestionText={question.question}
                             initialOptions={question.question_data.options as any[]}
+                            imagePaths={question.image_paths || []}
                             onSave={(data) => handleSaveMultipleChoiceQuestion(data, questions.indexOf(question))}
                           />
                         )}
@@ -849,6 +831,7 @@ const EditTestPage: React.FC = () => {
                             initialQuestionText={question.question}
                             initialCategories={question.question_data.categories as any[]}
                             initialOptions={question.question_data.options as any[]}
+                            imagePaths={question.image_paths || []}
                             onSave={(data) => handleSaveMatchingQuestion(data, questions.indexOf(question))}
                           />
                         )}

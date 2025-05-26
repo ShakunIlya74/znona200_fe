@@ -17,6 +17,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import { MultipleChoiceOption } from '../interfaces';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; // import styles
+import ImageViewer from './ImageViewer';
 
 // Answer labels for options
 const ANSWER_LABELS = ['А', 'Б', 'В', 'Г','Ґ', 'Д', 'Е', 'Є', 'Ж', 'З'];
@@ -25,6 +26,7 @@ interface EditMultipleChoiceQuestionProps {
   questionId?: number; // Optional - if not provided, we're creating a new question
   initialQuestionText?: string;
   initialOptions?: MultipleChoiceOption[];
+  imagePaths?: string[]; // Add support for image paths
   onSave?: (questionData: { 
     question_text: string, 
     options_list: Array<{
@@ -245,6 +247,7 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
   questionId,
   initialQuestionText = '',
   initialOptions = [],
+  imagePaths = [], // Add imagePaths prop
   onSave
 }) => {
   const theme = useTheme();
@@ -356,9 +359,25 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
             placeholder="Введіть текст питання"
             multiline
             allowHtml // Enable HTML for question text
-          />
-        </Paper>
+          />        </Paper>
       </Box>
+      
+      {/* Image Viewer Section - Display images if available */}
+      {imagePaths && imagePaths.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <ImageViewer
+            imagePaths={imagePaths}
+            gridMode={true}
+            gridColumns={imagePaths.length === 1 ? 1 : 2}
+            maxWidth={300}
+            maxHeight={200}
+            enableFullscreen={true}
+            enableDownload={false}
+            showThumbnails={true}
+            baseUrl=""
+          />
+        </Box>
+      )}
       
       {/* Options list */}
       <Box sx={{ mb: 2 }}>

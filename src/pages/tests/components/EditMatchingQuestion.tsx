@@ -14,12 +14,14 @@ import EditIcon from '@mui/icons-material/Edit';
 import { MatchingCategory, MatchingOption } from '../interfaces';
 import ReactQuill from 'react-quill'; // Added
 import 'react-quill/dist/quill.snow.css'; // Added
+import ImageViewer from './ImageViewer';
 
 interface EditMatchingQuestionProps {
   questionId?: number;
   initialQuestionText?: string;
   initialCategories?: MatchingCategory[];
   initialOptions?: MatchingOption[];
+  imagePaths?: string[]; // Add support for image paths
   onSave?: (questionData: { 
     question_id?: number;
     question_text: string;
@@ -245,6 +247,7 @@ const EditMatchingQuestion = ({
   initialQuestionText = '',
   initialCategories = [],
   initialOptions = [],
+  imagePaths = [], // Add imagePaths prop
   onSave
 }: EditMatchingQuestionProps) => {
   const theme = useTheme();
@@ -413,9 +416,25 @@ const EditMatchingQuestion = ({
             placeholder="Введіть текст питання"
             multiline
             allowHtml // Added
+          />        </Box>
+      </Box>
+      
+      {/* Image Viewer Section - Display images if available */}
+      {imagePaths && imagePaths.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <ImageViewer
+            imagePaths={imagePaths}
+            gridMode={true}
+            gridColumns={imagePaths.length === 1 ? 1 : 2}
+            maxWidth={300}
+            maxHeight={200}
+            enableFullscreen={true}
+            enableDownload={false}
+            showThumbnails={true}
+            baseUrl=""
           />
         </Box>
-      </Box>
+      )}
       
       {/* Matching pairs section */}
       <Box sx={{ mb: 3 }}>
