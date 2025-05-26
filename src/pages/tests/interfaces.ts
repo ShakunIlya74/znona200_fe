@@ -34,6 +34,7 @@ export interface TestViewResponse {
     question_order: number;
     max_points: number;
     user_answer?: UserAnswer;
+    image_paths?: string[];
   }
   
   export interface QuestionData {
