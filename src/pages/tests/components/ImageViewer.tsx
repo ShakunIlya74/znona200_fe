@@ -12,13 +12,17 @@ import {
   useMediaQuery,
   Card,
   CardMedia,
-  Skeleton
+  Skeleton,
+  Button,
+  Paper
 } from '@mui/material';
 import {
   Close as CloseIcon,
   ZoomIn as ZoomInIcon,
   Download as DownloadIcon,
-  Error as ErrorIcon
+  Error as ErrorIcon,
+  AttachFile as AttachFileIcon,
+  CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
 import 'react-image-gallery/styles/css/image-gallery.css';
 import './ImageViewer.css';
@@ -44,6 +48,10 @@ export interface ImageViewerProps {
   gridColumns?: number;
   /** Base URL for Flask share directory */
   baseUrl?: string;
+  /** Allow adding new images with drop zone and file browser */
+  allowAdding?: boolean;
+  /** Callback when files are selected for adding */
+  onFilesSelected?: (files: FileList) => void;
 }
 
 interface ImageItemProps {
@@ -146,10 +154,13 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   title,
   gridMode = true,
   gridColumns = 3,
-  baseUrl = ''
+  baseUrl = '',
+  allowAdding = false,
+  onFilesSelected
 }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -180,7 +191,6 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     setGalleryOpen(false);
     setSelectedImageIndex(null);
   }, []);
-
   const handleDownload = useCallback((imagePath: string, index: number) => {
     const link = document.createElement('a');
     link.href = baseUrl ? `${baseUrl}/${imagePath}` : imagePath;
@@ -190,16 +200,113 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     document.body.removeChild(link);
   }, [baseUrl]);
 
-  if (!imagePaths || imagePaths.length === 0) {
+  const handleFileSelect = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const files = (e.target as HTMLInputElement).files;
+      if (files && onFilesSelected) {
+        onFilesSelected(files);
+      }
+    };
+    input.click();
+  }, [onFilesSelected]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const files = e.dataTransfer.files;
+    if (files && onFilesSelected) {
+      onFilesSelected(files);
+    }
+  }, [onFilesSelected]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+  }, []);
+
+  const renderAddImageZone = () => {
+    if (!allowAdding) return null;
+    
     return (
-      <Box sx={{ p: 2, textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
-          No images to display
-        </Typography>
-      </Box>
+      <Paper
+        elevation={dragOver ? 4 : 1}
+        sx={{
+          p: 2,
+          mb: 2,
+          border: `2px dashed ${dragOver ? theme.palette.primary.main : theme.palette.divider}`,
+          backgroundColor: dragOver ? theme.palette.action.hover : 'transparent',
+          transition: 'all 0.2s ease-in-out',
+          cursor: 'pointer',
+          '&:hover': {
+            backgroundColor: theme.palette.action.hover,
+            borderColor: theme.palette.primary.main,
+          }
+        }}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onClick={handleFileSelect}
+      >
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          gap: 2,
+          minHeight: 60
+        }}>
+          <CloudUploadIcon color="primary" />
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body1" color="primary">
+              Drop images here or click to browse
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Supports multiple image files
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            startIcon={<AttachFileIcon />}
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleFileSelect();
+            }}
+          >
+            Browse
+          </Button>
+        </Box>
+      </Paper>
     );
-  }
-  if (gridMode) {
+  };
+  if (!imagePaths || imagePaths.length === 0) {
+    if (allowAdding) {
+      return (
+        <Box sx={{ width: '100%' }}>
+          {title && (
+            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="h6">{title}</Typography>
+              <Chip 
+                label="0 images" 
+                size="small" 
+                variant="outlined"
+              />
+            </Box>
+          )}
+          {renderAddImageZone()}
+        </Box>
+      );
+    }
+    return null;
+  }if (gridMode) {
     return (
       <Box sx={{ width: '100%' }}>
         {title && (
@@ -212,6 +319,9 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             />
           </Box>
         )}
+        
+        {renderAddImageZone()}
+        
           <Box 
           sx={{ 
             display: 'flex', 
@@ -354,7 +464,6 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       </Box>
     );
   }
-
   // Single image gallery mode
   return (
     <Box>
@@ -368,6 +477,8 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
           />
         </Box>
       )}
+      
+      {renderAddImageZone()}
       
       <Box sx={{ 
         '& .image-gallery': {

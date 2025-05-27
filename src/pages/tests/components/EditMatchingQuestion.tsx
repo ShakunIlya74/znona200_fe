@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
+import {
+  Box,
   Typography,
   TextField,
   Button,
@@ -22,7 +22,7 @@ interface EditMatchingQuestionProps {
   initialCategories?: MatchingCategory[];
   initialOptions?: MatchingOption[];
   imagePaths?: string[]; // Add support for image paths
-  onSave?: (questionData: { 
+  onSave?: (questionData: {
     question_id?: number;
     question_text: string;
     category_list: Array<MatchingCategory>;
@@ -32,11 +32,11 @@ interface EditMatchingQuestionProps {
 
 // Simple EditableText component
 const EditableText = ({
-  value, 
-  onChange, 
+  value,
+  onChange,
   onBlur,
-  placeholder = 'Enter text...', 
-  multiline = false, 
+  placeholder = 'Enter text...',
+  multiline = false,
   isNew = false,
   allowHtml = false
 }: {
@@ -51,11 +51,11 @@ const EditableText = ({
   const theme = useTheme();
   const [isEditing, setIsEditing] = useState(isNew);
   const [text, setText] = useState(value);
-  
+
   React.useEffect(() => {
     setText(value);
   }, [value]);
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
   };
@@ -63,7 +63,7 @@ const EditableText = ({
   const handleQuillChange = (content: string) => {
     setText(content);
   };
-  
+
   const handleBlur = () => {
     if (text !== value) {
       onChange(text);
@@ -73,7 +73,7 @@ const EditableText = ({
       setTimeout(() => onBlur(), 0);
     }
   };
-  
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey && !multiline) {
       e.preventDefault();
@@ -90,10 +90,10 @@ const EditableText = ({
     fontWeight: theme.typography.body2.fontWeight,
     lineHeight: theme.typography.body2.lineHeight,
   };
-  
+
   if (isEditing) {
     return (
-      <Box> 
+      <Box>
         {allowHtml ? (
           <Box
             sx={{
@@ -115,7 +115,7 @@ const EditableText = ({
               },
               '& .ql-container.ql-snow': {
                 border: `1px solid ${theme.palette.divider}`,
-                borderRadius: '6px', 
+                borderRadius: '6px',
               },
               '& .ql-toolbar.ql-snow': {
                 border: `1px solid ${theme.palette.divider}`,
@@ -169,7 +169,7 @@ const EditableText = ({
               },
               '& .MuiInputBase-input::placeholder': {
                 ...consistentTypographyStyles,
-                color: theme.palette.text.disabled, 
+                color: theme.palette.text.disabled,
               },
             }}
           />
@@ -177,11 +177,11 @@ const EditableText = ({
       </Box>
     );
   }
-  
+
   return (
-    <Box 
+    <Box
       onClick={() => setIsEditing(true)}
-      sx={{ 
+      sx={{
         minHeight: '32px', // Consistent min height
         cursor: 'pointer',
         // border: `1px solid transparent`, // Keep border for layout consistency, make transparent
@@ -198,20 +198,20 @@ const EditableText = ({
       }}
     >
       {allowHtml ? (
-        <Typography 
-          variant="body2" 
-          sx={{ 
+        <Typography
+          variant="body2"
+          sx={{
             color: value ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.5),
             flex: 1,
             // mr: 1, // Remove margin if EditIcon is positioned absolutely or handled differently
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
-            '& p': { margin: 0 }, 
+            '& p': { margin: 0 },
           }}
           dangerouslySetInnerHTML={{ __html: value || placeholder }}
         />
       ) : (
-        <Typography variant="body2" sx={{ 
+        <Typography variant="body2" sx={{
           color: value ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.5),
           flex: 1,
           // mr: 1,
@@ -264,10 +264,10 @@ const EditMatchingQuestion = ({
   const [nextOptionId, setNextOptionId] = useState<number>(
     initialOptions.length > 0 ? Math.max(...initialOptions.map(opt => opt.id)) + 1 : 1
   );
-  
+
   // Track if initial render has completed
   const [isInitialized, setIsInitialized] = useState(false);
-  
+
   useEffect(() => {
     // Mark that initial render is complete
     setIsInitialized(true);
@@ -278,7 +278,7 @@ const EditMatchingQuestion = ({
     if (!questionText.trim() && categories.length === 0 && options.length === 0) {
       return;
     }
-    
+
     const questionData = {
       question_id: questionId,
       question_text: questionText,
@@ -293,11 +293,11 @@ const EditMatchingQuestion = ({
         matching_category_id: option.matching_category_id
       }))
     };
-    
+
     if (questionId === undefined) {
       delete questionData.question_id;
     }
-    
+
     if (onSave) {
       onSave(questionData);
     }
@@ -319,20 +319,20 @@ const EditMatchingQuestion = ({
       text: '',
       display_order: categories.length
     };
-    
+
     const newOption: MatchingOption = {
       id: nextOptionId,
       text: '',
       matching_category_id: newCategoryId
     };
-    
+
     setCategories([...categories, newCategory]);
     setOptions([...options, newOption]);
     setNextCategoryId(newCategoryId + 1);
     setNextOptionId(nextOptionId + 1);
     // handleSave will be called by useEffect
   };
-  
+
   // Add unmatched option
   const handleAddUnmatchedOption = () => {
     const newOption: MatchingOption = {
@@ -340,7 +340,7 @@ const EditMatchingQuestion = ({
       text: '',
       matching_category_id: null  // Use null to indicate unmatched options
     };
-    
+
     setOptions([...options, newOption]);
     setNextOptionId(nextOptionId + 1);
     // handleSave will be called by useEffect
@@ -351,14 +351,14 @@ const EditMatchingQuestion = ({
     const updatedCategories = categories
       .filter(cat => cat.id !== categoryId)
       .map((cat, index) => ({ ...cat, display_order: index }));
-    
+
     const updatedOptions = options.filter(opt => opt.matching_category_id !== categoryId);
-    
+
     setCategories(updatedCategories);
     setOptions(updatedOptions);
     // handleSave will be called by useEffect
   };
-  
+
   // Remove an unmatched option
   const handleRemoveUnmatchedOption = (optionId: number) => {
     setOptions(options.filter(opt => opt.id !== optionId));
@@ -367,7 +367,7 @@ const EditMatchingQuestion = ({
 
   // Update category text
   const handleUpdateCategoryText = (categoryId: number, text: string) => {
-    const updatedCategories = categories.map(cat => 
+    const updatedCategories = categories.map(cat =>
       cat.id === categoryId ? { ...cat, text } : cat
     );
     setCategories(updatedCategories);
@@ -376,7 +376,7 @@ const EditMatchingQuestion = ({
 
   // Update option text
   const handleUpdateOptionText = (optionId: number, text: string) => {
-    const updatedOptions = options.map(opt => 
+    const updatedOptions = options.map(opt =>
       opt.id === optionId ? { ...opt, text } : opt
     );
     setOptions(updatedOptions);
@@ -390,8 +390,8 @@ const EditMatchingQuestion = ({
 
   // Get unmatched options
   const getUnmatchedOptions = () => {
-    return options.filter(opt => 
-      opt.matching_category_id === null || 
+    return options.filter(opt =>
+      opt.matching_category_id === null ||
       !categories.some(cat => cat.id === opt.matching_category_id)
     );
   };
@@ -416,28 +416,29 @@ const EditMatchingQuestion = ({
             placeholder="Введіть текст питання"
             multiline
             allowHtml // Added
-          />        </Box>
-      </Box>      {/* Image Viewer Section - Display images if available */}
-      {imagePaths && imagePaths.length > 0 && (
-        <Box sx={{ mb: 3 }}>
-          <ImageViewer
-            imagePaths={imagePaths}
-            gridMode={true}
-            maxWidth={"80%"}
-            enableFullscreen={true}
-            enableDownload={false}
-            showThumbnails={true}
-            baseUrl=""
           />
         </Box>
-      )}
-      
+      </Box>
+      {/* Image Viewer Section - Always display, with empty list if no images */}
+      <Box sx={{ mb: 3 }}>
+        <ImageViewer
+          imagePaths={imagePaths || []}
+          gridMode={true}
+          maxWidth={"80%"}
+          enableFullscreen={true}
+          enableDownload={false}
+          showThumbnails={true}
+          baseUrl=""
+          allowAdding={true}
+        />
+      </Box>
+
       {/* Matching pairs section */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
           Відповідності:
         </Typography>
-        
+
         <Box sx={{ display: 'flex', mb: 1, px: 1 }}>
           <Box sx={{ width: '45%', mr: 2 }}>
             <Typography fontWeight="bold">Варіанти</Typography>
@@ -446,17 +447,17 @@ const EditMatchingQuestion = ({
             <Typography fontWeight="bold">Відповіді</Typography>
           </Box>
         </Box>
-        
+
         {/* Matching pairs */}
         {categories.map((category) => {
           const matchedOption = getMatchedOption(category.id);
-          
+
           return (
             <Box
               key={`pair-${category.id}`}
-              sx={{ 
+              sx={{
                 mb: 1,
-                p: 1, 
+                p: 1,
                 borderRadius: '6px',
                 border: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
                 '&:hover': {
@@ -484,7 +485,7 @@ const EditMatchingQuestion = ({
                     isNew={(!matchedOption || matchedOption.text === '')}
                   />
                 </Box>
-                <IconButton 
+                <IconButton
                   onClick={() => handleRemoveMatchingPair(category.id)}
                   size="small"
                   color="error"
@@ -495,7 +496,7 @@ const EditMatchingQuestion = ({
             </Box>
           );
         })}
-        
+
         {/* Add matching pair button */}
         <Button
           variant="outlined"
@@ -506,20 +507,20 @@ const EditMatchingQuestion = ({
         >
           Додати пару відповідності
         </Button>
-        
+
         {/* Unmatched options section */}
         {getUnmatchedOptions().length >= 0 && (
           <Box sx={{ mt: 3 }}>
             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
               Додаткові відповіді (без пари):
             </Typography>
-            
+
             {getUnmatchedOptions().map((option) => (
               <Box
                 key={`unmatched-${option.id}`}
-                sx={{ 
+                sx={{
                   mb: 1,
-                  p: 1, 
+                  p: 1,
                   borderRadius: '6px',
                   border: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
                 }}
@@ -534,7 +535,7 @@ const EditMatchingQuestion = ({
                       isNew={option.text === ''}
                     />
                   </Box>
-                  <IconButton 
+                  <IconButton
                     onClick={() => handleRemoveUnmatchedOption(option.id)}
                     size="small"
                     color="error"
@@ -546,7 +547,7 @@ const EditMatchingQuestion = ({
             ))}
           </Box>
         )}
-        
+
         {/* Add unmatched option button */}
         <Button
           variant="outlined"
