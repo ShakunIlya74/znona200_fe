@@ -28,7 +28,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SaveIcon from '@mui/icons-material/Save';
 import EditIcon from '@mui/icons-material/Edit';
 import { getHeaderOffset } from '../../components/Header';
-import { FullTestWithAnswers, MatchingCategory, MatchingOption, Question, TestCardMeta } from './interfaces';
+import { FullTestWithAnswers, MatchingCategory, MatchingOption, Question, TestCardMeta, UploadedImage } from './interfaces';
 import EditMultipleChoiceQuestion from './components/EditMultipleChoiceQuestion';
 import EditMatchingQuestion from './components/EditMatchingQuestion';
 import QuizIcon from '@mui/icons-material/Quiz';
@@ -74,6 +74,7 @@ interface EditedQuestion extends Question {
   isEdited?: boolean;
   isNew?: boolean;
   markedForDeletion?: boolean;
+  uploadedImages?: UploadedImage[];
 }
 
 // EditableContent component for test name that transforms into editable field
@@ -390,7 +391,6 @@ const EditTestPage: React.FC = () => {
     setQuestions(updatedQuestions);
     setIsSaved(false); // Mark as unsaved when deleting a question
   };
-
   // Handle saving a multiple choice question
   const handleSaveMultipleChoiceQuestion = (questionData: {
     question_text: string;
@@ -399,6 +399,7 @@ const EditTestPage: React.FC = () => {
       text: string;
       is_correct: boolean;
     }>;
+    uploadedImages?: UploadedImage[];
   }, questionIndex: number) => {
     const updatedQuestions = [...questions];
     
@@ -413,20 +414,22 @@ const EditTestPage: React.FC = () => {
           is_correct: option.is_correct
         }))
       },
-      isEdited: true
+      isEdited: true,
+      // Store uploaded images for later processing
+      uploadedImages: questionData.uploadedImages
     };
     
     console.log('Updated question:', updatedQuestions[questionIndex]);
     setQuestions(updatedQuestions);
     setIsSaved(false); // Mark as unsaved when a question is edited
   };
-
   // Handle saving a matching question
   const handleSaveMatchingQuestion = (questionData: {
     question_id?: number;
     question_text: string;
     category_list: Array<MatchingCategory>;
     options_list: Array<MatchingOption>;
+    uploadedImages?: UploadedImage[];
   }, questionIndex: number) => {
     const updatedQuestions = [...questions];
     
@@ -446,7 +449,9 @@ const EditTestPage: React.FC = () => {
           matching_category_id: option.matching_category_id
         }))
       },
-      isEdited: true
+      isEdited: true,
+      // Store uploaded images for later processing
+      uploadedImages: questionData.uploadedImages
     };
     
     setQuestions(updatedQuestions);
@@ -463,7 +468,6 @@ const EditTestPage: React.FC = () => {
   const handleBackClick = () => {
     navigate('/tests');
   };
-
   // Handle save test
   const handleSaveTest = async () => {
     setIsSaving(true);
@@ -480,7 +484,8 @@ const EditTestPage: React.FC = () => {
           question_data: q.question_data,
           max_points: q.max_points,
           isNew: q.isNew,
-          markedForDeletion: q.markedForDeletion // Include marked for deletion
+          markedForDeletion: q.markedForDeletion, // Include marked for deletion
+          uploadedImages: q.uploadedImages // Include uploaded images for processing
         }))
     };
     
@@ -815,17 +820,16 @@ const EditTestPage: React.FC = () => {
                           >
                             Видалити
                           </Button>                        </Box>
-                          {question.question_type === 'MULTIPLE_CHOICE' && (
-                          <EditMultipleChoiceQuestion
+                          {question.question_type === 'MULTIPLE_CHOICE' && (                          <EditMultipleChoiceQuestion
                             questionId={question.question_id > 0 ? question.question_id : undefined}
                             initialQuestionText={question.question}
                             initialOptions={question.question_data.options as any[]}
                             imagePaths={question.image_paths || []}
                             onSave={(data) => handleSaveMultipleChoiceQuestion(data, questions.indexOf(question))}
+                            onMarkUnsaved={() => setIsSaved(false)}
                           />
                         )}
-                        
-                        {question.question_type === 'MATCHING' && (
+                          {question.question_type === 'MATCHING' && (
                           <EditMatchingQuestion
                             questionId={question.question_id > 0 ? question.question_id : undefined}
                             initialQuestionText={question.question}
@@ -833,6 +837,7 @@ const EditTestPage: React.FC = () => {
                             initialOptions={question.question_data.options as any[]}
                             imagePaths={question.image_paths || []}
                             onSave={(data) => handleSaveMatchingQuestion(data, questions.indexOf(question))}
+                            onMarkUnsaved={() => setIsSaved(false)}
                           />
                         )}
                       </Paper>

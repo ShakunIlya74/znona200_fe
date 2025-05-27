@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import 'react-image-gallery/styles/css/image-gallery.css';
 import './ImageViewer.css';
+import { UploadedImage } from '../interfaces';
 
 export interface ImageViewerProps {
   /** Array of image paths from Flask share directory */
@@ -52,6 +53,8 @@ export interface ImageViewerProps {
   allowAdding?: boolean;
   /** Callback when files are selected for adding */
   onFilesSelected?: (files: FileList) => void;
+  /** Array of uploaded images for preview */
+  uploadedImages?: UploadedImage[];
 }
 
 interface ImageItemProps {
@@ -156,7 +159,8 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   gridColumns = 3,
   baseUrl = '',
   allowAdding = false,
-  onFilesSelected
+  onFilesSelected,
+  uploadedImages = []
 }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -165,20 +169,36 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-
   // Adjust grid columns based on screen size
   const responsiveColumns = isSmall ? 1 : isMobile ? 2 : gridColumns;
 
+  // Combine existing image paths and uploaded images for display
+  const allImages = [
+    ...imagePaths.map((path, index) => ({
+      type: 'existing' as const,
+      src: baseUrl ? `${baseUrl}/${path}` : path,
+      alt: `Image ${index + 1}`,
+      index,
+      originalPath: path
+    })),
+    ...uploadedImages.map((uploadedImage, index) => ({
+      type: 'uploaded' as const,
+      src: uploadedImage.preview,
+      alt: uploadedImage.name,
+      index: imagePaths.length + index,
+      uploadedImage
+    }))
+  ];
+
+  const totalImageCount = allImages.length;
+
   // Prepare images for react-image-gallery
-  const galleryImages: ReactImageGalleryItem[] = imagePaths.map((path, index) => {
-    const fullPath = baseUrl ? `${baseUrl}/${path}` : path;
-    return {
-      original: fullPath,
-      thumbnail: fullPath,
-      originalAlt: `Image ${index + 1}`,
-      thumbnailAlt: `Thumbnail ${index + 1}`,
-    };
-  });
+  const galleryImages: ReactImageGalleryItem[] = allImages.map((img) => ({
+    original: img.src,
+    thumbnail: img.src,
+    originalAlt: img.alt,
+    thumbnailAlt: img.alt,
+  }));
 
   const handleImageClick = useCallback((index: number) => {
     if (enableFullscreen) {
@@ -286,8 +306,8 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         </Box>
       </Paper>
     );
-  };
-  if (!imagePaths || imagePaths.length === 0) {
+  };  // Show empty state with upload zone if no images and allowAdding is true
+  if (totalImageCount === 0) {
     if (allowAdding) {
       return (
         <Box sx={{ width: '100%' }}>
@@ -306,14 +326,14 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       );
     }
     return null;
-  }if (gridMode) {
+  }  if (gridMode) {
     return (
       <Box sx={{ width: '100%' }}>
         {title && (
           <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="h6">{title}</Typography>
             <Chip 
-              label={`${imagePaths.length} image${imagePaths.length !== 1 ? 's' : ''}`} 
+              label={`${totalImageCount} image${totalImageCount !== 1 ? 's' : ''}`} 
               size="small" 
               variant="outlined"
             />
@@ -322,77 +342,75 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         
         {renderAddImageZone()}
         
-          <Box 
+        <Box 
           sx={{ 
             display: 'flex', 
-            flexDirection: imagePaths.length > 1 ? 'column' : 'row',
+            flexDirection: totalImageCount > 1 ? 'column' : 'row',
             gap: 2,
             width: '100%',
             alignItems: 'center'
           }}
         >
-          {imagePaths.map((path, index) => {
-            const fullPath = baseUrl ? `${baseUrl}/${path}` : path;
-            return (
-              <Box 
-                key={index}
-                sx={{ 
-                  width: '100%',
-                  position: 'relative',
-                  display: 'flex',
-                  justifyContent: 'center'
-                }}
-              >                <ImageItem
-                  src={fullPath}
-                  alt={`Image ${index + 1}`}
-                  maxWidth={maxWidth}
-                  maxHeight={maxHeight}
+          {allImages.map((img, index) => (
+            <Box 
+              key={`${img.type}-${index}`}
+              sx={{ 
+                width: '100%',
+                position: 'relative',
+                display: 'flex',
+                justifyContent: 'center'
+              }}
+            >
+              <ImageItem
+                src={img.src}
+                alt={img.alt}
+                maxWidth={maxWidth}
+                maxHeight={maxHeight}
+                onClick={() => handleImageClick(index)}
+              />
+              
+              {enableDownload && img.type === 'existing' && (
+                <IconButton
+                  size="small"
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    }
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownload(img.originalPath!, index);
+                  }}
+                >
+                  <DownloadIcon fontSize="small" />
+                </IconButton>
+              )}
+              
+              {enableFullscreen && (
+                <IconButton
+                  size="small"
+                  sx={{
+                    position: 'absolute',
+                    bottom: 8,
+                    right: 8,
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    }
+                  }}
                   onClick={() => handleImageClick(index)}
-                />
-                
-                {enableDownload && (
-                  <IconButton
-                    size="small"
-                    sx={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                      }
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDownload(path, index);
-                    }}
-                  >
-                    <DownloadIcon fontSize="small" />
-                  </IconButton>
-                )}
-                
-                {enableFullscreen && (
-                  <IconButton
-                    size="small"
-                    sx={{
-                      position: 'absolute',
-                      bottom: 8,
-                      right: 8,
-                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                      }
-                    }}
-                    onClick={() => handleImageClick(index)}
-                  >
-                    <ZoomInIcon fontSize="small" />
-                  </IconButton>
-                )}
-              </Box>
-            );
-          })}
+                >
+                  <ZoomInIcon fontSize="small" />
+                </IconButton>
+              )}
+            </Box>
+          ))}
         </Box>
 
         {/* Fullscreen Gallery Dialog */}
@@ -409,8 +427,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                 maxHeight: '95vh',
               }
             }}
-          >
-            <DialogTitle sx={{ 
+          >            <DialogTitle sx={{ 
               color: 'white', 
               display: 'flex', 
               justifyContent: 'space-between',
@@ -418,7 +435,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
               pb: 1
             }}>
               <Typography variant="h6">
-                {title || 'Image Gallery'} ({selectedImageIndex !== null ? selectedImageIndex + 1 : 1} of {imagePaths.length})
+                {title || 'Image Gallery'} ({selectedImageIndex !== null ? selectedImageIndex + 1 : 1} of {totalImageCount})
               </Typography>
               <IconButton
                 onClick={handleCloseGallery}
@@ -437,9 +454,8 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                 startIndex={selectedImageIndex || 0}
                 thumbnailPosition={isMobile ? 'bottom' : 'bottom'}
                 showNav={galleryImages.length > 1}
-                additionalClass="custom-image-gallery"
-                renderCustomControls={() => (
-                  enableDownload && selectedImageIndex !== null ? (
+                additionalClass="custom-image-gallery"                renderCustomControls={() => (
+                  enableDownload && selectedImageIndex !== null && allImages[selectedImageIndex]?.type === 'existing' ? (
                     <IconButton
                       sx={{
                         position: 'absolute',
@@ -451,7 +467,12 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                           backgroundColor: 'rgba(0, 0, 0, 0.7)',
                         }
                       }}
-                      onClick={() => handleDownload(imagePaths[selectedImageIndex], selectedImageIndex)}
+                      onClick={() => {
+                        const img = allImages[selectedImageIndex];
+                        if (img.type === 'existing') {
+                          handleDownload(img.originalPath!, selectedImageIndex);
+                        }
+                      }}
                     >
                       <DownloadIcon />
                     </IconButton>
@@ -463,15 +484,14 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         )}
       </Box>
     );
-  }
-  // Single image gallery mode
+  }  // Single image gallery mode
   return (
     <Box>
       {title && (
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="h6">{title}</Typography>
           <Chip 
-            label={`${imagePaths.length} image${imagePaths.length !== 1 ? 's' : ''}`} 
+            label={`${totalImageCount} image${totalImageCount !== 1 ? 's' : ''}`} 
             size="small" 
             variant="outlined"
           />
@@ -512,7 +532,10 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                 }}
                 onClick={() => {
                   const currentIndex = 0; // You'd need to track current index
-                  handleDownload(imagePaths[currentIndex], currentIndex);
+                  const img = allImages[currentIndex];
+                  if (img?.type === 'existing') {
+                    handleDownload(img.originalPath!, currentIndex);
+                  }
                 }}
               >
                 <DownloadIcon />

@@ -18,6 +18,7 @@ import { MultipleChoiceOption } from '../interfaces';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; // import styles
 import ImageViewer from './ImageViewer';
+import { UploadedImage } from '../interfaces';
 
 // Answer labels for options
 const ANSWER_LABELS = ['А', 'Б', 'В', 'Г', 'Ґ', 'Д', 'Е', 'Є', 'Ж', 'З'];
@@ -33,10 +34,11 @@ interface EditMultipleChoiceQuestionProps {
       id: number,
       text: string,
       is_correct: boolean
-    }>
+    }>,
+    uploadedImages?: UploadedImage[] // Add uploaded images to save data
   }) => void;
+  onMarkUnsaved?: () => void; // Callback to mark the test as unsaved
 }
-// TODO: ensure that editable content has the same font size as static text content
 
 // EditableContent component for text that transforms into editable field on demand
 const EditableContent: React.FC<{
@@ -248,13 +250,15 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
   initialQuestionText = '',
   initialOptions = [],
   imagePaths = [], // Add imagePaths prop
-  onSave
+  onSave,
+  onMarkUnsaved
 }) => {
   const theme = useTheme();
   const [questionText, setQuestionText] = useState(initialQuestionText);
   const [options, setOptions] = useState<MultipleChoiceOption[]>(initialOptions);
   const [nextOptionId, setNextOptionId] = useState<number>(1000); // Start with a high ID to avoid conflicts
-
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [nextImageId, setNextImageId] = useState<number>(1);
   // Initialize nextOptionId based on existing options
   useEffect(() => {
     if (initialOptions.length > 0) {
@@ -262,6 +266,40 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
       setNextOptionId(maxId + 1);
     }
   }, [initialOptions]);
+
+  // Handle file selection and processing
+  const handleFilesSelected = (files: FileList) => {
+    const newImages: UploadedImage[] = [];
+    
+    Array.from(files).forEach((file) => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const preview = e.target?.result as string;
+          const uploadedImage: UploadedImage = {
+            id: `uploaded-${nextImageId}`,
+            file,
+            preview,
+            name: file.name,
+            size: file.size
+          };
+          newImages.push(uploadedImage);
+          
+          // Update state when all files are processed
+          if (newImages.length === files.length) {
+            setUploadedImages(prev => [...prev, ...newImages]);
+            setNextImageId(prev => prev + files.length);
+            
+            // Mark as unsaved when images are uploaded
+            if (onMarkUnsaved) {
+              onMarkUnsaved();
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
 
   const handleSave = () => {
     // Only save if there's actual content
@@ -275,7 +313,8 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
         id: option.id,
         text: option.text,
         is_correct: option.is_correct
-      }))
+      })),
+      uploadedImages: uploadedImages.length > 0 ? uploadedImages : undefined
     };
 
     if (onSave) {
@@ -360,11 +399,12 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
             multiline
             allowHtml // Enable HTML for question text
           />        </Paper>
-      </Box>
-      {/* Image Viewer Section - Always render, pass empty array if no images */}
+      </Box>      {/* Image Viewer Section - Always render, pass empty array if no images */}
       <Box sx={{ mb: 3 }}>
         <ImageViewer
           imagePaths={imagePaths || []}
+          uploadedImages={uploadedImages}
+          onFilesSelected={handleFilesSelected}
           gridMode={true}
           maxWidth={"80%"}
           enableFullscreen={true}
