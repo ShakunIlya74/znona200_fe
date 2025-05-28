@@ -38,6 +38,7 @@ interface EditMultipleChoiceQuestionProps {
     uploadedImages?: UploadedImage[] // Add uploaded images to save data
   }) => void;
   onMarkUnsaved?: () => void; // Callback to mark the test as unsaved
+  onExistingImageRemove?: (imagePath: string) => void; // Callback for removing existing images
 }
 
 // EditableContent component for text that transforms into editable field on demand
@@ -245,13 +246,13 @@ const EditableContent: React.FC<{
     );
   };
 
-const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
-  questionId,
+const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({  questionId,
   initialQuestionText = '',
   initialOptions = [],
   imagePaths = [], // Add imagePaths prop
   onSave,
-  onMarkUnsaved
+  onMarkUnsaved,
+  onExistingImageRemove
 }) => {
   const theme = useTheme();
   const [questionText, setQuestionText] = useState(initialQuestionText);
@@ -326,6 +327,23 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
 
     if (onSave) {
       onSave(questionData);
+    }
+  };
+
+  // Handle removal of uploaded images
+  const handleRemoveUploadedImage = (imageId: string) => {
+    setUploadedImages(prev => prev.filter(img => img.id !== imageId));
+    if (onMarkUnsaved) {
+      onMarkUnsaved();
+    }
+  };
+  // Handle removal of existing images
+  const handleRemoveExistingImage = (imagePath: string) => {
+    if (onExistingImageRemove) {
+      onExistingImageRemove(imagePath);
+      if (onMarkUnsaved) {
+        onMarkUnsaved();
+      }
     }
   };
 
@@ -405,8 +423,7 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
             allowHtml // Enable HTML for question text
           />        </Paper>
       </Box>      {/* Image Viewer Section - Always render, pass empty array if no images */}
-      <Box sx={{ mb: 3 }}>
-        <ImageViewer
+      <Box sx={{ mb: 3 }}>        <ImageViewer
           imagePaths={imagePaths || []}
           uploadedImages={uploadedImages}
           onFilesSelected={handleFilesSelected}
@@ -417,6 +434,9 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
           showThumbnails={true}
           baseUrl=""
           allowAdding={true}
+          allowRemoving={true}
+          onUploadedImageRemove={handleRemoveUploadedImage}
+          onExistingImageRemove={handleRemoveExistingImage}
         />
       </Box>
 

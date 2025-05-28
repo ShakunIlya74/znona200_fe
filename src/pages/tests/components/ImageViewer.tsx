@@ -55,6 +55,12 @@ export interface ImageViewerProps {
   onFilesSelected?: (files: FileList) => void;
   /** Array of uploaded images for preview */
   uploadedImages?: UploadedImage[];
+  /** Allow removing images */
+  allowRemoving?: boolean;
+  /** Callback when an uploaded image is removed */
+  onUploadedImageRemove?: (imageId: string) => void;
+  /** Callback when an existing image is removed */
+  onExistingImageRemove?: (imagePath: string) => void;
 }
 
 interface ImageItemProps {
@@ -63,6 +69,8 @@ interface ImageItemProps {
   maxWidth?: number | string;
   maxHeight?: number;
   onClick?: () => void;
+  onRemove?: () => void;
+  allowRemoving?: boolean;
 }
 
 const ImageItem: React.FC<ImageItemProps> = ({
@@ -70,7 +78,9 @@ const ImageItem: React.FC<ImageItemProps> = ({
   alt,
   maxWidth = '100%',
   maxHeight,
-  onClick
+  onClick,
+  onRemove,
+  allowRemoving = false
 }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -106,8 +116,7 @@ const ImageItem: React.FC<ImageItemProps> = ({
         </Box>
       </Card>
     );
-  }
-  return (
+  }  return (
     <Box sx={{ 
       position: 'relative', 
       display: 'flex',
@@ -143,6 +152,31 @@ const ImageItem: React.FC<ImageItemProps> = ({
         }}
         onClick={onClick}
       />
+      
+      {/* Remove button */}
+      {allowRemoving && onRemove && (
+        <IconButton
+          size="small"
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            color: 'error.main',
+            boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 1)',
+              boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
+            }
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      )}
     </Box>
   );
 };
@@ -160,7 +194,10 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   baseUrl = '',
   allowAdding = false,
   onFilesSelected,
-  uploadedImages = []
+  uploadedImages = [],
+  allowRemoving = false,
+  onUploadedImageRemove,
+  onExistingImageRemove
 }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -211,6 +248,21 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     setGalleryOpen(false);
     setSelectedImageIndex(null);
   }, []);
+
+  // Handle removal of uploaded images
+  const handleRemoveUploadedImage = useCallback((imageId: string) => {
+    if (onUploadedImageRemove) {
+      onUploadedImageRemove(imageId);
+    }
+  }, [onUploadedImageRemove]);
+
+  // Handle removal of existing images  
+  const handleRemoveExistingImage = useCallback((imagePath: string) => {
+    if (onExistingImageRemove) {
+      onExistingImageRemove(imagePath);
+    }
+  }, [onExistingImageRemove]);
+
   const handleDownload = useCallback((imagePath: string, index: number) => {
     const link = document.createElement('a');
     link.href = baseUrl ? `${baseUrl}/${imagePath}` : imagePath;
@@ -247,7 +299,6 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     e.preventDefault();
     setDragOver(true);
   }, []);
-
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
@@ -360,13 +411,17 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                 display: 'flex',
                 justifyContent: 'center'
               }}
-            >
-              <ImageItem
+            >              <ImageItem
                 src={img.src}
                 alt={img.alt}
                 maxWidth={maxWidth}
                 maxHeight={maxHeight}
                 onClick={() => handleImageClick(index)}
+                allowRemoving={allowRemoving}
+                onRemove={img.type === 'uploaded' 
+                  ? () => handleRemoveUploadedImage(img.uploadedImage!.id)
+                  : () => handleRemoveExistingImage(img.originalPath!)
+                }
               />
               
               {enableDownload && img.type === 'existing' && (
@@ -374,7 +429,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                   size="small"
                   sx={{
                     position: 'absolute',
-                    top: 8,
+                    bottom: 8,
                     right: 8,
                     backgroundColor: 'rgba(0, 0, 0, 0.6)',
                     color: 'white',
@@ -397,7 +452,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                   sx={{
                     position: 'absolute',
                     bottom: 8,
-                    right: 8,
+                    left: 8,
                     backgroundColor: 'rgba(0, 0, 0, 0.6)',
                     color: 'white',
                     '&:hover': {

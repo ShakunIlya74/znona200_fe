@@ -31,6 +31,7 @@ interface EditMatchingQuestionProps {
     uploadedImages?: UploadedImage[]; // Add uploaded images to save data
   }) => void;
   onMarkUnsaved?: () => void; // Callback to mark the test as unsaved
+  onExistingImageRemove?: (imagePath: string) => void; // Callback for removing existing images
 }
 
 // Simple EditableText component
@@ -252,7 +253,8 @@ const EditMatchingQuestion = ({
   initialOptions = [],
   imagePaths = [], // Add imagePaths prop
   onSave,
-  onMarkUnsaved
+  onMarkUnsaved,
+  onExistingImageRemove
 }: EditMatchingQuestionProps) => {
   const theme = useTheme();
   const [questionText, setQuestionText] = useState(initialQuestionText);
@@ -314,6 +316,24 @@ const EditMatchingQuestion = ({
       }
     });
   };
+
+  // Handle removal of uploaded images
+  const handleRemoveUploadedImage = (imageId: string) => {
+    setUploadedImages(prev => prev.filter(img => img.id !== imageId));
+    if (onMarkUnsaved) {
+      onMarkUnsaved();
+    }
+  };
+  // Handle removal of existing images
+  const handleRemoveExistingImage = (imagePath: string) => {
+    if (onExistingImageRemove) {
+      onExistingImageRemove(imagePath);
+      if (onMarkUnsaved) {
+        onMarkUnsaved();
+      }
+    }
+  };
+
   // Save all changes
   const handleSave = () => {
     if (!questionText.trim() && categories.length === 0 && options.length === 0) {
@@ -466,8 +486,7 @@ const EditMatchingQuestion = ({
           />
         </Box>
       </Box>      {/* Image Viewer Section - Always display, with empty list if no images */}
-      <Box sx={{ mb: 3 }}>
-        <ImageViewer
+      <Box sx={{ mb: 3 }}>        <ImageViewer
           imagePaths={imagePaths || []}
           uploadedImages={uploadedImages}
           onFilesSelected={handleFilesSelected}
@@ -478,6 +497,9 @@ const EditMatchingQuestion = ({
           showThumbnails={true}
           baseUrl=""
           allowAdding={true}
+          allowRemoving={true}
+          onUploadedImageRemove={handleRemoveUploadedImage}
+          onExistingImageRemove={handleRemoveExistingImage}
         />
       </Box>
 

@@ -75,6 +75,7 @@ interface EditedQuestion extends Question {
   isNew?: boolean;
   markedForDeletion?: boolean;
   uploadedImages?: UploadedImage[];
+  imagesToRemove?: string[]; // Array of image paths to remove
 }
 
 // EditableContent component for test name that transforms into editable field
@@ -458,6 +459,33 @@ const EditTestPage: React.FC = () => {
     setIsSaved(false); // Mark as unsaved when a question is edited
   };
 
+  // Handle removal of existing images from a question
+  const handleExistingImageRemove = (questionIndex: number, imagePath: string) => {
+    const updatedQuestions = [...questions];
+    const question = updatedQuestions[questionIndex];
+    
+    // Initialize imagesToRemove array if it doesn't exist
+    if (!question.imagesToRemove) {
+      question.imagesToRemove = [];
+    }
+    
+    // Add the image path to the removal list if not already there
+    if (!question.imagesToRemove.includes(imagePath)) {
+      question.imagesToRemove.push(imagePath);
+    }
+    
+    // Remove the image from the current image_paths array for immediate UI update
+    if (question.image_paths) {
+      question.image_paths = question.image_paths.filter(path => path !== imagePath);
+    }
+    
+    // Mark the question as edited
+    question.isEdited = true;
+    
+    setQuestions(updatedQuestions);
+    setIsSaved(false);
+  };
+
   // Handler for question selection
   const handleQuestionSelect = (index: number) => {
     setShowQuestionTypeDialog(false);
@@ -471,8 +499,7 @@ const EditTestPage: React.FC = () => {
   // Handle save test
   const handleSaveTest = async () => {
     setIsSaving(true);
-    
-    // Prepare data for saving
+      // Prepare data for saving
     const testToSave = {
       test_id: testData?.test_id,
       test_name: testNameEdited,
@@ -485,7 +512,8 @@ const EditTestPage: React.FC = () => {
           max_points: q.max_points,
           isNew: q.isNew,
           markedForDeletion: q.markedForDeletion, // Include marked for deletion
-          uploadedImages: q.uploadedImages // Include uploaded images for processing
+          uploadedImages: q.uploadedImages, // Include uploaded images for processing
+          imagesToRemove: q.imagesToRemove // Include images to remove
         }))
     };
     
@@ -827,10 +855,10 @@ const EditTestPage: React.FC = () => {
                             imagePaths={question.image_paths || []}
                             onSave={(data) => handleSaveMultipleChoiceQuestion(data, questions.indexOf(question))}
                             onMarkUnsaved={() => setIsSaved(false)}
+                            onExistingImageRemove={(imagePath) => handleExistingImageRemove(questions.indexOf(question), imagePath)}
                           />
                         )}
-                          {question.question_type === 'MATCHING' && (
-                          <EditMatchingQuestion
+                          {question.question_type === 'MATCHING' && (                          <EditMatchingQuestion
                             questionId={question.question_id > 0 ? question.question_id : undefined}
                             initialQuestionText={question.question}
                             initialCategories={question.question_data.categories as any[]}
@@ -838,6 +866,7 @@ const EditTestPage: React.FC = () => {
                             imagePaths={question.image_paths || []}
                             onSave={(data) => handleSaveMatchingQuestion(data, questions.indexOf(question))}
                             onMarkUnsaved={() => setIsSaved(false)}
+                            onExistingImageRemove={(imagePath) => handleExistingImageRemove(questions.indexOf(question), imagePath)}
                           />
                         )}
                       </Paper>
