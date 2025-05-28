@@ -278,41 +278,42 @@ const EditMatchingQuestion = ({
     // Mark that initial render is complete
     setIsInitialized(true);
   }, []);
-
   // Handle file selection and processing
   const handleFilesSelected = (files: FileList) => {
-    const newImages: UploadedImage[] = [];
+    const fileArray = Array.from(files).filter(file => file.type.startsWith('image/'));
     
-    Array.from(files).forEach((file) => {
-      if (file.type.startsWith('image/')) {
+    if (fileArray.length === 0) return;
+    
+    // Process all files and wait for all FileReader operations to complete
+    const promises = fileArray.map((file, index) => {
+      return new Promise<UploadedImage>((resolve) => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const preview = e.target?.result as string;
           const uploadedImage: UploadedImage = {
-            id: `uploaded-${nextImageId}`,
+            id: `uploaded-${nextImageId + index}`,
             file,
             preview,
             name: file.name,
             size: file.size
           };
-          newImages.push(uploadedImage);
-          
-          // Update state when all files are processed
-          if (newImages.length === files.length) {
-            setUploadedImages(prev => [...prev, ...newImages]);
-            setNextImageId(prev => prev + files.length);
-            
-            // Mark as unsaved when images are uploaded
-            if (onMarkUnsaved) {
-              onMarkUnsaved();
-            }
-          }
+          resolve(uploadedImage);
         };
         reader.readAsDataURL(file);
+      });
+    });
+    
+    // Wait for all files to be processed
+    Promise.all(promises).then((newImages) => {
+      setUploadedImages(prev => [...prev, ...newImages]);
+      setNextImageId(prev => prev + fileArray.length);
+      
+      // Mark as unsaved when images are uploaded
+      if (onMarkUnsaved) {
+        onMarkUnsaved();
       }
     });
   };
-
   // Save all changes
   const handleSave = () => {
     if (!questionText.trim() && categories.length === 0 && options.length === 0) {
@@ -339,18 +340,23 @@ const EditMatchingQuestion = ({
       delete questionData.question_id;
     }
 
+    console.log('Saving matching question data with uploadedImages:', {
+      questionData,
+      uploadedImagesCount: uploadedImages.length,
+      uploadedImages: uploadedImages
+    });
+
     if (onSave) {
       onSave(questionData);
     }
   };
-
   // Use effect to trigger saves when state changes
   useEffect(() => {
     // Skip the initial render to avoid unnecessary save
     if (isInitialized) {
       handleSave();
     }
-  }, [questionText, categories, options]);
+  }, [questionText, categories, options, uploadedImages]);
 
   // Add a new matching pair
   const handleAddMatchingPair = () => {

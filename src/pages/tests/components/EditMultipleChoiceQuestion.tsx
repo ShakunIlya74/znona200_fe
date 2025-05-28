@@ -266,41 +266,42 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
       setNextOptionId(maxId + 1);
     }
   }, [initialOptions]);
-
   // Handle file selection and processing
   const handleFilesSelected = (files: FileList) => {
-    const newImages: UploadedImage[] = [];
+    const fileArray = Array.from(files).filter(file => file.type.startsWith('image/'));
     
-    Array.from(files).forEach((file) => {
-      if (file.type.startsWith('image/')) {
+    if (fileArray.length === 0) return;
+    
+    // Process all files and wait for all FileReader operations to complete
+    const promises = fileArray.map((file, index) => {
+      return new Promise<UploadedImage>((resolve) => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const preview = e.target?.result as string;
           const uploadedImage: UploadedImage = {
-            id: `uploaded-${nextImageId}`,
+            id: `uploaded-${nextImageId + index}`,
             file,
             preview,
             name: file.name,
             size: file.size
           };
-          newImages.push(uploadedImage);
-          
-          // Update state when all files are processed
-          if (newImages.length === files.length) {
-            setUploadedImages(prev => [...prev, ...newImages]);
-            setNextImageId(prev => prev + files.length);
-            
-            // Mark as unsaved when images are uploaded
-            if (onMarkUnsaved) {
-              onMarkUnsaved();
-            }
-          }
+          resolve(uploadedImage);
         };
         reader.readAsDataURL(file);
+      });
+    });
+    
+    // Wait for all files to be processed
+    Promise.all(promises).then((newImages) => {
+      setUploadedImages(prev => [...prev, ...newImages]);
+      setNextImageId(prev => prev + fileArray.length);
+      
+      // Mark as unsaved when images are uploaded
+      if (onMarkUnsaved) {
+        onMarkUnsaved();
       }
     });
   };
-
   const handleSave = () => {
     // Only save if there's actual content
     if (!questionText.trim() && options.every(opt => !opt.text.trim())) {
@@ -317,8 +318,13 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
       uploadedImages: uploadedImages.length > 0 ? uploadedImages : undefined
     };
 
+    console.log('Saving question data with uploadedImages:', {
+      questionData,
+      uploadedImagesCount: uploadedImages.length,
+      uploadedImages: uploadedImages
+    });
+
     if (onSave) {
-      console.log('Saving question data:', questionData);
       onSave(questionData);
     }
   };
@@ -359,14 +365,13 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
     setOptions(updatedOptions);
     // We'll save after the state is updated with useEffect
   };
-
   // Effect to handle saves after state updates
   useEffect(() => {
     // Skip initial render
-    if (options !== initialOptions || questionText !== initialQuestionText) {
+    if (options !== initialOptions || questionText !== initialQuestionText || uploadedImages.length > 0) {
       handleSave();
     }
-  }, [options, questionText]);
+  }, [options, questionText, uploadedImages]);
 
   // Handle question text change
   const handleQuestionTextChange = (newText: string) => {

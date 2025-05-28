@@ -74,7 +74,7 @@ const ImageItem: React.FC<ImageItemProps> = ({
 }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  console.log('ImageItem rendered with src:', src);
+//   console.log('ImageItem rendered with src:', src);
 
   const handleImageLoad = useCallback(() => {
     setLoading(false);

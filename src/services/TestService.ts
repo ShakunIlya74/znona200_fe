@@ -99,14 +99,75 @@ export async function SaveEditedTest(tfp_sha: string, testData: {
     question_data: any;
     max_points: number;
     isNew?: boolean;
+    markedForDeletion?: boolean;
+    uploadedImages?: any[]; // Array of UploadedImage objects
   }>;
 }) {
   try {
-    const response = await axiosInstance.put('/test-edit/' + tfp_sha, testData);
-    return {
-      success: true,
-      updatedTest: response.data
-    };
+    // Check if there are any uploaded images across all questions
+    const hasUploadedImages = testData.questions.some(q => 
+      q.uploadedImages && q.uploadedImages.length > 0
+    );
+
+    if (hasUploadedImages) {
+      // Use FormData when there are uploaded images
+      const formData = new FormData();
+      
+      // Prepare test data without the file objects for JSON serialization
+      const testDataForJson = {
+        test_id: testData.test_id,
+        test_name: testData.test_name,
+        questions: testData.questions.map((q, questionIndex) => ({
+          question_id: q.question_id,
+          question: q.question,
+          question_type: q.question_type,
+          question_data: q.question_data,
+          max_points: q.max_points,
+          isNew: q.isNew,
+          markedForDeletion: q.markedForDeletion,
+          // Include image metadata without the actual file objects
+          uploadedImages: q.uploadedImages?.map((img, imgIndex) => ({
+            id: img.id,
+            name: img.name,
+            size: img.size,
+            // Reference to the file in FormData
+            fileKey: `question_${questionIndex}_image_${imgIndex}`
+          }))
+        }))
+      };
+
+      // Add the JSON data
+      formData.append('testData', JSON.stringify(testDataForJson));
+
+      // Add all image files to FormData
+      testData.questions.forEach((question, questionIndex) => {
+        if (question.uploadedImages) {
+          question.uploadedImages.forEach((img, imgIndex) => {
+            if (img.file) {
+              formData.append(`question_${questionIndex}_image_${imgIndex}`, img.file);
+            }
+          });
+        }
+      });
+
+      const response = await axiosInstance.put('/test-edit/' + tfp_sha, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return {
+        success: true,
+        updatedTest: response.data
+      };
+    } else {
+      // Use regular JSON when no images are uploaded
+      const response = await axiosInstance.put('/test-edit/' + tfp_sha, testData);
+      return {
+        success: true,
+        updatedTest: response.data
+      };
+    }
   }
   catch (err) {
     console.error('Error saving edited test:', err);
