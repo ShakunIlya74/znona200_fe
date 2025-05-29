@@ -491,13 +491,12 @@ const EditMatchingQuestion = ({
           uploadedImages={uploadedImages}
           onFilesSelected={handleFilesSelected}
           gridMode={true}
-          maxWidth={"80%"}
+          maxWidth={"80%"}          
           enableFullscreen={true}
           enableDownload={false}
           showThumbnails={true}
           baseUrl=""
-          allowAdding={true}
-          allowRemoving={true}
+          allowEditing={true}
           onUploadedImageRemove={handleRemoveUploadedImage}
           onExistingImageRemove={handleRemoveExistingImage}
         />

@@ -101,6 +101,7 @@ export async function SaveEditedTest(tfp_sha: string, testData: {
     isNew?: boolean;
     markedForDeletion?: boolean;
     uploadedImages?: any[]; // Array of UploadedImage objects
+    imagesToRemove?: string[]; // Array of image paths to remove
   }>;
 }) {
   try {
@@ -125,6 +126,7 @@ export async function SaveEditedTest(tfp_sha: string, testData: {
           max_points: q.max_points,
           isNew: q.isNew,
           markedForDeletion: q.markedForDeletion,
+          imagesToRemove: q.imagesToRemove, // Include images to remove
           // Include image metadata without the actual file objects
           uploadedImages: q.uploadedImages?.map((img, imgIndex) => ({
             id: img.id,

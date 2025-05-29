@@ -46,17 +46,14 @@ export interface ImageViewerProps {
   /** Show as grid instead of gallery */
   gridMode?: boolean;
   /** Number of columns in grid mode */
-  gridColumns?: number;
-  /** Base URL for Flask share directory */
+  gridColumns?: number;  /** Base URL for Flask share directory */
   baseUrl?: string;
-  /** Allow adding new images with drop zone and file browser */
-  allowAdding?: boolean;
+  /** Allow editing images (adding new and removing existing) */
+  allowEditing?: boolean;
   /** Callback when files are selected for adding */
   onFilesSelected?: (files: FileList) => void;
   /** Array of uploaded images for preview */
   uploadedImages?: UploadedImage[];
-  /** Allow removing images */
-  allowRemoving?: boolean;
   /** Callback when an uploaded image is removed */
   onUploadedImageRemove?: (imageId: string) => void;
   /** Callback when an existing image is removed */
@@ -70,7 +67,7 @@ interface ImageItemProps {
   maxHeight?: number;
   onClick?: () => void;
   onRemove?: () => void;
-  allowRemoving?: boolean;
+  allowEditing?: boolean;
 }
 
 const ImageItem: React.FC<ImageItemProps> = ({
@@ -80,7 +77,7 @@ const ImageItem: React.FC<ImageItemProps> = ({
   maxHeight,
   onClick,
   onRemove,
-  allowRemoving = false
+  allowEditing = false
 }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -152,9 +149,8 @@ const ImageItem: React.FC<ImageItemProps> = ({
         }}
         onClick={onClick}
       />
-      
-      {/* Remove button */}
-      {allowRemoving && onRemove && (
+        {/* Remove button */}
+      {allowEditing && onRemove && (
         <IconButton
           size="small"
           sx={{
@@ -192,10 +188,9 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   gridMode = true,
   gridColumns = 3,
   baseUrl = '',
-  allowAdding = false,
+  allowEditing = false,
   onFilesSelected,
   uploadedImages = [],
-  allowRemoving = false,
   onUploadedImageRemove,
   onExistingImageRemove
 }) => {
@@ -303,9 +298,8 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     e.preventDefault();
     setDragOver(false);
   }, []);
-
   const renderAddImageZone = () => {
-    if (!allowAdding) return null;
+    if (!allowEditing) return null;
     
     return (
       <Paper
@@ -357,9 +351,9 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         </Box>
       </Paper>
     );
-  };  // Show empty state with upload zone if no images and allowAdding is true
+  };  // Show empty state with upload zone if no images and allowEditing is true
   if (totalImageCount === 0) {
-    if (allowAdding) {
+    if (allowEditing) {
       return (
         <Box sx={{ width: '100%' }}>
           {title && (
@@ -417,7 +411,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                 maxWidth={maxWidth}
                 maxHeight={maxHeight}
                 onClick={() => handleImageClick(index)}
-                allowRemoving={allowRemoving}
+                allowEditing={allowEditing}
                 onRemove={img.type === 'uploaded' 
                   ? () => handleRemoveUploadedImage(img.uploadedImage!.id)
                   : () => handleRemoveExistingImage(img.originalPath!)

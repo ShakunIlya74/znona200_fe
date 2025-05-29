@@ -426,15 +426,14 @@ const EditMultipleChoiceQuestion: React.FC<EditMultipleChoiceQuestionProps> = ({
       <Box sx={{ mb: 3 }}>        <ImageViewer
           imagePaths={imagePaths || []}
           uploadedImages={uploadedImages}
-          onFilesSelected={handleFilesSelected}
+          onFilesSelected={handleFilesSelected}          
           gridMode={true}
           maxWidth={"80%"}
           enableFullscreen={true}
           enableDownload={false}
           showThumbnails={true}
           baseUrl=""
-          allowAdding={true}
-          allowRemoving={true}
+          allowEditing={true}
           onUploadedImageRemove={handleRemoveUploadedImage}
           onExistingImageRemove={handleRemoveExistingImage}
         />
