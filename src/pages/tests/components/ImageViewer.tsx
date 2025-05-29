@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  DialogActions,
   IconButton,
   Typography,
   Chip,
@@ -197,6 +198,13 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [imageToRemove, setImageToRemove] = useState<{
+    type: 'uploaded' | 'existing';
+    id?: string;
+    path?: string;
+    alt: string;
+  } | null>(null);
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -238,10 +246,33 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       setGalleryOpen(true);
     }
   }, [enableFullscreen]);
-
   const handleCloseGallery = useCallback(() => {
     setGalleryOpen(false);
     setSelectedImageIndex(null);
+  }, []);
+
+  // Handle confirmation dialog
+  const handleRemoveClick = useCallback((type: 'uploaded' | 'existing', id?: string, path?: string, alt?: string) => {
+    setImageToRemove({ type, id, path, alt: alt || 'Image' });
+    setConfirmDialogOpen(true);
+  }, []);
+
+  const handleConfirmRemove = useCallback(() => {
+    if (!imageToRemove) return;
+    
+    if (imageToRemove.type === 'uploaded' && imageToRemove.id && onUploadedImageRemove) {
+      onUploadedImageRemove(imageToRemove.id);
+    } else if (imageToRemove.type === 'existing' && imageToRemove.path && onExistingImageRemove) {
+      onExistingImageRemove(imageToRemove.path);
+    }
+    
+    setConfirmDialogOpen(false);
+    setImageToRemove(null);
+  }, [imageToRemove, onUploadedImageRemove, onExistingImageRemove]);
+
+  const handleCancelRemove = useCallback(() => {
+    setConfirmDialogOpen(false);
+    setImageToRemove(null);
   }, []);
 
   // Handle removal of uploaded images
@@ -413,8 +444,8 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                 onClick={() => handleImageClick(index)}
                 allowEditing={allowEditing}
                 onRemove={img.type === 'uploaded' 
-                  ? () => handleRemoveUploadedImage(img.uploadedImage!.id)
-                  : () => handleRemoveExistingImage(img.originalPath!)
+                  ? () => handleRemoveClick('uploaded', img.uploadedImage!.id, undefined, img.alt)
+                  : () => handleRemoveClick('existing', undefined, img.originalPath!, img.alt)
                 }
               />
               
@@ -528,9 +559,33 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                   ) : null
                 )}
               />
-            </DialogContent>
-          </Dialog>
+            </DialogContent>          </Dialog>
         )}
+
+        {/* Confirmation Dialog for Image Removal */}
+        <Dialog
+          open={confirmDialogOpen}
+          onClose={handleCancelRemove}
+          aria-labelledby="confirm-delete-dialog-title"
+          aria-describedby="confirm-delete-dialog-description"
+        >
+          <DialogTitle id="confirm-delete-dialog-title">
+            Confirm Image Removal
+          </DialogTitle>
+          <DialogContent>
+            <Typography id="confirm-delete-dialog-description">
+              Are you sure you want to remove "{imageToRemove?.alt}"? This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancelRemove} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmRemove} color="error" variant="contained">
+              Remove
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     );
   }  // Single image gallery mode
@@ -590,9 +645,33 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                 <DownloadIcon />
               </IconButton>
             ) : null
-          )}
-        />
+          )}        />
       </Box>
+
+      {/* Confirmation Dialog for Image Removal */}
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={handleCancelRemove}
+        aria-labelledby="confirm-delete-dialog-title"
+        aria-describedby="confirm-delete-dialog-description"
+      >
+        <DialogTitle id="confirm-delete-dialog-title">
+          Confirm Image Removal
+        </DialogTitle>
+        <DialogContent>
+          <Typography id="confirm-delete-dialog-description">
+            Are you sure you want to remove "{imageToRemove?.alt}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelRemove} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmRemove} color="error" variant="contained">
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
