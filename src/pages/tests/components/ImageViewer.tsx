@@ -107,9 +107,8 @@ const ImageItem: React.FC<ImageItemProps> = ({
         onClick={onClick}
       >
         <Box sx={{ textAlign: 'center', p: 2 }}>
-          <ErrorIcon sx={{ fontSize: 48, color: 'error.main', mb: 1 }} />
-          <Typography variant="body2" color="error">
-            Failed to load image
+          <ErrorIcon sx={{ fontSize: 48, color: 'error.main', mb: 1 }} />          <Typography variant="body2" color="error">
+            Не вдалося завантажити зображення
           </Typography>
         </Box>
       </Card>
@@ -217,7 +216,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     ...imagePaths.map((path, index) => ({
       type: 'existing' as const,
       src: baseUrl ? `${baseUrl}/${path}` : path,
-      alt: `Image ${index + 1}`,
+      alt: `Зображення ${index + 1}`,
       index,
       originalPath: path
     })),
@@ -253,7 +252,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
 
   // Handle confirmation dialog
   const handleRemoveClick = useCallback((type: 'uploaded' | 'existing', id?: string, path?: string, alt?: string) => {
-    setImageToRemove({ type, id, path, alt: alt || 'Image' });
+    setImageToRemove({ type, id, path, alt: alt || 'Зображення' });
     setConfirmDialogOpen(true);
   }, []);
 
@@ -359,13 +358,12 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
           gap: 2,
           minHeight: 60
         }}>
-          <CloudUploadIcon color="primary" />
-          <Box sx={{ textAlign: 'center' }}>
+          <CloudUploadIcon color="primary" />          <Box sx={{ textAlign: 'center' }}>
             <Typography variant="body1" color="primary">
-              Drop images here or click to browse
+              Перетягніть зображення сюди або натисніть для вибору
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Supports multiple image files
+              Підтримуються файли зображень
             </Typography>
           </Box>
           <Button
@@ -375,9 +373,8 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               handleFileSelect();
-            }}
-          >
-            Browse
+            }}          >
+            Огляд
           </Button>
         </Box>
       </Paper>
@@ -389,9 +386,8 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         <Box sx={{ width: '100%' }}>
           {title && (
             <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="h6">{title}</Typography>
-              <Chip 
-                label="0 images" 
+              <Typography variant="h6">{title}</Typography>              <Chip 
+                label="0 зображень" 
                 size="small" 
                 variant="outlined"
               />
@@ -413,8 +409,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
               size="small" 
               variant="outlined"
             />
-          </Box>
-        )}
+          </Box>        )}
         
         {renderAddImageZone()}
         
@@ -513,9 +508,8 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
               justifyContent: 'space-between',
               alignItems: 'center',
               pb: 1
-            }}>
-              <Typography variant="h6">
-                {title || 'Image Gallery'} ({selectedImageIndex !== null ? selectedImageIndex + 1 : 1} of {totalImageCount})
+            }}>              <Typography variant="h6">
+                {title || 'Галерея зображень'} ({selectedImageIndex !== null ? selectedImageIndex + 1 : 1} з {totalImageCount})
               </Typography>
               <IconButton
                 onClick={handleCloseGallery}
@@ -560,9 +554,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                 )}
               />
             </DialogContent>          </Dialog>
-        )}
-
-        {/* Confirmation Dialog for Image Removal */}
+        )}        {/* Confirmation Dialog for Image Removal */}
         <Dialog
           open={confirmDialogOpen}
           onClose={handleCancelRemove}
@@ -570,19 +562,20 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
           aria-describedby="confirm-delete-dialog-description"
         >
           <DialogTitle id="confirm-delete-dialog-title">
-            Confirm Image Removal
+            Підтвердження видалення зображення
           </DialogTitle>
           <DialogContent>
             <Typography id="confirm-delete-dialog-description">
-              Are you sure you want to remove "{imageToRemove?.alt}"? This action cannot be undone.
+              Ви впевнені, що хочете видалити "{imageToRemove?.alt}"? <br />
+              <strong>Після збереження тесту</strong> цю дію буде неможливо скасувати.
             </Typography>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCancelRemove} color="primary">
-              Cancel
+              Скасувати
             </Button>
             <Button onClick={handleConfirmRemove} color="error" variant="contained">
-              Remove
+              Видалити
             </Button>
           </DialogActions>
         </Dialog>
@@ -590,19 +583,18 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     );
   }  // Single image gallery mode
   return (
-    <Box>
-      {title && (
+    <Box>      {title && (
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="h6">{title}</Typography>
           <Chip 
-            label={`${totalImageCount} image${totalImageCount !== 1 ? 's' : ''}`} 
+            label={`${totalImageCount} ${totalImageCount === 1 ? 'зображення' : totalImageCount < 5 ? 'зображення' : 'зображень'}`} 
             size="small" 
             variant="outlined"
           />
         </Box>
       )}
-      
-      {renderAddImageZone()}
+        
+        {renderAddImageZone()}
       
       <Box sx={{ 
         '& .image-gallery': {
@@ -646,9 +638,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
               </IconButton>
             ) : null
           )}        />
-      </Box>
-
-      {/* Confirmation Dialog for Image Removal */}
+      </Box>      {/* Confirmation Dialog for Image Removal */}
       <Dialog
         open={confirmDialogOpen}
         onClose={handleCancelRemove}
@@ -656,19 +646,20 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         aria-describedby="confirm-delete-dialog-description"
       >
         <DialogTitle id="confirm-delete-dialog-title">
-          Confirm Image Removal
+          Підтвердження видалення зображення
         </DialogTitle>
         <DialogContent>
           <Typography id="confirm-delete-dialog-description">
-            Are you sure you want to remove "{imageToRemove?.alt}"? This action cannot be undone.
+            Ви впевнені, що хочете видалити "{imageToRemove?.alt}"? <br />
+            <strong>Після збереження тесту</strong> цю дію буде неможливо скасувати.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancelRemove} color="primary">
-            Cancel
+            Скасувати
           </Button>
           <Button onClick={handleConfirmRemove} color="error" variant="contained">
-            Remove
+            Видалити
           </Button>
         </DialogActions>
       </Dialog>
