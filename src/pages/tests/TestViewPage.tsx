@@ -105,8 +105,26 @@ interface UserResponses {
   };
 }
 
-const TestViewPage: React.FC = () => {
-  const { tfp_sha } = useParams<{ tfp_sha: string }>();
+// Props interface for the TestViewComponent
+export interface TestViewComponentProps {
+  testId?: string;
+  tfp_sha?: string;
+  isCompactView?: boolean;
+  onBack?: () => void;
+  onTestComplete?: (testId: string, responses: UserResponses) => void;
+  containerHeight?: string;
+  showTopBar?: boolean;
+}
+
+const TestViewComponent: React.FC<TestViewComponentProps> = ({
+  testId: propTestId,
+  tfp_sha,
+  isCompactView = false,
+  onBack,
+  onTestComplete,
+  containerHeight,
+  showTopBar = true
+}) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [testData, setTestData] = useState<TestCardMeta | null>(null);
@@ -114,9 +132,9 @@ const TestViewPage: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [userResponses, setUserResponses] = useState<UserResponses>({});
   const [cautionDialogOpen, setCautionDialogOpen] = useState<boolean>(false);
+  const [testId, setTestId] = useState<string | null>(propTestId || null);
 
   const theme = useTheme();
-  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const headerOffset = getHeaderOffset(isMobile, isMedium);
@@ -137,6 +155,10 @@ const TestViewPage: React.FC = () => {
         if (response.success && response.full_test_with_answers) {
           setTestData(response.full_test_with_answers.test);
           setTestWithAnswers(response.full_test_with_answers);
+            // Set testId from response
+          if (response.full_test_with_answers.test.test_id) {
+            setTestId(String(response.full_test_with_answers.test.test_id));
+          }
 
           // Initialize user responses from existing data if available
           const initialResponses: UserResponses = {};
@@ -160,9 +182,7 @@ const TestViewPage: React.FC = () => {
       } finally {
         setLoading(false);
       }
-    };
-
-    loadTestData();
+    };    loadTestData();
   }, [tfp_sha]);
 
   // Handler for multiple choice option selection
@@ -239,8 +259,7 @@ const TestViewPage: React.FC = () => {
             matches: response.matches
           }
         }));
-        
-        if (!tfp_sha) {
+          if (!tfp_sha) {
           throw new Error('Test ID is missing');
         }
         
@@ -248,8 +267,13 @@ const TestViewPage: React.FC = () => {
         const result = await SubmitTestAnswers(tfp_sha, submissionData);
         
         if (result.success) {
-          // Navigate to test review page with the test ID
-          navigate(`/tests/review/${tfp_sha}`); //todo: add review page
+          // Call onTestComplete if provided, otherwise use default behavior
+          if (onTestComplete && testId) {
+            onTestComplete(testId, userResponses);
+          } else {
+            // Default behavior - this will be handled by the parent component/page
+            console.log('Test completed successfully');
+          }
         } else {
           setError(result.error || 'Failed to save test answers');
           // Keep user on the page so they can try again
@@ -318,61 +342,70 @@ const TestViewPage: React.FC = () => {
     );
   };
 
+  // Calculate container height based on props and context
+  const getContainerHeight = () => {
+    if (containerHeight) return containerHeight;
+    if (isCompactView) return 'auto';
+    return `calc(100vh - ${headerOffset}px)`;
+  };
+
   return (
     <Container
       maxWidth={false}
       disableGutters
       sx={{
-        height: `calc(100vh - ${headerOffset}px)`,
+        height: getContainerHeight(),
         display: 'flex',
         flexDirection: 'column',
         p: 0
       }}
     >
-      {/* Top Bar */}
-      <Box sx={{
-        p: 2,
-        borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
-        display: 'flex',
-        alignItems: 'center'
-      }}>
-        <Button
-          variant="text"
-          startIcon={<ArrowBackIcon />}
-          onClick={handleBackClick}
-          sx={{ color: theme.palette.primary.main }}
-        >
-          Назад до тестів
-        </Button>
-
-        {testData && (
-          <Typography
-            variant="h6"
-            sx={{
-              ml: 2,
-              fontWeight: 600,
-              color: theme.palette.primary.main,
-              flex: 1,
-              textAlign: { xs: 'left', sm: 'center' }
-            }}
+      {/* Top Bar - conditionally rendered */}
+      {showTopBar && (
+        <Box sx={{
+          p: 2,
+          borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          <Button
+            variant="text"
+            startIcon={<ArrowBackIcon />}
+            onClick={onBack || handleBackClick}
+            sx={{ color: theme.palette.primary.main }}
           >
-            {testData.test_name}
-            {testData.default_question && (
-              <Typography 
-                component="div" 
-                variant="caption" 
-                sx={{ 
-                  color: theme.palette.text.secondary,
-                  fontSize: '0.75rem',
-                  mt: 0.5
-                }}
-              >
-                {testData.default_question}
-              </Typography>
-            )}
-          </Typography>
-        )}
-      </Box>
+            Назад до тестів
+          </Button>
+
+          {testData && (
+            <Typography
+              variant="h6"
+              sx={{
+                ml: 2,
+                fontWeight: 600,
+                color: theme.palette.primary.main,
+                flex: 1,
+                textAlign: { xs: 'left', sm: 'center' }
+              }}
+            >
+              {testData.test_name}
+              {testData.default_question && (
+                <Typography 
+                  component="div" 
+                  variant="caption" 
+                  sx={{ 
+                    color: theme.palette.text.secondary,
+                    fontSize: '0.75rem',
+                    mt: 0.5
+                  }}
+                >
+                  {testData.default_question}
+                </Typography>
+              )}
+            </Typography>
+          )}
+        </Box>
+      )}
 
       {loading ? (
         <Box sx={{
@@ -414,14 +447,15 @@ const TestViewPage: React.FC = () => {
         }}>
           <Box sx={{
             display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
+            flexDirection: { xs: 'column', md: isCompactView ? 'column' : 'row' },
             // height: '100%',
             gap: 3
           }}>
             {/* Question Navigation Column */}
             <Box sx={{
-              width: { xs: '100%', md: '33.33%', lg: '25%' },
-              borderRight: { md: `1px solid ${alpha(theme.palette.grey[300], 0.5)}` },
+              width: { xs: '100%', md: isCompactView ? '100%' : '33.33%', lg: isCompactView ? '100%' : '25%' },
+              borderRight: { md: !isCompactView ? `1px solid ${alpha(theme.palette.grey[300], 0.5)}` : 'none' },
+              borderBottom: { xs: isCompactView ? `1px solid ${alpha(theme.palette.grey[300], 0.5)}` : 'none' },
               // height: { md: '100%' },
               display: 'flex',
               flexDirection: 'column'
@@ -511,8 +545,8 @@ const TestViewPage: React.FC = () => {
 
             {/* Question Display */}
             <Box sx={{
-              width: { xs: '100%', md: '66.67%', lg: '75%' },
-              height: { md: '100%' },
+              width: { xs: '100%', md: isCompactView ? '100%' : '66.67%', lg: isCompactView ? '100%' : '75%' },
+              height: { md: isCompactView ? 'auto' : '100%' },
               display: 'flex',
               flexDirection: 'column'
             }}>
@@ -733,7 +767,12 @@ const TestViewPage: React.FC = () => {
             </Button>
             
             <Button 
-              onClick={() => navigate('/tests')}
+              onClick={() => {
+                setCautionDialogOpen(false);
+                if (onBack) {
+                  onBack();
+                }
+              }}
               variant="contained"
               color="error"
               startIcon={<ExitToAppIcon />}
@@ -755,4 +794,4 @@ const TestViewPage: React.FC = () => {
   );
 };
 
-export default TestViewPage;
+export default TestViewComponent;
