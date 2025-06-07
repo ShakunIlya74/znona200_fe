@@ -20,8 +20,10 @@ import {
   ArrowForwardIos as NextIcon,
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
-  RestartAlt as ResetZoomIcon
+  RestartAlt as ResetZoomIcon,
 } from '@mui/icons-material';
+import { FileDownloadRounded as DownloadIcon } from '@mui/icons-material';
+
 
 // Set up worker for react-pdf
 // Using the local worker file from the public folder
@@ -32,6 +34,7 @@ export interface PDFViewerProps {
   visiblePagePercentage?: number; // 0-1, percentage of page height to show initially
   containerHeight?: number; // Container height in pixels
   containerWidth?: number; // Container width in pixels, overrides responsive widths if provided
+  allowDownloading?: boolean; // Whether to show download button, true by default
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({
@@ -39,6 +42,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   visiblePagePercentage = 1,
   containerHeight = 800,
   containerWidth,
+  allowDownloading = true,
 }) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState<number>(1);
@@ -134,13 +138,22 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const resetZoom = () => {
     setScale(1);
   };
-
   // Scroll to top of container when page changes
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = 0;
     }
-  }, [pageNumber]);  
+  }, [pageNumber]);
+
+  // Function to download PDF
+  const downloadPDF = () => {
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = 'document.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   
   return (
     <Paper 
@@ -154,17 +167,18 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         mx: 'auto', // Center the container
       }}
     >
-      {/* PDF Controls */}
-      <Box 
+      {/* PDF Controls */}      <Box 
         sx={{ 
           display: 'flex', 
-          justifyContent: 'center', 
+          justifyContent: 'space-between', 
           alignItems: 'center', 
           padding: 2,
           backgroundColor: theme.palette.background.paper,
           borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
+        <Box sx={{ flex: 1 }} /> {/* Spacer for left side */}
+        
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center',
@@ -243,6 +257,26 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
               <NextIcon fontSize="small" sx={{ color: theme.palette.primary.main }} />
             </Button>
             </Tooltip>
+        </Box>
+
+        {/* Download Button - Right side */}
+        <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+          {allowDownloading && (
+            <Tooltip title="Завантажити PDF">
+              <IconButton 
+                onClick={downloadPDF}
+                size="small"
+                sx={{ 
+                  borderRadius: '8px',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.3),
+                  },
+                }}
+              >
+                <DownloadIcon sx={{ color: theme.palette.primary.main }} />
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
       </Box>
       
