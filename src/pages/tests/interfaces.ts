@@ -46,18 +46,21 @@ export interface MultipleChoiceOption {
     id: number;
     text: string;
     is_correct: boolean;
+    image_paths?: string[];
 }
 
 export interface MatchingOption {
     id: number;
     text: string;
     matching_category_id: number | null;
+    image_paths?: string[];
 }
 
 export interface MatchingCategory {
     id: number;
     text: string;
     display_order: number;
+    image_paths?: string[];
 }
 
 export interface UserAnswer {

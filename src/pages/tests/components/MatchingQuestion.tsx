@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { MatchingCategory, MatchingOption, MatchAnswer } from '../interfaces';
+import ImageViewer from './ImageViewer';
 
 // dnd imports
 import {
@@ -37,6 +38,7 @@ interface MatchingQuestionProps {
   questionId: number;
   questionNumber: number;
   questionText: string;
+  questionImages?: string[];
   options: MatchingOption[];
   categories: MatchingCategory[];
   matches: MatchAnswer[];
@@ -206,8 +208,7 @@ const VariantBox = memo(({
         position: 'relative',
         zIndex: 0, // Add lower z-index to prevent overlap issues
       }}
-    >
-      <Box sx={{ width: '100%' }}>
+    >      <Box sx={{ width: '100%' }}>
         <Typography
           variant="body2"
           sx={{
@@ -359,6 +360,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   questionId,
   questionNumber,
   questionText,
+  questionImages = [],
   options,
   categories,
   matches,
@@ -617,8 +619,7 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         }}
         >
           {questionNumber}.&nbsp;
-        </Typography>
-        <Typography
+        </Typography>        <Typography
           variant="h6"
           sx={{
             mb: 2,
@@ -636,6 +637,21 @@ const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
           dangerouslySetInnerHTML={{ __html: `${questionText}` }}
         />
       </Box>
+
+      {/* Question Images */}
+      {questionImages && questionImages.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <ImageViewer
+            imagePaths={questionImages || []}
+            maxWidth={"60%"}
+            enableFullscreen={true}
+            allowEditing={false}
+            gridMode={true}
+            showThumbnails={true}
+            enableDownload={false}
+          />
+        </Box>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={pointerWithin}

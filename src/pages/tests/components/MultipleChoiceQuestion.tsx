@@ -9,6 +9,7 @@ import {
 import { styled } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
 import { MultipleChoiceOption } from '../interfaces';
+import ImageViewer from './ImageViewer';
 
 // Answer labels for options
 const ANSWER_LABELS = ['А', 'Б', 'В', 'Г', 'Д'];
@@ -26,6 +27,7 @@ interface MultipleChoiceQuestionProps {
   questionId: number;
   questionNumber: number;
   questionText: string;
+  questionImages?: string[];
   options: MultipleChoiceOption[];
   selectedOptions: number[];
   onOptionSelect: (questionId: number, optionId: number) => void;
@@ -36,6 +38,7 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
   questionId,
   questionNumber,
   questionText,
+  questionImages,
   options,
   selectedOptions,
   onOptionSelect,
@@ -142,9 +145,19 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
               padding: 0, // Override padding
             },
           }}
-          dangerouslySetInnerHTML={{ __html: `${questionText}` }}
-        />
+          dangerouslySetInnerHTML={{ __html: `${questionText}` }}        />
       </Box>
+
+      {/* Question Images */}
+      <ImageViewer 
+        imagePaths={questionImages || []} 
+        maxWidth={"60%"}
+        enableFullscreen={true}
+        allowEditing={false}
+        gridMode={true}
+        showThumbnails={true}
+        enableDownload={false}
+      />
 
       {/* Options list */}
       <Box sx={{ mb: 4 }}>

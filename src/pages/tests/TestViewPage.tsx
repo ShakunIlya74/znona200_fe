@@ -532,11 +532,11 @@ const TestViewPage: React.FC = () => {
 
                     if (currentQuestion.question_type === 'MULTIPLE_CHOICE') {
                       const options = currentQuestion.question_data.options;
-                      return (
-                        <MultipleChoiceQuestion
+                      return (                        <MultipleChoiceQuestion
                           questionId={currentQuestion.question_id}
                           questionNumber={currentQuestionIndex + 1}
                           questionText={currentQuestion.question}
+                          questionImages={currentQuestion.image_paths}
                           options={options as any[]}
                           selectedOptions={userResponses[currentQuestion.question_id]?.selectedOptions || []}
                           onOptionSelect={handleOptionSelect}
@@ -546,11 +546,11 @@ const TestViewPage: React.FC = () => {
                     } else if (currentQuestion.question_type === 'MATCHING') {
                       const options = currentQuestion.question_data.options;
                       const categories = currentQuestion.question_data.categories || [];
-                      return (
-                        <MatchingQuestion
+                      return (                        <MatchingQuestion
                           questionId={currentQuestion.question_id}
                           questionNumber={currentQuestionIndex + 1}
                           questionText={currentQuestion.question}
+                          questionImages={currentQuestion.image_paths}
                           options={options as any[]}
                           categories={categories as any[]}
                           matches={userResponses[currentQuestion.question_id]?.matches || []}
