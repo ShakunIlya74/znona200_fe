@@ -17,7 +17,7 @@ import NotesPage from './pages/NotesPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import SettingsPage from './pages/settings/SettingsPage';
 import LibraryPage from './pages/LibraryPage';
-import TestViewPage from './pages/tests/TestViewPageNew';
+import TestViewPage from './pages/tests/TestViewPage';
 import TestReviewPage from './pages/tests/TestReviewPage';
 import LessonViewPage from './pages/lessons/LessonViewPage';
 import MinilectionViewPage from './pages/MinilectionViewPage';
