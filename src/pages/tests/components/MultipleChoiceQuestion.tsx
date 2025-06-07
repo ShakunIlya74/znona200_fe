@@ -145,19 +145,22 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
               padding: 0, // Override padding
             },
           }}
-          dangerouslySetInnerHTML={{ __html: `${questionText}` }}        />
-      </Box>
+          dangerouslySetInnerHTML={{ __html: `${questionText}` }}        />      </Box>
 
       {/* Question Images */}
-      <ImageViewer 
-        imagePaths={questionImages || []} 
-        maxWidth={"60%"}
-        enableFullscreen={true}
-        allowEditing={false}
-        gridMode={true}
-        showThumbnails={true}
-        enableDownload={false}
-      />
+      {questionImages && questionImages.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <ImageViewer 
+            imagePaths={questionImages || []} 
+            maxWidth={"60%"}
+            enableFullscreen={true}
+            allowEditing={false}
+            gridMode={true}
+            showThumbnails={true}
+            enableDownload={false}
+          />
+        </Box>
+      )}
 
       {/* Options list */}
       <Box sx={{ mb: 4 }}>

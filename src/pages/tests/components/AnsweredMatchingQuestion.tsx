@@ -9,11 +9,13 @@ import { alpha } from '@mui/material/styles';
 import { MatchingCategory, MatchingOption, MatchAnswer } from '../interfaces';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import ImageViewer from './ImageViewer';
 
 interface AnsweredMatchingQuestionProps {
   questionId: number;
   questionNumber: number;
   questionText: string;
+  questionImages?: string[];
   options: MatchingOption[];
   categories: MatchingCategory[];
   userMatches: MatchAnswer[];
@@ -29,6 +31,7 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
   questionId,
   questionNumber,
   questionText,
+  questionImages = [],
   options,
   categories,
   userMatches,
@@ -107,10 +110,23 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
               margin: 0, // Override margin
               padding: 0, // Override padding
             },
-          }}
-          dangerouslySetInnerHTML={{ __html: `${questionText}` }}
-        />
-      </Box>
+          }}          dangerouslySetInnerHTML={{ __html: `${questionText}` }}
+        />      </Box>
+
+      {/* Question Images */}
+      {questionImages && questionImages.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <ImageViewer 
+            imagePaths={questionImages || []} 
+            maxWidth={"60%"}
+            enableFullscreen={true}
+            allowEditing={false}
+            gridMode={true}
+            showThumbnails={true}
+            enableDownload={false}
+          />
+        </Box>
+      )}
 
       {/* Main matching area - two columns */}
       <Box sx={{
@@ -229,8 +245,7 @@ const VariantBox = ({
         display: 'flex',
         alignItems: 'center',
         transition: 'all 0.05s ease'
-      }}
-    >
+      }}    >
       <Typography
         variant="body2"
         sx={{

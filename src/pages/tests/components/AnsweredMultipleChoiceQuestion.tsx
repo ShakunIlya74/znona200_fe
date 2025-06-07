@@ -9,6 +9,7 @@ import { alpha } from '@mui/material/styles';
 import { MultipleChoiceOption } from '../interfaces';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import ImageViewer from './ImageViewer';
 
 // Answer labels for options
 const ANSWER_LABELS = ['А', 'Б', 'В', 'Г', 'Д'];
@@ -17,6 +18,7 @@ interface AnsweredMultipleChoiceQuestionProps {
   questionId: number;
   questionNumber: number;
   questionText: string;
+  questionImages?: string[];
   options: MultipleChoiceOption[];
   userSelectedOptions: number[];
   hideCorrectAnswers?: boolean; // New prop to control showing correct answers
@@ -26,6 +28,7 @@ const AnsweredMultipleChoiceQuestion: React.FC<AnsweredMultipleChoiceQuestionPro
   questionId,
   questionNumber,
   questionText,
+  questionImages = [],
   options,
   userSelectedOptions,
   hideCorrectAnswers = false // Default to false to maintain backward compatibility
@@ -112,10 +115,23 @@ const AnsweredMultipleChoiceQuestion: React.FC<AnsweredMultipleChoiceQuestionPro
               margin: 0, // Override margin
               padding: 0, // Override padding
             },
-          }}
-          dangerouslySetInnerHTML={{ __html: `${questionText}` }}
-        />
-      </Box>
+          }}          dangerouslySetInnerHTML={{ __html: `${questionText}` }}
+        />      </Box>
+
+      {/* Question Images */}
+      {questionImages && questionImages.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <ImageViewer 
+            imagePaths={questionImages || []} 
+            maxWidth={"60%"}
+            enableFullscreen={true}
+            allowEditing={false}
+            gridMode={true}
+            showThumbnails={true}
+            enableDownload={false}
+          />
+        </Box>
+      )}
 
       {/* Options list with feedback */}
       <Box sx={{ mb: 1.5 }}> {/* Reduced from mb: 4 */}
@@ -139,9 +155,8 @@ const AnsweredMultipleChoiceQuestion: React.FC<AnsweredMultipleChoiceQuestionPro
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 minHeight: '32px' // Added minimum height for consistency
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              }}            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Typography
                   variant="body2" // Changed from body1 to body2 for more compact text
                   sx={{
@@ -154,14 +169,14 @@ const AnsweredMultipleChoiceQuestion: React.FC<AnsweredMultipleChoiceQuestionPro
                   </Box>
                   {option.text}
                 </Typography>
-              </Box>
 
-              {/* Display icon if needed and we should display it */}
-              {shouldDisplay && status.icon && (
-                <Box sx={{ ml: 1 }}> {/* Reduced from ml: 2 */}
-                  {status.icon}
-                </Box>
-              )}
+                {/* Display icon if needed and we should display it */}
+                {shouldDisplay && status.icon && (
+                  <Box sx={{ ml: 1 }}> {/* Reduced from ml: 2 */}
+                    {status.icon}
+                  </Box>
+                )}
+              </Box>
             </Box>
           );
         })}

@@ -454,13 +454,13 @@ const TestReviewPage: React.FC = () => {
                           </Typography>
                         </Box>
                       </Box>
-                      
-                      {/* Render appropriate question type with hideCorrectAnswers prop */}
+                        {/* Render appropriate question type with hideCorrectAnswers prop */}
                       {question.question_type === 'MULTIPLE_CHOICE' && (
                         <AnsweredMultipleChoiceQuestion
                           questionId={question.question_id}
                           questionNumber={index + 1}
                           questionText={question.question}
+                          questionImages={question.image_paths}
                           options={question.question_data.options as any[]}
                           userSelectedOptions={question.user_answer?.response?.selected_options || []}
                           hideCorrectAnswers={!isFullyCorrect && hideCorrectAnswers}
@@ -472,6 +472,7 @@ const TestReviewPage: React.FC = () => {
                           questionId={question.question_id}
                           questionNumber={index + 1}
                           questionText={question.question}
+                          questionImages={question.image_paths}
                           options={question.question_data.options as any[]}
                           categories={question.question_data.categories as any[]}
                           userMatches={question.user_answer?.response?.matches || []}
