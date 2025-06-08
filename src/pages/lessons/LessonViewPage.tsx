@@ -82,13 +82,14 @@ const LessonViewPage: React.FC = () => {
     const handleBackFromTest = useCallback(() => {
         setActiveTestId(null);
         setReviewTestId(null); // Clear both test and review modes
-    }, []);
-
+    }, []);    
     const handleTestComplete = useCallback((testId: string) => {
-        // Test completed, could navigate to results or show completion message
+        // Test completed, show the review component
         setActiveTestId(null);
+        setReviewTestId(parseInt(testId, 10));
         console.log('Test completed:', testId);
-    }, []);    const handleTestRecomplete = useCallback((testId: string) => {
+    }, []);
+    const handleTestRecomplete = useCallback((testId: string) => {
         // Find the test by testId and start it
         const test = testCards.find(t => t.test_id === parseInt(testId, 10));
         if (test) {
