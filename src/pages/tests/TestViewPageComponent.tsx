@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GetTestView, SubmitTestAnswers } from '../../services/TestService';
+import { GetTestView, SubmitTestAnswers, GetTestDataById, SubmitTestAnswersById } from '../../services/TestService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -107,7 +107,7 @@ interface UserResponses {
 
 // Props interface for the TestViewComponent
 export interface TestViewComponentProps {
-  testId?: string;
+  testId?: string | number;
   tfp_sha?: string;
   isCompactView?: boolean;
   onBack?: () => void;
@@ -132,16 +132,18 @@ const TestViewComponent: React.FC<TestViewComponentProps> = ({
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [userResponses, setUserResponses] = useState<UserResponses>({});
   const [cautionDialogOpen, setCautionDialogOpen] = useState<boolean>(false);
-  const [testId, setTestId] = useState<string | null>(propTestId || null);
+  const [testId, setTestId] = useState<string | null>(
+    propTestId ? String(propTestId) : null
+  );
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const headerOffset = getHeaderOffset(isMobile, isMedium);
-
   useEffect(() => {
     const loadTestData = async () => {
-      if (!tfp_sha) {
+      // Check if we have either tfp_sha or testId
+      if (!tfp_sha && !propTestId) {
         setError('Test ID is missing');
         setLoading(false);
         return;
@@ -149,13 +151,25 @@ const TestViewComponent: React.FC<TestViewComponentProps> = ({
 
       setLoading(true);
       try {
-        const response = await GetTestView(tfp_sha);
+        let response;
+        
+        if (propTestId) {
+          // Use testId-based service
+          const testIdNumber = typeof propTestId === 'string' ? parseInt(propTestId) : propTestId;
+          response = await GetTestDataById(testIdNumber);
+        } else if (tfp_sha) {
+          // Use tfp_sha-based service
+          response = await GetTestView(tfp_sha);
+        } else {
+          throw new Error('Neither testId nor tfp_sha provided');
+        }
+
         console.log('Response:', response);
 
         if (response.success && response.full_test_with_answers) {
           setTestData(response.full_test_with_answers.test);
           setTestWithAnswers(response.full_test_with_answers);
-            // Set testId from response
+          // Set testId from response
           if (response.full_test_with_answers.test.test_id) {
             setTestId(String(response.full_test_with_answers.test.test_id));
           }
@@ -182,8 +196,10 @@ const TestViewComponent: React.FC<TestViewComponentProps> = ({
       } finally {
         setLoading(false);
       }
-    };    loadTestData();
-  }, [tfp_sha]);
+    };
+
+    loadTestData();
+  }, [tfp_sha, propTestId]);
 
   // Handler for multiple choice option selection
   const handleOptionSelect = (questionId: number, optionId: number) => {
@@ -244,7 +260,6 @@ const TestViewComponent: React.FC<TestViewComponentProps> = ({
       handleEndAndSave();
     }
   };
-
   const handleEndAndSave = async () => {
     // Check if all questions have been answered
       // Show loading while saving
@@ -259,12 +274,19 @@ const TestViewComponent: React.FC<TestViewComponentProps> = ({
             matches: response.matches
           }
         }));
-          if (!tfp_sha) {
-          throw new Error('Test ID is missing');
-        }
+
+        let result;
         
-        // Submit the answers to the server
-        const result = await SubmitTestAnswers(tfp_sha, submissionData);
+        if (propTestId) {
+          // Use testId-based submit service
+          const testIdNumber = typeof propTestId === 'string' ? parseInt(propTestId) : propTestId;
+          result = await SubmitTestAnswersById(testIdNumber, submissionData);
+        } else if (tfp_sha) {
+          // Use tfp_sha-based submit service
+          result = await SubmitTestAnswers(tfp_sha, submissionData);
+        } else {
+          throw new Error('Neither testId nor tfp_sha available for submission');
+        }
         
         if (result.success) {
           // Call onTestComplete if provided, otherwise use default behavior

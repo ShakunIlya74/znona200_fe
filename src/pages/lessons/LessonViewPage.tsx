@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, Typography, Container, Paper, Divider, CircularProgress, Button, Tooltip, Tabs, Tab } from '@mui/material';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
+import TestViewComponent from '../tests/TestViewPageComponent';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
@@ -17,9 +18,9 @@ const LessonViewPage: React.FC = () => {
     const [lessonData, setLessonData] = useState<LessonCardMeta | null>(null);
     const [webinarDicts, setWebinarDicts] = useState<WebinarDict[]>([]);
     const [slideDicts, setSlideDicts] = useState<SlideDict[]>([]);
-    const [testCards, setTestCards] = useState<TestCardMeta[]>([]);
-    const [isAdmin, setIsAdmin] = useState<boolean>(false);
+    const [testCards, setTestCards] = useState<TestCardMeta[]>([]);    const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [tabValue, setTabValue] = useState<number>(0);
+    const [activeTestId, setActiveTestId] = useState<number | null>(null);
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -69,11 +70,21 @@ const LessonViewPage: React.FC = () => {
 
     const handleBackClick = () => {
         navigate('/webinars');
-    };
-
-    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    };    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue);
-    };
+    };    const handleStartTest = useCallback((testId: number) => {
+        setActiveTestId(testId);
+    }, []);
+
+    const handleBackFromTest = useCallback(() => {
+        setActiveTestId(null);
+    }, []);
+
+    const handleTestComplete = useCallback((testId: string) => {
+        // Test completed, could navigate to results or show completion message
+        setActiveTestId(null);
+        console.log('Test completed:', testId);
+    }, []);
 
     // Memoize the video component to keep it mounted
     const videoComponent = useMemo(() => {
@@ -118,35 +129,47 @@ const LessonViewPage: React.FC = () => {
             );
         }
         return null;
-    }, [slideDicts]);
-
-    // Memoize the test components to keep them mounted
+    }, [slideDicts]);    // Memoize the test components to keep them mounted
     const testComponents = useMemo(() => {
         return testCards.map((test, index) => (
             <Box
                 key={`test-content-${test.test_id}`}
                 sx={{ textAlign: 'center', py: 4 }}
             >
-                <Typography variant="h5" gutterBottom>
-                    {test.test_name}
-                </Typography>
-                {test.test_description && (
-                    <Typography variant="body1" sx={{ mb: 2, color: theme.palette.text.secondary }}>
-                        {test.test_description}
-                    </Typography>
+                {activeTestId === test.test_id ? (
+                    // Render the TestViewComponent when this test is active
+                    <TestViewComponent
+                        testId={test.test_id}
+                        isCompactView={true}
+                        onBack={handleBackFromTest}
+                        onTestComplete={handleTestComplete}
+                        showTopBar={false}
+                        containerHeight="auto"
+                    />
+                ) : (
+                    // Render the test start screen when not active
+                    <>
+                        <Typography variant="h5" gutterBottom>
+                            {test.test_name}
+                        </Typography>
+                        {test.test_description && (
+                            <Typography variant="body1" sx={{ mb: 2, color: theme.palette.text.secondary }}>
+                                {test.test_description}
+                            </Typography>
+                        )}
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => handleStartTest(test.test_id)}
+                            sx={{ mt: 2 }}
+                        >
+                            Start Test
+                        </Button>
+                    </>
                 )}
-                <Button
-                    variant="contained"
-                    color="primary"
-                    component={Link}
-                    to={`/tests/${test.tfp_sha || test.test_id}`}
-                    sx={{ mt: 2 }}
-                >
-                    Start Test
-                </Button>
             </Box>
         ));
-    }, [testCards, theme.palette.text.secondary]);
+    }, [testCards, activeTestId, theme.palette.text.secondary, handleBackFromTest, handleTestComplete, handleStartTest]);
 
     // Function to determine if a tab content should be visible
     const isTabVisible = (tabIndex: number): boolean => {

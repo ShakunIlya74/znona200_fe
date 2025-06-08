@@ -107,8 +107,7 @@ const App: React.FC = () => {
         {
           path: 'tests',
           element: withLayout(TestsPage)(),
-        },
-        {
+        },        {
           path: 'test-view/:tfp_sha',
           element: withLayout(TestViewPage, true)(),
         },
