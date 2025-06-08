@@ -1,6 +1,46 @@
 import { TestViewResponse, UserTestResponse, FullTestWithAnswers } from "../pages/tests/interfaces";
 import axiosInstance from "./axiosInstance";
 
+// Helper function to prepare test data for JSON serialization when uploading images
+function prepareTestDataForJson(testData: {
+  test_id?: number;
+  test_name: string;
+  questions: Array<{
+    question_id?: number;
+    question: string;
+    question_type: string;
+    question_data: any;
+    max_points: number;
+    isNew?: boolean;
+    markedForDeletion?: boolean;
+    uploadedImages?: any[];
+    imagesToRemove?: string[];
+  }>;
+}) {
+  return {
+    test_id: testData.test_id,
+    test_name: testData.test_name,
+    questions: testData.questions.map((q, questionIndex) => ({
+      question_id: q.question_id,
+      question: q.question,
+      question_type: q.question_type,
+      question_data: q.question_data,
+      max_points: q.max_points,
+      isNew: q.isNew,
+      markedForDeletion: q.markedForDeletion,
+      imagesToRemove: q.imagesToRemove, // Include images to remove
+      // Include image metadata without the actual file objects
+      uploadedImages: q.uploadedImages?.map((img, imgIndex) => ({
+        id: img.id,
+        name: img.name,
+        size: img.size,
+        // Reference to the file in FormData
+        fileKey: `question_${questionIndex}_image_${imgIndex}`
+      }))
+    }))
+  };
+}
+
 export async function GetTestsData() {
     try {
         const response = await axiosInstance.get('/tests');
@@ -115,28 +155,7 @@ export async function SaveEditedTest(tfp_sha: string, testData: {
       const formData = new FormData();
       
       // Prepare test data without the file objects for JSON serialization
-      const testDataForJson = {
-        test_id: testData.test_id,
-        test_name: testData.test_name,
-        questions: testData.questions.map((q, questionIndex) => ({
-          question_id: q.question_id,
-          question: q.question,
-          question_type: q.question_type,
-          question_data: q.question_data,
-          max_points: q.max_points,
-          isNew: q.isNew,
-          markedForDeletion: q.markedForDeletion,
-          imagesToRemove: q.imagesToRemove, // Include images to remove
-          // Include image metadata without the actual file objects
-          uploadedImages: q.uploadedImages?.map((img, imgIndex) => ({
-            id: img.id,
-            name: img.name,
-            size: img.size,
-            // Reference to the file in FormData
-            fileKey: `question_${questionIndex}_image_${imgIndex}`
-          }))
-        }))
-      };
+      const testDataForJson = prepareTestDataForJson(testData);
 
       // Add the JSON data
       formData.append('testData', JSON.stringify(testDataForJson));
@@ -173,6 +192,77 @@ export async function SaveEditedTest(tfp_sha: string, testData: {
   }
   catch (err) {
     console.error('Error saving edited test:', err);
+    return { 
+      success: false, 
+      error: err instanceof Error ? err.message : 'Unknown error occurred'
+    };
+  }
+}
+
+// Function to save an edited test by test ID
+export async function SaveEditedTestById(testId: number, testData: {
+  test_id?: number;
+  test_name: string;
+  questions: Array<{
+    question_id?: number;
+    question: string;
+    question_type: string;
+    question_data: any;
+    max_points: number;
+    isNew?: boolean;
+    markedForDeletion?: boolean;
+    uploadedImages?: any[]; // Array of UploadedImage objects
+    imagesToRemove?: string[]; // Array of image paths to remove
+  }>;
+}) {
+  try {
+    // Check if there are any uploaded images across all questions
+    const hasUploadedImages = testData.questions.some(q => 
+      q.uploadedImages && q.uploadedImages.length > 0
+    );
+
+    if (hasUploadedImages) {
+      // Use FormData when there are uploaded images
+      const formData = new FormData();
+      
+      // Prepare test data without the file objects for JSON serialization
+      const testDataForJson = prepareTestDataForJson(testData);
+
+      // Add the JSON data
+      formData.append('testData', JSON.stringify(testDataForJson));
+
+      // Add all image files to FormData
+      testData.questions.forEach((question, questionIndex) => {
+        if (question.uploadedImages) {
+          question.uploadedImages.forEach((img, imgIndex) => {
+            if (img.file) {
+              formData.append(`question_${questionIndex}_image_${imgIndex}`, img.file);
+            }
+          });
+        }
+      });
+
+      const response = await axiosInstance.put('/test-edit-by-id/' + testId, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return {
+        success: true,
+        updatedTest: response.data
+      };
+    } else {
+      // Use regular JSON when no images are uploaded
+      const response = await axiosInstance.put('/test-edit-by-id/' + testId, testData);
+      return {
+        success: true,
+        updatedTest: response.data
+      };
+    }
+  }
+  catch (err) {
+    console.error('Error saving edited test by ID:', err);
     return { 
       success: false, 
       error: err instanceof Error ? err.message : 'Unknown error occurred'
