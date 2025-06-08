@@ -12,7 +12,7 @@ import {
   IconButton,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { GetTestView } from '../../services/TestService';
+import { GetTestView, GetTestDataById } from '../../services/TestService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -74,11 +74,10 @@ const TestReviewComponent: React.FC<TestReviewComponentProps> = ({
   tfp_sha,
   isCompactView = false,
   onBack,
-  onTestRecomplete: onTestComplete,
+  onTestRecomplete: onTestRecomplete,
   containerHeight,
   showTopBar = true
-}) => {
-  const [loading, setLoading] = useState<boolean>(true);
+}) => {  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [testData, setTestData] = useState<TestCardMeta | null>(null);
   const [testWithAnswers, setTestWithAnswers] = useState<FullTestWithAnswers | null>(null);
@@ -86,13 +85,16 @@ const TestReviewComponent: React.FC<TestReviewComponentProps> = ({
   const [maxPossibleScore, setMaxPossibleScore] = useState<number>(0);
   // State to control hiding correct answers
   const [hideCorrectAnswers, setHideCorrectAnswers] = useState<boolean>(true);
+  const [testId, setTestId] = useState<string | null>(
+    propTestId ? String(propTestId) : null
+  );
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
-  const headerOffset = getHeaderOffset(isMobile, isMedium);
-  useEffect(() => {
+  const headerOffset = getHeaderOffset(isMobile, isMedium);  useEffect(() => {
     const loadTestData = async () => {
-      if (!tfp_sha) {
+      // Check if we have either tfp_sha or testId
+      if (!tfp_sha && !propTestId) {
         setError('Test ID is missing');
         setLoading(false);
         return;
@@ -100,18 +102,34 @@ const TestReviewComponent: React.FC<TestReviewComponentProps> = ({
 
       setLoading(true);
       try {
-        const response = await GetTestView(tfp_sha);
+        let response;
+        
+        if (propTestId) {
+          // Use testId-based service
+          const testIdNumber = typeof propTestId === 'string' ? parseInt(propTestId) : propTestId;
+          response = await GetTestDataById(testIdNumber);
+        } else if (tfp_sha) {
+          // Use tfp_sha-based service
+          response = await GetTestView(tfp_sha);
+        } else {
+          throw new Error('Neither testId nor tfp_sha provided');
+        }
+
         console.log('Response:', response);
 
         if (response.success && response.full_test_with_answers) {
           setTestData(response.full_test_with_answers.test);
           setTestWithAnswers(response.full_test_with_answers);
+          // Set testId from response
+          if (response.full_test_with_answers.test.test_id) {
+            setTestId(String(response.full_test_with_answers.test.test_id));
+          }
           
           // Calculate total score and max possible score
           let score = 0;
           let maxScore = 0;
           
-          response.full_test_with_answers.questions.forEach(question => {
+          response.full_test_with_answers.questions.forEach((question: Question) => {
             const questionMaxPoints = question.max_points || 1;
             maxScore += questionMaxPoints;
             
@@ -139,18 +157,21 @@ const TestReviewComponent: React.FC<TestReviewComponentProps> = ({
     };
 
     loadTestData();
-  }, [tfp_sha]);
+  }, [tfp_sha, propTestId]);
   // Handler to navigate back to tests
   const handleBackClick = () => {
     if (onBack) {
       onBack();
     }
   };
-
   // Handler to take the test again
   const handleTakeAgainClick = () => {
-    if (tfp_sha && onTestComplete) {
-      onTestComplete(tfp_sha);
+    if (onTestRecomplete) {
+      if (tfp_sha) {
+        onTestRecomplete(tfp_sha);
+      } else if (testId) {
+        onTestRecomplete(testId);
+      }
     }
   };
 

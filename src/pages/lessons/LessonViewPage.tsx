@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
 import TestViewComponent from '../tests/TestViewPageComponent';
+import TestReviewComponent from '../tests/TestReviewPageComponent';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
@@ -21,6 +22,7 @@ const LessonViewPage: React.FC = () => {
     const [testCards, setTestCards] = useState<TestCardMeta[]>([]);    const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [tabValue, setTabValue] = useState<number>(0);
     const [activeTestId, setActiveTestId] = useState<number | null>(null);
+    const [reviewTestId, setReviewTestId] = useState<number | null>(null);
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -74,10 +76,12 @@ const LessonViewPage: React.FC = () => {
         setTabValue(newValue);
     };    const handleStartTest = useCallback((testId: number) => {
         setActiveTestId(testId);
+        setReviewTestId(null); // Clear review mode when starting a test
     }, []);
 
     const handleBackFromTest = useCallback(() => {
         setActiveTestId(null);
+        setReviewTestId(null); // Clear both test and review modes
     }, []);
 
     const handleTestComplete = useCallback((testId: string) => {
@@ -85,6 +89,20 @@ const LessonViewPage: React.FC = () => {
         setActiveTestId(null);
         console.log('Test completed:', testId);
     }, []);
+
+    const handleStartReview = useCallback((testId: number) => {
+        setReviewTestId(testId);
+        setActiveTestId(null); // Clear active test when starting review
+    }, []);
+
+    const handleTestRecomplete = useCallback((testId: string) => {
+        // Find the test by testId and start it
+        const test = testCards.find(t => t.test_id === parseInt(testId, 10));
+        if (test) {
+            setActiveTestId(test.test_id);
+            setReviewTestId(null);
+        }
+    }, [testCards]);
 
     // Memoize the video component to keep it mounted
     const videoComponent = useMemo(() => {
@@ -146,6 +164,16 @@ const LessonViewPage: React.FC = () => {
                         showTopBar={false}
                         containerHeight="auto"
                     />
+                ) : reviewTestId === test.test_id ? (
+                    // Render the TestReviewComponent when this test is in review mode
+                    <TestReviewComponent
+                        testId={test.test_id}
+                        isCompactView={true}
+                        onBack={handleBackFromTest}
+                        onTestRecomplete={handleTestRecomplete}
+                        showTopBar={false}
+                        containerHeight="auto"
+                    />
                 ) : (
                     // Render the test start screen when not active
                     <>
@@ -157,19 +185,31 @@ const LessonViewPage: React.FC = () => {
                                 {test.test_description}
                             </Typography>
                         )}
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => handleStartTest(test.test_id)}
-                            sx={{ mt: 2 }}
-                        >
-                            Start Test
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => handleStartTest(test.test_id)}
+                                sx={{ mt: 2 }}
+                            >
+                                Start Test
+                            </Button>
+                            {test.complete_trials && test.complete_trials >= 1 && (
+                                <Button
+                                    variant="outlined"
+                                    color="secondary"
+                                    onClick={() => handleStartReview(test.test_id)}
+                                    sx={{ mt: 2 }}
+                                >
+                                    Review Results
+                                </Button>
+                            )}
+                        </Box>
                     </>
                 )}
             </Box>
         ));
-    }, [testCards, activeTestId, theme.palette.text.secondary, handleBackFromTest, handleTestComplete, handleStartTest]);
+    }, [testCards, activeTestId, reviewTestId, theme.palette.text.secondary, handleBackFromTest, handleTestComplete, handleStartTest, handleStartReview, handleTestRecomplete]);
 
     // Function to determine if a tab content should be visible
     const isTabVisible = (tabIndex: number): boolean => {
