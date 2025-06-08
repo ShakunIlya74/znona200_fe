@@ -393,7 +393,7 @@ const TestViewComponent: React.FC<TestViewComponentProps> = ({
           <Button
             variant="text"
             startIcon={<ArrowBackIcon />}
-            onClick={onBack || handleBackClick}
+            onClick={handleBackClick}
             sx={{ color: theme.palette.primary.main }}
           >
             Назад до тестів
