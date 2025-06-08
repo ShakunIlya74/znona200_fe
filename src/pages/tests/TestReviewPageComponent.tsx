@@ -12,7 +12,6 @@ import {
   IconButton,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { useParams, useNavigate } from 'react-router-dom';
 import { GetTestView } from '../../services/TestService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { alpha } from '@mui/material/styles';
@@ -29,6 +28,16 @@ import AnsweredMatchingQuestion from './components/AnsweredMatchingQuestion';
 interface QuestionButtonProps {
   correct?: boolean;
   incorrect?: boolean;
+}
+
+export interface TestReviewComponentProps {
+  testId?: string | number;
+  tfp_sha?: string;
+  isCompactView?: boolean;
+  onBack?: () => void;
+  onTestRecomplete?: (testId: string) => void;
+  containerHeight?: string;
+  showTopBar?: boolean;
 }
 
 const QuestionButton = styled(Button)<QuestionButtonProps>(({ theme, correct, incorrect }) => ({
@@ -60,8 +69,15 @@ const QuestionButton = styled(Button)<QuestionButtonProps>(({ theme, correct, in
   },
 }));
 
-const TestReviewPage: React.FC = () => {
-  const { tfp_sha } = useParams<{ tfp_sha: string }>();
+const TestReviewComponent: React.FC<TestReviewComponentProps> = ({
+  testId: propTestId,
+  tfp_sha,
+  isCompactView = false,
+  onBack,
+  onTestRecomplete: onTestComplete,
+  containerHeight,
+  showTopBar = true
+}) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [testData, setTestData] = useState<TestCardMeta | null>(null);
@@ -70,13 +86,10 @@ const TestReviewPage: React.FC = () => {
   const [maxPossibleScore, setMaxPossibleScore] = useState<number>(0);
   // State to control hiding correct answers
   const [hideCorrectAnswers, setHideCorrectAnswers] = useState<boolean>(true);
-
   const theme = useTheme();
-  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const headerOffset = getHeaderOffset(isMobile, isMedium);
-
   useEffect(() => {
     const loadTestData = async () => {
       if (!tfp_sha) {
@@ -127,16 +140,17 @@ const TestReviewPage: React.FC = () => {
 
     loadTestData();
   }, [tfp_sha]);
-
   // Handler to navigate back to tests
   const handleBackClick = () => {
-    navigate('/tests');
+    if (onBack) {
+      onBack();
+    }
   };
 
   // Handler to take the test again
   const handleTakeAgainClick = () => {
-    if (tfp_sha) {
-      navigate(`/test-view/${tfp_sha}`);
+    if (tfp_sha && onTestComplete) {
+      onTestComplete(tfp_sha);
     }
   };
 
@@ -149,62 +163,62 @@ const TestReviewPage: React.FC = () => {
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
-
   return (
     <Container
       maxWidth={false}
       disableGutters
       sx={{
-        minHeight: `calc(100vh - ${headerOffset}px)`,
+        minHeight: containerHeight || `calc(100vh - ${headerOffset}px)`,
         display: 'flex',
         flexDirection: 'column',
         p: 0
       }}
-    >
-      {/* Top Bar */}
-      <Box sx={{
-        p: 2,
-        borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
-        display: 'flex',
-        alignItems: 'center'
-      }}>
-        <Button
-          variant="text"
-          startIcon={<ArrowBackIcon />}
-          onClick={handleBackClick}
-          sx={{ color: theme.palette.primary.main }}
-        >
-          Назад до тестів
-        </Button>
-
-        {testData && (
-          <Typography
-            variant="h6"
-            sx={{
-              ml: 2,
-              fontWeight: 600,
-              color: theme.palette.primary.main,
-              flex: 1,
-              textAlign: { xs: 'left', sm: 'center' }
-            }}
+    >      {/* Top Bar */}
+      {showTopBar && (
+        <Box sx={{
+          p: 2,
+          borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          <Button
+            variant="text"
+            startIcon={<ArrowBackIcon />}
+            onClick={handleBackClick}
+            sx={{ color: theme.palette.primary.main }}
           >
-            Перегляд результатів: {testData.test_name}
-            {testData.default_question && (
-              <Typography 
-                component="div" 
-                variant="caption" 
-                sx={{ 
-                  color: theme.palette.text.secondary,
-                  fontSize: '0.75rem',
-                  mt: 0.5
-                }}
-              >
-                {testData.default_question}
-              </Typography>
-            )}
-          </Typography>
-        )}
-      </Box>
+            Назад до тестів
+          </Button>
+
+          {testData && (
+            <Typography
+              variant="h6"
+              sx={{
+                ml: 2,
+                fontWeight: 600,
+                color: theme.palette.primary.main,
+                flex: 1,
+                textAlign: { xs: 'left', sm: 'center' }
+              }}
+            >
+              Перегляд результатів: {testData.test_name}
+              {testData.default_question && (
+                <Typography 
+                  component="div" 
+                  variant="caption" 
+                  sx={{ 
+                    color: theme.palette.text.secondary,
+                    fontSize: '0.75rem',
+                    mt: 0.5
+                  }}
+                >
+                  {testData.default_question}
+                </Typography>
+              )}
+            </Typography>
+          )}
+        </Box>
+      )}
 
       {loading ? (
         <Box sx={{
@@ -507,4 +521,4 @@ const TestReviewPage: React.FC = () => {
   );
 };
 
-export default TestReviewPage;
+export default TestReviewComponent;
