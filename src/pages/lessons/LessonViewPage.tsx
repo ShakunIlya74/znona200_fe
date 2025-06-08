@@ -88,14 +88,7 @@ const LessonViewPage: React.FC = () => {
         // Test completed, could navigate to results or show completion message
         setActiveTestId(null);
         console.log('Test completed:', testId);
-    }, []);
-
-    const handleStartReview = useCallback((testId: number) => {
-        setReviewTestId(testId);
-        setActiveTestId(null); // Clear active test when starting review
-    }, []);
-
-    const handleTestRecomplete = useCallback((testId: string) => {
+    }, []);    const handleTestRecomplete = useCallback((testId: string) => {
         // Find the test by testId and start it
         const test = testCards.find(t => t.test_id === parseInt(testId, 10));
         if (test) {
@@ -173,9 +166,19 @@ const LessonViewPage: React.FC = () => {
                         onTestRecomplete={handleTestRecomplete}
                         showTopBar={false}
                         containerHeight="auto"
+                    />                
+                ) : test.complete_trials && test.complete_trials >= 1 ? (
+                    // Render the TestReviewComponent when there are completed trials
+                    <TestReviewComponent
+                        testId={test.test_id}
+                        isCompactView={true}
+                        onBack={handleBackFromTest}
+                        onTestRecomplete={handleTestRecomplete}
+                        showTopBar={false}
+                        containerHeight="auto"
                     />
                 ) : (
-                    // Render the test start screen when not active
+                    // Render the test start screen when not active and no completed trials
                     <>
                         <Typography variant="h5" gutterBottom>
                             {test.test_name}
@@ -194,22 +197,12 @@ const LessonViewPage: React.FC = () => {
                             >
                                 Start Test
                             </Button>
-                            {test.complete_trials && test.complete_trials >= 1 && (
-                                <Button
-                                    variant="outlined"
-                                    color="secondary"
-                                    onClick={() => handleStartReview(test.test_id)}
-                                    sx={{ mt: 2 }}
-                                >
-                                    Review Results
-                                </Button>
-                            )}
                         </Box>
                     </>
                 )}
             </Box>
         ));
-    }, [testCards, activeTestId, reviewTestId, theme.palette.text.secondary, handleBackFromTest, handleTestComplete, handleStartTest, handleStartReview, handleTestRecomplete]);
+    }, [testCards, activeTestId, reviewTestId, theme.palette.text.secondary, handleBackFromTest, handleTestComplete, handleStartTest, handleTestRecomplete]);
 
     // Function to determine if a tab content should be visible
     const isTabVisible = (tabIndex: number): boolean => {
