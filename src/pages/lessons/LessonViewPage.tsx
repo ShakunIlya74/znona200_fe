@@ -11,6 +11,7 @@ import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PDFViewer from '../utils/PDFViewer';
 import PDFDisplay from '../utils/PDFDisplay';
+import VideoDisplay from '../utils/VideoDisplay';
 
 const LessonViewPage: React.FC = () => {
     const { lfp_sha } = useParams<{ lfp_sha: string }>();
@@ -101,23 +102,36 @@ const LessonViewPage: React.FC = () => {
     // Memoize the video component to keep it mounted
     const videoComponent = useMemo(() => {
         if (webinarDicts.length > 0) {
-            const webinar = webinarDicts[0];
+            const webinar = webinarDicts[0];            
             return (
                 <Paper
                     elevation={0}
                     sx={{
-                        p: 0,
+                        p: 1,
                         backgroundColor: theme.palette.common.black,
                         borderRadius: '12px',
                         aspectRatio: '16/9',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        '& .video-js': {
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: '8px'
+                        }
                     }}
                 >
                     {webinar.url ? (
-                        <>{webinar.url}</>                    ) : (
+                        <VideoDisplay
+                            src={webinar.url}
+                            controls={true}
+                            fluid={true}
+                            responsive={true}
+                            preload="metadata"
+                            width="100%"
+                            height="auto"
+                            // customControlsEnabled={false}
+                            // playbackRates={[0.5, 0.75, 1, 1.25, 1.5, 2]}
+                        />
+                    ) : (
                         <Typography variant="body1" sx={{ color: theme.palette.common.white }}>
                             Відео недоступне
                         </Typography>
@@ -133,10 +147,11 @@ const LessonViewPage: React.FC = () => {
         if (slideDicts.length > 0 && slideDicts[0].slide_content) {
             console.log('PDF URL:', slideDicts[0].slide_content);
             return (
-                <PDFDisplay
-                    pdfUrl={slideDicts[0].slide_content}
-                    visiblePagePercentage={0.8}
-                />
+                <VideoDisplay
+                            src={'fhjdkk'}
+    
+                        />
+                
             );
         }
         return null;
