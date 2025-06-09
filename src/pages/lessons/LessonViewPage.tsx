@@ -337,7 +337,10 @@ const LessonViewPage: React.FC = () => {
                                 {webinarDicts.length > 0 && <Tab label="Відео" />}
                                 {slideDicts.length > 0 && <Tab label="Презентація" />}
                                 {testCards.map((test, index) => (
-                                    <Tab key={`test-${test.test_id}`} label={`Квіз ${index + 1}`} />
+                                    <Tab 
+                                        key={`test-${test.test_id}`} 
+                                        label={testCards.length > 1 ? `Квіз ${index + 1}` : 'Квіз'} 
+                                    />
                                 ))}
                             </Tabs>
                         </Paper>
