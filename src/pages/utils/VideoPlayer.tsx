@@ -168,25 +168,65 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       /* Button hover effects */
       .video-js .vjs-control-bar .vjs-button:hover {
         color: ${primaryColor};
-      }
-
-      /* Playback rate menu styling */
+      }      /* Playback rate menu styling */
       .video-js .vjs-playback-rate .vjs-playback-rate-value {
-        font-size: 1.2em;
-        line-height: 2;
+        font-size: 0.9em;
+        line-height: 1.8;
       }
 
       .video-js .vjs-menu .vjs-menu-content {
-        background-color: rgba(0, 0, 0, 0.9);
+        background-color: white;
         border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        color: #333;
+      }
+
+      .video-js .vjs-menu .vjs-menu-content::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      .video-js .vjs-menu .vjs-menu-content::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 2px;
+      }
+
+      .video-js .vjs-menu .vjs-menu-content::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 2px;
+      }
+
+      .video-js .vjs-menu .vjs-menu-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.3);
+      }
+
+      .video-js .vjs-menu li {
+        font-size: 0.85em;
+        padding: 8px 12px;
+        color: #333;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .video-js .vjs-menu li:last-child {
+        border-bottom: none;
       }
 
       .video-js .vjs-menu li.vjs-selected {
         background-color: ${primaryColor};
+        color: white;
       }
 
       .video-js .vjs-menu li:hover {
-        background-color: ${primaryColor}88;
+        background-color: ${primaryColor}22;
+        color: #333;
+      }
+
+      .video-js .vjs-menu li.vjs-selected:hover {
+        background-color: ${primaryColor};
+        color: white;
       }
     `;
 
