@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import videojs from 'video.js';
 import type Player from 'video.js/dist/types/player';
 import 'video.js/dist/video-js.css';
-import { Box, CircularProgress, Alert, Typography } from '@mui/material';
+import { Box, CircularProgress, Alert, Typography, useTheme } from '@mui/material';
 
 // Import HLS support
 import '@videojs/http-streaming';
@@ -76,12 +76,131 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const theme = useTheme();
+
+  // Add custom CSS for the video player styling
+  useEffect(() => {
+    const primaryColor = theme.palette.primary.main;
+    
+    // Create or update the custom styles
+    let styleSheet = document.getElementById('custom-video-js-styles') as HTMLStyleElement;
+    if (!styleSheet) {
+      styleSheet = document.createElement('style');
+      styleSheet.id = 'custom-video-js-styles';
+      document.head.appendChild(styleSheet);
+    }
+
+    styleSheet.textContent = `
+      /* Player container rounded corners */
+      .video-js {
+        border-radius: 12px !important;
+        overflow: hidden !important;
+      }
+
+      /* Hide the default big play button */
+      .video-js .vjs-big-play-button {
+        display: none !important;
+      }
+
+      /* Custom minimalistic play button */
+      .video-js .vjs-custom-play-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 60px;
+        height: 60px;
+        background-color: ${primaryColor};
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .video-js .vjs-custom-play-button:hover {
+        background-color: ${primaryColor}dd;
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+
+      .video-js .vjs-custom-play-button::before {
+        content: '';
+        width: 0;
+        height: 0;
+        border-left: 18px solid white;
+        border-top: 12px solid transparent;
+        border-bottom: 12px solid transparent;
+        margin-left: 4px;
+      }
+
+      .video-js.vjs-playing .vjs-custom-play-button {
+        display: none;
+      }
+
+      /* Control bar styling */
+      .video-js .vjs-control-bar {
+        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%);
+        border-radius: 0 0 12px 12px;
+      }
+
+      /* Progress bar styling */
+      .video-js .vjs-progress-control .vjs-progress-holder {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .video-js .vjs-progress-control .vjs-play-progress {
+        background-color: ${primaryColor};
+      }
+
+      .video-js .vjs-progress-control .vjs-load-progress {
+        background-color: rgba(255, 255, 255, 0.4);
+      }
+
+      /* Volume slider styling */
+      .video-js .vjs-volume-level {
+        background-color: ${primaryColor};
+      }
+
+      /* Button hover effects */
+      .video-js .vjs-control-bar .vjs-button:hover {
+        color: ${primaryColor};
+      }
+
+      /* Playback rate menu styling */
+      .video-js .vjs-playback-rate .vjs-playback-rate-value {
+        font-size: 1.2em;
+        line-height: 2;
+      }
+
+      .video-js .vjs-menu .vjs-menu-content {
+        background-color: rgba(0, 0, 0, 0.9);
+        border-radius: 8px;
+      }
+
+      .video-js .vjs-menu li.vjs-selected {
+        background-color: ${primaryColor};
+      }
+
+      .video-js .vjs-menu li:hover {
+        background-color: ${primaryColor}88;
+      }
+    `;
+
+    // Cleanup function
+    return () => {
+      if (styleSheet && styleSheet.parentNode) {
+        styleSheet.parentNode.removeChild(styleSheet);
+      }
+    };
+  }, [theme.palette.primary.main]);
 
   useEffect(() => {
-    if (!videoRef.current || !src) return;
-
-    const videoElement = document.createElement('video-js');
-    videoElement.classList.add('vjs-big-play-centered');
+    if (!videoRef.current || !src) return;    const videoElement = document.createElement('video-js');
+    videoElement.classList.add('vjs-custom-skin');
     videoElement.setAttribute('style', 'width: 100%; height: 100%;');
     videoRef.current.appendChild(videoElement);
 
@@ -99,9 +218,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     if (debug) {
       console.log('Initializing video player with:', { src, sourceType });
-    }
-
-    // Video.js options
+    }    // Video.js options
     const options: VideoJsPlayerOptions = {
       autoplay,
       controls,
@@ -128,14 +245,29 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       errorDisplay: true,
       // Increase timeout for slow connections
       timeout: 45000,
+      // Add playback rate control
+      playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+      // Enable hotkeys
+      userActions: {
+        hotkeys: true,
+      },
     };
 
-    try {
-      // Initialize Video.js
+    try {      // Initialize Video.js
       const player = videojs(videoElement, options, function onPlayerReady() {
         console.log('Player is ready');
         setInitialized(true);
         setLoading(false);
+        
+        // Add custom play button
+        const customPlayButton = document.createElement('button');
+        customPlayButton.className = 'vjs-custom-play-button';
+        customPlayButton.addEventListener('click', () => {
+          if (player.paused()) {
+            player.play();
+          }
+        });
+        player.el().appendChild(customPlayButton);
         
         // Log player state for debugging
         if (debug) {
@@ -233,7 +365,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
     };
   }, [src, debug]);
-
   return (
     <Box
       sx={{
@@ -244,10 +375,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        borderRadius: '12px',
+        overflow: 'hidden',
       }}
     >
       {/* Video container */}
-      <div ref={videoRef} style={{ width: '100%', height: '100%' }} />
+      <div ref={videoRef} style={{ width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden' }} />
 
       {/* Loading indicator */}
       {loading && !error && (
