@@ -117,10 +117,9 @@ const LessonViewPage: React.FC = () => {
                     }}
                 >
                     {webinar.url ? (
-                        <>{webinar.url}</>
-                    ) : (
+                        <>{webinar.url}</>                    ) : (
                         <Typography variant="body1" sx={{ color: theme.palette.common.white }}>
-                            Video not available
+                            Відео недоступне
                         </Typography>
                     )}
                 </Paper>
@@ -194,10 +193,14 @@ const LessonViewPage: React.FC = () => {
                                 variant="contained"
                                 color="primary"
                                 onClick={() => handleStartTest(test.test_id)}
-                                sx={{ mt: 2 }}
-                            >
-                                Start Test
-                            </Button>
+                                sx={{ 
+                                    mt: 2,
+                                    '&:hover': {
+                                        backgroundColor: alpha(theme.palette.primary.main, 0.8),
+                                    }                                    }}
+                                >
+                                    Почати тест
+                                </Button>
                         </Box>
                     </>
                 )}
@@ -239,8 +242,7 @@ const LessonViewPage: React.FC = () => {
                 mb: 3,
                 flexDirection: 'row',
                 gap: 2
-            }}>
-                <Tooltip title="Назад до вебінарів" arrow placement="right">
+            }}>                <Tooltip title="Назад до вебінарів" arrow placement="right">
                     <Button
                         startIcon={<ArrowBackIcon />}
                         onClick={handleBackClick}
@@ -280,9 +282,8 @@ const LessonViewPage: React.FC = () => {
                         border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
                         backgroundColor: alpha(theme.palette.error.main, 0.05)
                     }}
-                >
-                    <Typography color="error" variant="h6" gutterBottom>
-                        Error
+                >                    <Typography color="error" variant="h6" gutterBottom>
+                        Помилка
                     </Typography>
                     <Typography color="error">
                         {error}
@@ -291,15 +292,14 @@ const LessonViewPage: React.FC = () => {
             ) : lessonData ? (
                 <>
                     {/* Lesson metadata */}
-                    <Box sx={{ mb: 3 }}>
-                        {lessonData.date && (
+                    <Box sx={{ mb: 3 }}>                        {lessonData.date && (
                             <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                                Date: {lessonData.date}
+                                Дата: {lessonData.date}
                             </Typography>
                         )}
                         {lessonData.duration && (
                             <Typography variant="subtitle1" sx={{ fontWeight: 500, mt: 0.5 }}>
-                                Duration: {lessonData.duration}
+                                Тривалість: {lessonData.duration}
                             </Typography>
                         )}
                         {lessonData.description && (
@@ -333,12 +333,11 @@ const LessonViewPage: React.FC = () => {
                                         py: 1.5
                                     }
                                 }}
-                            >
-                                {/* Always render tabs in consistent order: Videos, Slides, Tests */}
-                                {webinarDicts.length > 0 && <Tab label="Videos" />}
-                                {slideDicts.length > 0 && <Tab label="Slides" />}
+                            >                                {/* Always render tabs in consistent order: Videos, Slides, Tests */}
+                                {webinarDicts.length > 0 && <Tab label="Відео" />}
+                                {slideDicts.length > 0 && <Tab label="Презентація" />}
                                 {testCards.map((test, index) => (
-                                    <Tab key={`test-${test.test_id}`} label={`Test ${index + 1}`} />
+                                    <Tab key={`test-${test.test_id}`} label={`Квіз ${index + 1}`} />
                                 ))}
                             </Tabs>
                         </Paper>
@@ -363,10 +362,9 @@ const LessonViewPage: React.FC = () => {
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                 }}
-                            >
-                                {pdfDisplayComponent || (
+                            >                                {pdfDisplayComponent || (
                                     <Typography variant="h6" sx={{ color: theme.palette.text.secondary }}>
-                                        Slides not available
+                                        Презентація недоступна
                                     </Typography>
                                 )}
                             </Box>
@@ -384,10 +382,9 @@ const LessonViewPage: React.FC = () => {
                             </Box>
                         ))}
                     </Box>
-                </>
-            ) : (
+                </>            ) : (
                 <Typography variant="h5" sx={{ textAlign: 'center', color: theme.palette.text.secondary }}>
-                    No lesson data available
+                    Дані уроку недоступні
                 </Typography>
             )}
         </Container>
