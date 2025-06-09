@@ -108,15 +108,6 @@ const LessonViewPage: React.FC = () => {
                     elevation={0}
                     sx={{
                         p: 1,
-                        backgroundColor: theme.palette.common.black,
-                        borderRadius: '12px',
-                        aspectRatio: '16/9',
-                        overflow: 'hidden',
-                        '& .video-js': {
-                            width: '100%',
-                            height: '100%',
-                            borderRadius: '8px'
-                        }
                     }}
                 >
                     {webinar.url ? (
@@ -128,11 +119,9 @@ const LessonViewPage: React.FC = () => {
                             preload="metadata"
                             width="100%"
                             height="auto"
-                            // customControlsEnabled={false}
-                            // playbackRates={[0.5, 0.75, 1, 1.25, 1.5, 2]}
                         />
                     ) : (
-                        <Typography variant="body1" sx={{ color: theme.palette.common.white }}>
+                        <Typography variant="body1" sx={{ color: theme.palette.common.black }}>
                             Відео недоступне
                         </Typography>
                     )}
@@ -147,10 +136,10 @@ const LessonViewPage: React.FC = () => {
         if (slideDicts.length > 0 && slideDicts[0].slide_content) {
             console.log('PDF URL:', slideDicts[0].slide_content);
             return (
-                <VideoDisplay
-                            src={'fhjdkk'}
-    
-                        />
+                <PDFDisplay
+                    pdfUrl={slideDicts[0].slide_content}
+                    visiblePagePercentage={0.8}
+                />
                 
             );
         }
