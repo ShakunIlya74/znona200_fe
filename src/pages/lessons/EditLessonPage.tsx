@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button } from '@mui/material';
+import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
@@ -26,6 +26,7 @@ const EditLessonPage: React.FC = () => {
     const [testCards, setTestCards] = useState<TestCardMeta[]>([]);    const [tabValue, setTabValue] = useState<number>(0);
     const [dragOverVideo, setDragOverVideo] = useState(false);
     const [dragOverSlides, setDragOverSlides] = useState(false);
+    const [deleteVideoDialogOpen, setDeleteVideoDialogOpen] = useState(false);
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -154,12 +155,19 @@ const EditLessonPage: React.FC = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }, []);    const handleDeleteVideo = useCallback(() => {
+        setDeleteVideoDialogOpen(true);
     }, []);
 
-    const handleDeleteVideo = useCallback(() => {
-        console.log('Delete video clicked - placeholder action');
+    const handleConfirmDeleteVideo = useCallback(() => {
+        console.log('Video deletion confirmed - placeholder action');
         // TODO: Implement actual video deletion logic
-    }, []);    // Memoize the video component to keep it mounted
+        setDeleteVideoDialogOpen(false);
+    }, []);
+
+    const handleCancelDeleteVideo = useCallback(() => {
+        setDeleteVideoDialogOpen(false);
+    }, []);// Memoize the video component to keep it mounted
     const videoComponent = useMemo(() => {
         return (
             <Box>
@@ -538,6 +546,45 @@ const EditLessonPage: React.FC = () => {
                     Дані уроку недоступні
                 </Typography>
             )}
+
+            {/* Delete Video Confirmation Dialog */}
+            <Dialog
+                open={deleteVideoDialogOpen}
+                onClose={handleCancelDeleteVideo}
+                aria-labelledby="delete-video-dialog-title"
+                aria-describedby="delete-video-dialog-description"
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle id="delete-video-dialog-title">
+                    Підтвердження видалення відео
+                </DialogTitle>
+                <DialogContent>
+                    <Typography id="delete-video-dialog-description" variant="body1">
+                        Ви впевнені, що хочете видалити це відео з уроку?
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        <strong>Увага:</strong> Ця дія не може бути скасована. Відео буде видалено назавжди.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button 
+                        onClick={handleCancelDeleteVideo} 
+                        color="primary"
+                        variant="outlined"
+                    >
+                        Скасувати
+                    </Button>
+                    <Button 
+                        onClick={handleConfirmDeleteVideo} 
+                        color="error" 
+                        variant="contained"
+                        startIcon={<DeleteIcon />}
+                    >
+                        Видалити відео
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };
