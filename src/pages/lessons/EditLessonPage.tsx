@@ -11,6 +11,8 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import VideoFileIcon from '@mui/icons-material/VideoFile';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
 import PDFDisplay from '../utils/PDFDisplay';
 import VideoDisplay from '../utils/VideoDisplay';
 
@@ -144,6 +146,19 @@ const EditLessonPage: React.FC = () => {
     const handleSlidesDragLeave = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         setDragOverSlides(false);
+    }, []);    // Video action handlers
+    const handleDownloadVideo = useCallback((videoUrl: string) => {
+        const link = document.createElement('a');
+        link.href = videoUrl;
+        link.download = 'video'; // Browser will add appropriate extension
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }, []);
+
+    const handleDeleteVideo = useCallback(() => {
+        console.log('Delete video clicked - placeholder action');
+        // TODO: Implement actual video deletion logic
     }, []);    // Memoize the video component to keep it mounted
     const videoComponent = useMemo(() => {
         return (
@@ -197,26 +212,70 @@ const EditLessonPage: React.FC = () => {
                             Огляд
                         </Button>
                     </Box>
-                </Paper>
-
-                {/* Existing Video Display */}
+                </Paper>                {/* Existing Video Display */}
                 {webinarDicts.length > 0 && (
                     <Paper
                         elevation={0}
                         sx={{
                             p: 1,
                         }}
-                    >
-                        {webinarDicts[0].url ? (
-                            <VideoDisplay
-                                src={webinarDicts[0].url}
-                                controls={true}
-                                fluid={true}
-                                responsive={true}
-                                preload="metadata"
-                                width="100%"
-                                height="auto"
-                            />
+                    >                        {webinarDicts[0].url ? (
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', minHeight: '300px' }}>
+                                {/* Video Player */}
+                                <Box sx={{ flex: 1 }}>
+                                    <VideoDisplay
+                                        src={webinarDicts[0].url}
+                                        controls={true}
+                                        fluid={true}
+                                        responsive={true}
+                                        preload="metadata"
+                                        width="100%"
+                                        height="auto"
+                                    />
+                                </Box>
+                                
+                                {/* Action Buttons */}
+                                <Box sx={{ 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    gap: 1,
+                                    maxWidth: '200px',
+                                    flex: '0 0 auto',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    height: '100%'
+                                }}>                                    <Button
+                                        variant="outlined"
+                                        color="primary"
+                                        startIcon={<DownloadIcon />}
+                                        onClick={() => handleDownloadVideo(webinarDicts[0].url)}
+                                        sx={{ 
+                                            whiteSpace: 'nowrap',
+                                            width: '160px',
+                                            '&:hover': {
+                                                backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                                            }
+                                        }}
+                                    >
+                                        Завантажити
+                                    </Button>
+                                    <Button
+                                        variant="outlined"
+                                        color="error"
+                                        startIcon={<DeleteIcon />}
+                                        onClick={handleDeleteVideo}
+                                        sx={{ 
+                                            whiteSpace: 'nowrap',
+                                            width: '160px',
+                                            '&:hover': {
+                                                backgroundColor: alpha(theme.palette.error.main, 0.05),
+                                            }
+                                        }}
+                                    >
+                                        Видалити
+                                    </Button>
+                                </Box>
+                            </Box>
                         ) : (
                             <Typography variant="body1" sx={{ color: theme.palette.common.black }}>
                                 Відео недоступне
@@ -226,7 +285,7 @@ const EditLessonPage: React.FC = () => {
                 )}
             </Box>
         );
-    }, [webinarDicts, theme, dragOverVideo, handleVideoDrop, handleVideoDragOver, handleVideoDragLeave, handleVideoFileSelect]);    // Memoize the PDFDisplay component to keep it mounted
+    }, [webinarDicts, theme, dragOverVideo, handleVideoDrop, handleVideoDragOver, handleVideoDragLeave, handleVideoFileSelect, handleDownloadVideo, handleDeleteVideo]);    // Memoize the PDFDisplay component to keep it mounted
     const pdfDisplayComponent = useMemo(() => {
         return (
             <Box>
