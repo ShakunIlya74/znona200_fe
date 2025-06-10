@@ -61,10 +61,9 @@ const LessonDialogComponent: React.FC<LessonModalProps> = ({
     console.log(`Viewing lesson with lesson_sha: ${lesson.lesson_sha}`);
     onView(lesson.lesson_sha);
   };
-
   const handleEditLesson = () => {
     console.log(`Navigating to edit lesson with lesson_sha: ${lesson.lesson_sha}`);
-    navigate(`/lessons/edit/${lesson.lesson_sha}`);
+    navigate(`/webinars/edit/${lesson.lesson_sha}`);
   };
 
   const handleDeleteLesson = async () => {
@@ -348,7 +347,7 @@ const LessonDialogComponent: React.FC<LessonModalProps> = ({
                 >
                   <EditIcon sx={{ fontSize: '2rem', mb: 1 }} />
                   <Typography variant="body2">
-                    Редагувати урок
+                    Редагувати вебінар
                   </Typography>
                 </Button>
               )}

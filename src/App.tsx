@@ -23,6 +23,7 @@ import LessonViewPage from './pages/lessons/LessonViewPage';
 import MinilectionViewPage from './pages/MinilectionViewPage';
 import NoteViewPage from './pages/NoteViewPage';
 import EditTestPage from './pages/tests/EditTestPage';
+import EditLessonPage from './pages/lessons/EditLessonPage';
 import UserGroupsPage from './pages/user-managment/UserGroupsPage';
 
 const withLayout = (Component: React.ComponentType, isViewComponent=false) => () => (
@@ -126,6 +127,10 @@ const App: React.FC = () => {
         {
           path: 'webinar-view/:lfp_sha',
           element: withLayout(LessonViewPage, true)(),
+        },
+        {
+          path: 'webinars/edit/:lfp_sha',
+          element: withLayout(EditLessonPage, true)(),
         },
         {
           path: 'minilections',
