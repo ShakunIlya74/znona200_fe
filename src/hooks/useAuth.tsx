@@ -10,6 +10,9 @@ const adminOnlyEndpoints = [
     "/test-create",
     "/test-remove-tfp",
 
+    // webinar management endpoints
+    "webinars/edit"
+    // todo: add rest of admin-only endpoints here
 ];
 
 export function useAuth(currentPath: string) {
