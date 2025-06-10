@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict } from '../../services/LessonService';
@@ -7,6 +7,10 @@ import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import VideoFileIcon from '@mui/icons-material/VideoFile';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import PDFDisplay from '../utils/PDFDisplay';
 import VideoDisplay from '../utils/VideoDisplay';
 
@@ -17,8 +21,9 @@ const EditLessonPage: React.FC = () => {
     const [lessonData, setLessonData] = useState<LessonCardMeta | null>(null);
     const [webinarDicts, setWebinarDicts] = useState<WebinarDict[]>([]);
     const [slideDicts, setSlideDicts] = useState<SlideDict[]>([]);
-    const [testCards, setTestCards] = useState<TestCardMeta[]>([]);
-    const [tabValue, setTabValue] = useState<number>(0);
+    const [testCards, setTestCards] = useState<TestCardMeta[]>([]);    const [tabValue, setTabValue] = useState<number>(0);
+    const [dragOverVideo, setDragOverVideo] = useState(false);
+    const [dragOverSlides, setDragOverSlides] = useState(false);
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -44,12 +49,10 @@ const EditLessonPage: React.FC = () => {
                     setLessonData(response.webinar_card);
                     setWebinarDicts(response.webinar_dicts || []);
                     setSlideDicts(response.slide_dicts || []);
-                    setTestCards(response.test_cards || []);
-
-                    // Set tab configuration based on available content
+                    setTestCards(response.test_cards || []);                    // Set tab configuration based on available content - always show tabs in edit mode
                     setTabsConfig({
-                        hasVideos: (response.webinar_dicts || []).length > 0,
-                        hasSlides: (response.slide_dicts || []).length > 0
+                        hasVideos: true, // Always show video tab in edit mode
+                        hasSlides: true  // Always show slides tab in edit mode
                     });
                 } else {
                     setError(response.error || 'Failed to load lesson data');
@@ -73,51 +76,220 @@ const EditLessonPage: React.FC = () => {
         setTabValue(newValue);
     };
 
-    // Memoize the video component to keep it mounted
-    const videoComponent = useMemo(() => {
-        if (webinarDicts.length > 0) {
-            const webinar = webinarDicts[0];            
-            return (
-                <Paper
-                    elevation={0}
-                    sx={{
-                        p: 1,
-                    }}
-                >
-                    {webinar.url ? (
-                        <VideoDisplay
-                            src={webinar.url}
-                            controls={true}
-                            fluid={true}
-                            responsive={true}
-                            preload="metadata"
-                            width="100%"
-                            height="auto"
-                        />
-                    ) : (
-                        <Typography variant="body1" sx={{ color: theme.palette.common.black }}>
-                            Відео недоступне
-                        </Typography>
-                    )}
-                </Paper>
-            );
-        }
-        return null;
-    }, [webinarDicts, theme.palette.common.black]);
+    // Video upload handlers
+    const handleVideoFileSelect = useCallback(() => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'video/*';
+        input.onchange = (e) => {
+            const files = (e.target as HTMLInputElement).files;
+            if (files && files.length > 0) {
+                console.log('Video file selected:', files[0]);
+                // TODO: Implement video upload logic
+            }
+        };
+        input.click();
+    }, []);
 
-    // Memoize the PDFDisplay component to keep it mounted
-    const pdfDisplayComponent = useMemo(() => {
-        if (slideDicts.length > 0 && slideDicts[0].slide_content) {
-            console.log('PDF URL:', slideDicts[0].slide_content);
-            return (
-                <PDFDisplay
-                    pdfUrl={slideDicts[0].slide_content}
-                    visiblePagePercentage={0.8}
-                />
-            );
+    const handleVideoDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setDragOverVideo(false);
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            console.log('Video file dropped:', files[0]);
+            // TODO: Implement video upload logic
         }
-        return null;
-    }, [slideDicts]);
+    }, []);
+
+    const handleVideoDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setDragOverVideo(true);
+    }, []);
+
+    const handleVideoDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setDragOverVideo(false);
+    }, []);
+
+    // Slides upload handlers
+    const handleSlidesFileSelect = useCallback(() => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.pdf';
+        input.onchange = (e) => {
+            const files = (e.target as HTMLInputElement).files;
+            if (files && files.length > 0) {
+                console.log('Slides file selected:', files[0]);
+                // TODO: Implement slides upload logic
+            }
+        };
+        input.click();
+    }, []);
+
+    const handleSlidesDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setDragOverSlides(false);
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            console.log('Slides file dropped:', files[0]);
+            // TODO: Implement slides upload logic
+        }
+    }, []);
+
+    const handleSlidesDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setDragOverSlides(true);
+    }, []);
+
+    const handleSlidesDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setDragOverSlides(false);
+    }, []);    // Memoize the video component to keep it mounted
+    const videoComponent = useMemo(() => {
+        return (
+            <Box>
+                {/* Video Upload Zone */}
+                <Paper
+                    elevation={dragOverVideo ? 4 : 1}
+                    sx={{
+                        p: 2,
+                        mb: 2,
+                        border: `2px dashed ${dragOverVideo ? theme.palette.primary.main : theme.palette.divider}`,
+                        backgroundColor: dragOverVideo ? theme.palette.action.hover : 'transparent',
+                        transition: 'all 0.2s ease-in-out',
+                        cursor: 'pointer',
+                        '&:hover': {
+                            backgroundColor: theme.palette.action.hover,
+                            borderColor: theme.palette.primary.main,
+                        }
+                    }}
+                    onDrop={handleVideoDrop}
+                    onDragOver={handleVideoDragOver}
+                    onDragLeave={handleVideoDragLeave}
+                    onClick={handleVideoFileSelect}
+                >
+                    <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        gap: 2,
+                        minHeight: 80
+                    }}>
+                        <VideoFileIcon color="primary" sx={{ fontSize: 40 }} />
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Typography variant="body1" color="primary">
+                                Перетягніть відео сюди або натисніть для вибору
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Підтримуються файли: MP4, AVI, MOV, WMV
+                            </Typography>
+                            {/* TODO: check if they are accepted for video player */}
+                        </Box>
+                        <Button
+                            variant="outlined"
+                            startIcon={<AttachFileIcon />}
+                            size="small"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleVideoFileSelect();
+                            }}
+                        >
+                            Огляд
+                        </Button>
+                    </Box>
+                </Paper>
+
+                {/* Existing Video Display */}
+                {webinarDicts.length > 0 && (
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 1,
+                        }}
+                    >
+                        {webinarDicts[0].url ? (
+                            <VideoDisplay
+                                src={webinarDicts[0].url}
+                                controls={true}
+                                fluid={true}
+                                responsive={true}
+                                preload="metadata"
+                                width="100%"
+                                height="auto"
+                            />
+                        ) : (
+                            <Typography variant="body1" sx={{ color: theme.palette.common.black }}>
+                                Відео недоступне
+                            </Typography>
+                        )}
+                    </Paper>
+                )}
+            </Box>
+        );
+    }, [webinarDicts, theme, dragOverVideo, handleVideoDrop, handleVideoDragOver, handleVideoDragLeave, handleVideoFileSelect]);    // Memoize the PDFDisplay component to keep it mounted
+    const pdfDisplayComponent = useMemo(() => {
+        return (
+            <Box>
+                {/* Slides Upload Zone */}
+                <Paper
+                    elevation={dragOverSlides ? 4 : 1}
+                    sx={{
+                        p: 2,
+                        mb: 2,
+                        border: `2px dashed ${dragOverSlides ? theme.palette.primary.main : theme.palette.divider}`,
+                        backgroundColor: dragOverSlides ? theme.palette.action.hover : 'transparent',
+                        transition: 'all 0.2s ease-in-out',
+                        cursor: 'pointer',
+                        '&:hover': {
+                            backgroundColor: theme.palette.action.hover,
+                            borderColor: theme.palette.primary.main,
+                        }
+                    }}
+                    onDrop={handleSlidesDrop}
+                    onDragOver={handleSlidesDragOver}
+                    onDragLeave={handleSlidesDragLeave}
+                    onClick={handleSlidesFileSelect}
+                >
+                    <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        gap: 2,
+                        minHeight: 80
+                    }}>
+                        <PictureAsPdfIcon color="primary" sx={{ fontSize: 40 }} />
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Typography variant="body1" color="primary">
+                                Перетягніть презентацію сюди або натисніть для вибору
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Підтримуються файли PDF
+                            </Typography>
+                        </Box>
+                        <Button
+                            variant="outlined"
+                            startIcon={<AttachFileIcon />}
+                            size="small"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleSlidesFileSelect();
+                            }}
+                        >
+                            Огляд
+                        </Button>
+                    </Box>
+                </Paper>
+
+                {/* Existing Slides Display */}
+                {slideDicts.length > 0 && slideDicts[0].slide_content && (
+                    <PDFDisplay
+                        pdfUrl={slideDicts[0].slide_content}
+                        visiblePagePercentage={0.8}
+                    />
+                )}
+            </Box>
+        );
+    }, [slideDicts, theme, dragOverSlides, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect]);
 
     // Memoize the test components - just showing test names for now
     const testComponents = useMemo(() => {
@@ -149,27 +321,14 @@ const EditLessonPage: React.FC = () => {
     // Function to determine if a tab content should be visible
     const isTabVisible = (tabIndex: number): boolean => {
         return tabValue === tabIndex;
-    };
-
-    // Calculate tab indices
+    };    // Calculate tab indices - always show video and slides in edit mode
     const getTabIndices = useMemo(() => {
-        const { hasVideos, hasSlides } = tabsConfig;
-        let videoTabIndex = -1;
-        let slideTabIndex = -1;
-        let testStartIndex = 0;
-
-        if (hasVideos) {
-            videoTabIndex = 0;
-            testStartIndex++;
-        }
-
-        if (hasSlides) {
-            slideTabIndex = hasVideos ? 1 : 0;
-            testStartIndex++;
-        }
+        const videoTabIndex = 0;  // Always first tab
+        const slideTabIndex = 1;  // Always second tab
+        const testStartIndex = 2; // Tests start from third tab
 
         return { videoTabIndex, slideTabIndex, testStartIndex };
-    }, [tabsConfig]);
+    }, []);
 
     return (
         <Container maxWidth="lg" sx={{ py: 2 }}>
@@ -246,76 +405,61 @@ const EditLessonPage: React.FC = () => {
                                 {lessonData.description}
                             </Typography>
                         )}
-                    </Box>
-
-                    {/* Tabs section */}
-                    {(webinarDicts.length > 0 || slideDicts.length > 0 || testCards.length > 0) && (
-                        <Paper
-                            elevation={0}
+                    </Box>                    {/* Tabs section - always show video and slides tabs in edit mode */}
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            borderRadius: '16px',
+                            overflow: 'hidden',
+                            border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                            mb: 3
+                        }}
+                    >
+                        <Tabs
+                            value={tabValue}
+                            onChange={handleTabChange}
+                            variant="fullWidth"
                             sx={{
-                                borderRadius: '16px',
-                                overflow: 'hidden',
-                                border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
-                                mb: 3
+                                '& .MuiTabs-indicator': {
+                                    height: 3,
+                                    borderRadius: '3px 3px 0 0'
+                                },
+                                '& .MuiTab-root': {
+                                    fontWeight: 600,
+                                    py: 1.5
+                                }
                             }}
                         >
-                            <Tabs
-                                value={tabValue}
-                                onChange={handleTabChange}
-                                variant="fullWidth"
-                                sx={{
-                                    '& .MuiTabs-indicator': {
-                                        height: 3,
-                                        borderRadius: '3px 3px 0 0'
-                                    },
-                                    '& .MuiTab-root': {
-                                        fontWeight: 600,
-                                        py: 1.5
-                                    }
-                                }}
-                            >
-                                {/* Always render tabs in consistent order: Videos, Slides, Tests */}
-                                {webinarDicts.length > 0 && <Tab label="Відео" />}
-                                {slideDicts.length > 0 && <Tab label="Презентація" />}
-                                {testCards.map((test, index) => (
-                                    <Tab 
-                                        key={`test-${test.test_id}`} 
-                                        label={testCards.length > 1 ? `Квіз ${index + 1}` : 'Квіз'} 
-                                    />
-                                ))}
-                            </Tabs>
-                        </Paper>
-                    )}
+                            {/* Always render tabs in edit mode: Videos, Slides, Tests */}
+                            <Tab label="Відео" />
+                            <Tab label="Презентація" />
+                            {testCards.map((test, index) => (
+                                <Tab 
+                                    key={`test-${test.test_id}`} 
+                                    label={testCards.length > 1 ? `Квіз ${index + 1}` : 'Квіз'} 
+                                />
+                            ))}
+                        </Tabs>
+                    </Paper>
 
                     {/* Tab content - all content is always mounted but only visible based on the active tab */}
-                    <Box sx={{ mt: 2 }}>
-                        {/* Video Tab Content */}
-                        {tabsConfig.hasVideos && (
-                            <Box sx={{ display: isTabVisible(getTabIndices.videoTabIndex) ? 'block' : 'none' }}>
-                                {videoComponent}
-                            </Box>
-                        )}
-
-                        {/* Slides Tab Content */}
-                        {tabsConfig.hasSlides && (
-                            <Box
-                                sx={{
-                                    visibility: isTabVisible(getTabIndices.slideTabIndex) ? 'visible' : 'hidden',
-                                    position: isTabVisible(getTabIndices.slideTabIndex) ? 'static' : 'absolute',
-                                    zIndex: isTabVisible(getTabIndices.slideTabIndex) ? 'auto' : -1,
-                                    p: 0,
-                                    borderRadius: '12px',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                }}
-                            >
-                                {pdfDisplayComponent || (
-                                    <Typography variant="h6" sx={{ color: theme.palette.text.secondary }}>
-                                        Презентація недоступна
-                                    </Typography>
-                                )}
-                            </Box>
-                        )}
+                    <Box sx={{ mt: 2 }}>                        {/* Video Tab Content */}
+                        <Box sx={{ display: isTabVisible(getTabIndices.videoTabIndex) ? 'block' : 'none' }}>
+                            {videoComponent}
+                        </Box>{/* Slides Tab Content */}
+                        <Box
+                            sx={{
+                                visibility: isTabVisible(getTabIndices.slideTabIndex) ? 'visible' : 'hidden',
+                                position: isTabVisible(getTabIndices.slideTabIndex) ? 'static' : 'absolute',
+                                zIndex: isTabVisible(getTabIndices.slideTabIndex) ? 'auto' : -1,
+                                p: 0,
+                                borderRadius: '12px',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}
+                        >
+                            {pdfDisplayComponent}
+                        </Box>
 
                         {/* Test Tabs Content */}
                         {testComponents.map((testComponent, index) => (
