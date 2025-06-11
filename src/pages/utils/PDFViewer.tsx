@@ -33,7 +33,7 @@ export interface PDFViewerProps {
   pdfUrl: string;
   visiblePagePercentage?: number; // 0-1, percentage of page height to show initially
   containerHeight?: number; // Container height in pixels
-  containerWidth?: number; // Container width in pixels, overrides responsive widths if provided
+  containerWidthPercentage?: number; // Container width as percentage of available space (0-100), overrides responsive widths if provided
   allowDownloading?: boolean; // Whether to show download button, true by default
 }
 
@@ -41,7 +41,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   pdfUrl,
   visiblePagePercentage = 1,
   containerHeight = 800,
-  containerWidth,
+  containerWidthPercentage,
   allowDownloading = true,
 }) => {
   const [numPages, setNumPages] = useState<number | null>(null);
@@ -57,10 +57,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const isXLargeScreen = useMediaQuery(theme.breakpoints.up('xl'));
   const isLargeScreen = useMediaQuery(theme.breakpoints.up('lg'));
   const isMediumScreen = useMediaQuery(theme.breakpoints.up('md'));
-  
-  // Define fixed widths for different screen sizes
+    // Define responsive width (either percentage or fixed pixels)
   const getResponsiveWidth = () => {
-    if (containerWidth) return containerWidth; // Custom width takes precedence
+    if (containerWidthPercentage) return `${containerWidthPercentage}%`; // Custom percentage takes precedence
     if (isXLargeScreen) return 1100; // xl screens
     if (isLargeScreen) return 900; // lg screens
     if (isMediumScreen) return 700; // md screens
@@ -72,12 +71,23 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
   // Calculate page height based on visible percentage
   const pageContainerHeight = containerHeight * visiblePagePercentage;
-
-  // Update page width when container resizes or containerWidth prop changes
+  // Update page width when container resizes or containerWidthPercentage prop changes
   useEffect(() => {
     const updatePageWidth = () => {
       if (containerRef.current) {
-        const actualWidth = responsiveWidth - 64; // Subtract padding
+        const containerElement = containerRef.current.closest('[data-pdf-container]') as HTMLElement;
+        let actualWidth;
+        
+        if (containerWidthPercentage) {
+          // For percentage width, calculate based on the actual container width
+          const containerRect = containerElement?.getBoundingClientRect();
+          const availableWidth = containerRect?.width || containerRef.current.parentElement?.clientWidth || window.innerWidth;
+          actualWidth = availableWidth - 64; // Subtract padding
+        } else {
+          // For fixed pixel width
+          actualWidth = (typeof responsiveWidth === 'number' ? responsiveWidth : 1100) - 64; // Subtract padding
+        }
+        
         setPageWidth(actualWidth);
       }
     };
@@ -89,7 +99,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     
     // Clean up
     return () => window.removeEventListener('resize', updatePageWidth);
-  }, [responsiveWidth]);
+  }, [responsiveWidth, containerWidthPercentage]);
 
   // Function to handle document load success
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
@@ -155,9 +165,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     document.body.removeChild(link);
   };
   
-  return (
-    <Paper 
+  return (    <Paper 
       elevation={2} 
+      data-pdf-container
       sx={{ 
         width: responsiveWidth, 
         maxWidth: '100%', // Ensures it doesn't overflow on small screens
@@ -307,13 +317,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
               </Box>
             }
           >
-            {numPages !== null && numPages > 0 && (
-              <Page
+            {numPages !== null && numPages > 0 && (              <Page
                 pageNumber={pageNumber}
                 scale={scale}
                 renderAnnotationLayer={false}
                 renderTextLayer={false}
-                width={pageWidth || (containerWidth ? containerWidth - 64 : undefined)} // Use calculated width or undefined
+                width={pageWidth || undefined} // Use calculated width or undefined
               />
             )}
           </Document>

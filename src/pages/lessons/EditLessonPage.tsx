@@ -16,6 +16,71 @@ import DownloadIcon from '@mui/icons-material/Download';
 import PDFDisplay from '../utils/PDFDisplay';
 import VideoDisplay from '../utils/VideoDisplay';
 
+// Reusable Confirmation Dialog Component
+interface ConfirmationDialogProps {
+    open: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    title: string;
+    description: string;
+    warningText?: string;
+    confirmButtonText: string;
+    confirmButtonColor?: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+}
+
+const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
+    open,
+    onClose,
+    onConfirm,
+    title,
+    description,
+    warningText,
+    confirmButtonText,
+    confirmButtonColor = 'error'
+}) => {
+    return (
+        <Dialog
+            open={open}
+            onClose={onClose}
+            aria-labelledby="confirmation-dialog-title"
+            aria-describedby="confirmation-dialog-description"
+            maxWidth="sm"
+            fullWidth
+        >
+            <DialogTitle id="confirmation-dialog-title">
+                {title}
+            </DialogTitle>
+            <DialogContent>
+                <Typography id="confirmation-dialog-description" variant="body1">
+                    {description}
+                </Typography>
+                {warningText && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        <strong>Увага:</strong> {warningText}
+                    </Typography>
+                )}
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2 }}>
+                <Button 
+                    onClick={onClose} 
+                    color="primary"
+                    variant="outlined"
+                >
+                    Скасувати
+                </Button>
+                <Button 
+                    onClick={onConfirm} 
+                    color={confirmButtonColor} 
+                    variant="contained"
+                    startIcon={<DeleteIcon />}
+                >
+                    {confirmButtonText}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
+
 const EditLessonPage: React.FC = () => {
     const { lfp_sha } = useParams<{ lfp_sha: string }>();
     const [loading, setLoading] = useState<boolean>(true);
@@ -27,6 +92,7 @@ const EditLessonPage: React.FC = () => {
     const [dragOverVideo, setDragOverVideo] = useState(false);
     const [dragOverSlides, setDragOverSlides] = useState(false);
     const [deleteVideoDialogOpen, setDeleteVideoDialogOpen] = useState(false);
+    const [deletePdfDialogOpen, setDeletePdfDialogOpen] = useState(false);
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -167,6 +233,21 @@ const EditLessonPage: React.FC = () => {
 
     const handleCancelDeleteVideo = useCallback(() => {
         setDeleteVideoDialogOpen(false);
+    }, []);
+
+    // PDF action handlers
+    const handleDeletePdf = useCallback(() => {
+        setDeletePdfDialogOpen(true);
+    }, []);
+
+    const handleConfirmDeletePdf = useCallback(() => {
+        console.log('PDF deletion confirmed - placeholder action');
+        // TODO: Implement actual PDF deletion logic
+        setDeletePdfDialogOpen(false);
+    }, []);
+
+    const handleCancelDeletePdf = useCallback(() => {
+        setDeletePdfDialogOpen(false);
     }, []);// Memoize the video component to keep it mounted
     const videoComponent = useMemo(() => {
         return (
@@ -345,18 +426,57 @@ const EditLessonPage: React.FC = () => {
                             Огляд
                         </Button>
                     </Box>
-                </Paper>
-
-                {/* Existing Slides Display */}
+                </Paper>                {/* Existing Slides Display */}
                 {slideDicts.length > 0 && slideDicts[0].slide_content && (
-                    <PDFDisplay
-                        pdfUrl={slideDicts[0].slide_content}
-                        visiblePagePercentage={0.8}
-                    />
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 1,
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', minHeight: '300px' }}>
+                            {/* PDF Display */}
+                            <Box sx={{ flex: 1, width: '100%' }}>
+                                <PDFDisplay
+                                    pdfUrl={slideDicts[0].slide_content}
+                                    visiblePagePercentage={0.8}
+                                    containerWidthPercentage={80}
+                                />
+                            </Box>
+                            
+                            {/* Action Buttons */}
+                            <Box sx={{ 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                gap: 1,
+                                maxWidth: '200px',
+                                flex: '0 0 auto',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                height: '100%'
+                            }}>
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    startIcon={<DeleteIcon />}
+                                    onClick={handleDeletePdf}
+                                    sx={{ 
+                                        whiteSpace: 'nowrap',
+                                        width: '160px',
+                                        '&:hover': {
+                                            backgroundColor: alpha(theme.palette.error.main, 0.05),
+                                        }
+                                    }}
+                                >
+                                    Видалити
+                                </Button>
+                            </Box>
+                        </Box>
+                    </Paper>
                 )}
             </Box>
         );
-    }, [slideDicts, theme, dragOverSlides, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect]);
+    }, [slideDicts, theme, dragOverSlides, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect, handleDeletePdf]);
 
     // Memoize the test components - just showing test names for now
     const testComponents = useMemo(() => {
@@ -548,43 +668,28 @@ const EditLessonPage: React.FC = () => {
             )}
 
             {/* Delete Video Confirmation Dialog */}
-            <Dialog
+            <ConfirmationDialog
                 open={deleteVideoDialogOpen}
                 onClose={handleCancelDeleteVideo}
-                aria-labelledby="delete-video-dialog-title"
-                aria-describedby="delete-video-dialog-description"
-                maxWidth="sm"
-                fullWidth
-            >
-                <DialogTitle id="delete-video-dialog-title">
-                    Підтвердження видалення відео
-                </DialogTitle>
-                <DialogContent>
-                    <Typography id="delete-video-dialog-description" variant="body1">
-                        Ви впевнені, що хочете видалити це відео з уроку?
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                        <strong>Увага:</strong> Ця дія не може бути скасована. Відео буде видалено назавжди.
-                    </Typography>
-                </DialogContent>
-                <DialogActions sx={{ px: 3, pb: 2 }}>
-                    <Button 
-                        onClick={handleCancelDeleteVideo} 
-                        color="primary"
-                        variant="outlined"
-                    >
-                        Скасувати
-                    </Button>
-                    <Button 
-                        onClick={handleConfirmDeleteVideo} 
-                        color="error" 
-                        variant="contained"
-                        startIcon={<DeleteIcon />}
-                    >
-                        Видалити відео
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                onConfirm={handleConfirmDeleteVideo}
+                title="Підтвердження видалення відео"
+                description="Ви впевнені, що хочете видалити це відео з уроку?"
+                warningText="Ця дія не може бути скасована. Відео буде видалено назавжди."
+                confirmButtonText="Видалити відео"
+                confirmButtonColor="error"
+            />
+
+            {/* Delete PDF Confirmation Dialog */}
+            <ConfirmationDialog
+                open={deletePdfDialogOpen}
+                onClose={handleCancelDeletePdf}
+                onConfirm={handleConfirmDeletePdf}
+                title="Підтвердження видалення презентації"
+                description="Ви впевнені, що хочете видалити цю презентацію з уроку?"
+                warningText="Ця дія не може бути скасована. Презентацію буде видалено назавжди."
+                confirmButtonText="Видалити презентацію"
+                confirmButtonColor="error"
+            />
         </Container>
     );
 };
