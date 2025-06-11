@@ -476,34 +476,114 @@ const EditLessonPage: React.FC = () => {
                 )}
             </Box>
         );
-    }, [slideDicts, theme, dragOverSlides, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect, handleDeletePdf]);
+    }, [slideDicts, theme, dragOverSlides, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect, handleDeletePdf]);    // State for test deletion dialogs
+    const [deleteTestDialogOpen, setDeleteTestDialogOpen] = useState(false);
+    const [testToDelete, setTestToDelete] = useState<TestCardMeta | null>(null);
 
-    // Memoize the test components - just showing test names for now
+    // Test action handlers
+    const handleDeleteTest = useCallback((test: TestCardMeta) => {
+        setTestToDelete(test);
+        setDeleteTestDialogOpen(true);
+    }, []);
+
+    const handleConfirmDeleteTest = useCallback(() => {
+        if (testToDelete) {
+            console.log('Test deletion confirmed - placeholder action', testToDelete.test_id);
+            // TODO: Implement actual test deletion logic
+        }
+        setDeleteTestDialogOpen(false);
+        setTestToDelete(null);
+    }, [testToDelete]);
+
+    const handleCancelDeleteTest = useCallback(() => {
+        setDeleteTestDialogOpen(false);
+        setTestToDelete(null);
+    }, []);
+
+    // Memoize the test components with modern card design
     const testComponents = useMemo(() => {
         return testCards.map((test, index) => (
             <Box
                 key={`test-content-${test.test_id}`}
-                sx={{ textAlign: 'center', py: 4 }}
+                sx={{ py: 2 }}
             >
-                <Typography variant="h5" gutterBottom>
-                    {test.test_name}
-                </Typography>
-                {test.test_description && (
-                    <Typography variant="body1" sx={{ mb: 2, color: theme.palette.text.secondary }}>
-                        {test.test_description}
-                    </Typography>
-                )}
-                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                    Test ID: {test.test_id}
-                </Typography>
-                {test.complete_trials && (
-                    <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 1 }}>
-                        Complete trials: {test.complete_trials}
-                    </Typography>
-                )}
+                <Paper
+                    elevation={2}
+                    sx={{
+                        p: 3,
+                        borderRadius: '16px',
+                        border: `1px solid ${alpha(theme.palette.grey[300], 0.3)}`,
+                        backgroundColor: theme.palette.background.paper,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 3,
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                            elevation: 4,
+                            borderColor: alpha(theme.palette.primary.main, 0.3),
+                            transform: 'translateY(-2px)',
+                        }
+                    }}
+                >
+                    {/* Test Content */}
+                    <Box sx={{ flex: 1 }}>
+                        <Typography 
+                            variant="h5" 
+                            gutterBottom
+                            sx={{ 
+                                fontWeight: 600,
+                                color: theme.palette.primary.main,
+                                mb: 1
+                            }}
+                        >
+                            {test.test_name}
+                        </Typography>
+                        
+                        {test.test_description && (
+                            <Typography 
+                                variant="body1" 
+                                sx={{ 
+                                    mb: 2, 
+                                    color: theme.palette.text.secondary,
+                                    lineHeight: 1.6
+                                }}
+                            >
+                                {test.test_description}
+                            </Typography>
+                        )}
+                    </Box>
+
+                    {/* Remove Button */}
+                    <Box sx={{ 
+                        flex: '0 0 auto',
+                        display: 'flex',
+                        alignItems: 'center'
+                    }}>
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            startIcon={<DeleteIcon />}
+                            onClick={() => handleDeleteTest(test)}
+                            sx={{ 
+                                whiteSpace: 'nowrap',
+                                minWidth: '140px',
+                                borderRadius: '8px',
+                                fontWeight: 600,
+                                '&:hover': {
+                                    backgroundColor: alpha(theme.palette.error.main, 0.05),
+                                    borderColor: theme.palette.error.main,
+                                    transform: 'scale(1.02)',
+                                }
+                            }}
+                        >
+                            Видалити
+                        </Button>
+                    </Box>
+                </Paper>
             </Box>
         ));
-    }, [testCards, theme.palette.text.secondary]);
+    }, [testCards, theme, handleDeleteTest]);
 
     // Function to determine if a tab content should be visible
     const isTabVisible = (tabIndex: number): boolean => {
@@ -677,9 +757,7 @@ const EditLessonPage: React.FC = () => {
                 warningText="Ця дія не може бути скасована. Відео буде видалено назавжди."
                 confirmButtonText="Видалити відео"
                 confirmButtonColor="error"
-            />
-
-            {/* Delete PDF Confirmation Dialog */}
+            />            {/* Delete PDF Confirmation Dialog */}
             <ConfirmationDialog
                 open={deletePdfDialogOpen}
                 onClose={handleCancelDeletePdf}
@@ -688,6 +766,18 @@ const EditLessonPage: React.FC = () => {
                 description="Ви впевнені, що хочете видалити цю презентацію з уроку?"
                 warningText="Ця дія не може бути скасована. Презентацію буде видалено назавжди."
                 confirmButtonText="Видалити презентацію"
+                confirmButtonColor="error"
+            />
+
+            {/* Delete Test Confirmation Dialog */}
+            <ConfirmationDialog
+                open={deleteTestDialogOpen}
+                onClose={handleCancelDeleteTest}
+                onConfirm={handleConfirmDeleteTest}
+                title="Підтвердження видалення квізу"
+                description={`Ви впевнені, що хочете видалити квіз "${testToDelete?.test_name}" з уроку?`}
+                warningText="Ця дія не може бути скасована. Квіз та всі пов'язані дані будуть видалені назавжди."
+                confirmButtonText="Видалити квіз"
                 confirmButtonColor="error"
             />
         </Container>
