@@ -767,16 +767,13 @@ const EditLessonPage: React.FC = () => {
                 warningText="Ця дія не може бути скасована. Презентацію буде видалено назавжди."
                 confirmButtonText="Видалити презентацію"
                 confirmButtonColor="error"
-            />
-
-            {/* Delete Test Confirmation Dialog */}
+            />            {/* Delete Test Confirmation Dialog */}
             <ConfirmationDialog
                 open={deleteTestDialogOpen}
                 onClose={handleCancelDeleteTest}
                 onConfirm={handleConfirmDeleteTest}
                 title="Підтвердження видалення квізу"
                 description={`Ви впевнені, що хочете видалити квіз "${testToDelete?.test_name}" з уроку?`}
-                warningText="Ця дія не може бути скасована. Квіз та всі пов'язані дані будуть видалені назавжди."
                 confirmButtonText="Видалити квіз"
                 confirmButtonColor="error"
             />
