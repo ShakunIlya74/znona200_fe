@@ -49,8 +49,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const [scale, setScale] = useState<number>(1);
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pageWidth, setPageWidth] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);  const [pageWidth, setPageWidth] = useState<number | null>(null);
+  const [pageHeight, setPageHeight] = useState<number | null>(null);
+  const [isPageHeightSet, setIsPageHeightSet] = useState<boolean>(false);
   const theme = useTheme();
   
   // Add responsive breakpoints
@@ -65,12 +66,29 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     if (isMediumScreen) return 700; // md screens
     return 350; // xs screens
   };
-  
-  // Calculate responsive width
+    // Calculate responsive width
   const responsiveWidth = getResponsiveWidth();
 
-  // Calculate page height based on visible percentage
-  const pageContainerHeight = containerHeight * visiblePagePercentage;
+  // Calculate dynamic container height based on actual page content
+  const getContainerHeight = () => {
+    if (!pageHeight) {
+      // Fallback height while PDF is loading
+      return Math.min(containerHeight * visiblePagePercentage, 600);
+    }
+    
+    // Calculate scaled height based on the current scale
+    const scaledHeight = pageHeight * scale;
+    
+    // Apply visible percentage
+    const adjustedHeight = scaledHeight * visiblePagePercentage;
+    
+    // Add some padding and ensure minimum/maximum heights
+    const finalHeight = Math.min(Math.max(adjustedHeight + 32, 200), containerHeight);
+    
+    return finalHeight;
+  };
+
+  const dynamicContainerHeight = getContainerHeight();
   // Update page width when container resizes or containerWidthPercentage prop changes
   useEffect(() => {
     const updatePageWidth = () => {
@@ -99,12 +117,22 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     
     // Clean up
     return () => window.removeEventListener('resize', updatePageWidth);
-  }, [responsiveWidth, containerWidthPercentage]);
-
-  // Function to handle document load success
+  }, [responsiveWidth, containerWidthPercentage]);  // Function to handle document load success
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
     setLoading(false);
+    // Reset page height tracking when a new document loads
+    setPageHeight(null);
+    setIsPageHeightSet(false);
+  };
+  // Function to handle page render success to get page dimensions
+  const onPageRenderSuccess = (page: any) => {
+    // Only set page height once when first page is rendered
+    if (!isPageHeightSet) {
+      const { height } = page;
+      setPageHeight(height);
+      setIsPageHeightSet(true);
+    }
   };
 
   // Function to handle document load error
@@ -147,13 +175,20 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   // Reset zoom to default
   const resetZoom = () => {
     setScale(1);
-  };
-  // Scroll to top of container when page changes
+  };  // Scroll to top of container when page changes
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = 0;
     }
   }, [pageNumber]);
+  // Reset page height only when scale changes (not when page changes)
+  useEffect(() => {
+    // Reset page height when zoom changes to allow container to adjust to new scaled size
+    if (isPageHeightSet && scale !== 1) {
+      setPageHeight(null);
+      setIsPageHeightSet(false);
+    }
+  }, [scale, isPageHeightSet]);
 
   // Function to download PDF
   const downloadPDF = () => {
@@ -289,15 +324,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           )}
         </Box>
       </Box>
-      
-      {/* PDF Document Container */}
+        {/* PDF Document Container */}
       <Box 
         ref={containerRef}
         sx={{ 
-          height: pageContainerHeight, 
+          height: dynamicContainerHeight, 
           overflowY: 'auto',
           display: 'flex',
           justifyContent: 'center',
+          alignItems: 'flex-start',
           padding: 2,
           backgroundColor: theme.palette.grey[50],
         }}
@@ -316,13 +351,14 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                 <CircularProgress size={40} sx={{ color: theme.palette.primary.main }} />
               </Box>
             }
-          >
-            {numPages !== null && numPages > 0 && (              <Page
+          >            {numPages !== null && numPages > 0 && (
+              <Page
                 pageNumber={pageNumber}
                 scale={scale}
                 renderAnnotationLayer={false}
                 renderTextLayer={false}
                 width={pageWidth || undefined} // Use calculated width or undefined
+                onRenderSuccess={onPageRenderSuccess}
               />
             )}
           </Document>

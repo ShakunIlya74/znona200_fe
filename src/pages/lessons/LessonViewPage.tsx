@@ -138,7 +138,7 @@ const LessonViewPage: React.FC = () => {
             return (
                 <PDFDisplay
                     pdfUrl={slideDicts[0].slide_content}
-                    visiblePagePercentage={0.8}
+                    visiblePagePercentage={1}
                 />
                 
             );

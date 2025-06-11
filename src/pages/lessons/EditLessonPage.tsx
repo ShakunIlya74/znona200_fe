@@ -439,7 +439,7 @@ const EditLessonPage: React.FC = () => {
                             <Box sx={{ flex: 1, width: '100%' }}>
                                 <PDFDisplay
                                     pdfUrl={slideDicts[0].slide_content}
-                                    visiblePagePercentage={0.8}
+                                    visiblePagePercentage={1}
                                     containerWidthPercentage={80}
                                 />
                             </Box>
