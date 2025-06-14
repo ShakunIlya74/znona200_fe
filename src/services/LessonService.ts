@@ -55,6 +55,24 @@ export interface UploadWebinarResponse {
   details?: string;
 }
 
+export interface DeleteWebinarResponse {
+  success: boolean;
+  message?: string;
+  webinar_still_used?: boolean;
+  cdn_deleted?: boolean;
+  cdn_error?: string;
+  error?: string;
+}
+
+export interface DeleteSlideResponse {
+  success: boolean;
+  message?: string;
+  slide_still_used?: boolean;
+  cdn_deleted?: boolean;
+  cdn_error?: string;
+  error?: string;
+}
+
 export async function GetLessonsData() {
     try {
         const response = await axiosInstance.get('/webinars');
@@ -196,6 +214,86 @@ export async function UploadWebinar(
                 success: false,
                 error: err.response.data.error || 'Upload failed',
                 details: err.response.data.details,
+            };
+        }
+        
+        return { 
+            success: false, 
+            error: err instanceof Error ? err.message : 'Unknown error occurred'
+        };
+    }
+}
+
+export async function DeleteWebinarFromLesson(
+  webinarId: number | string,
+  lessonId: number | string
+): Promise<DeleteWebinarResponse> {
+    try {
+        const response = await axiosInstance.delete('/webinar/video/delete', {
+            data: {
+                webinar_id: webinarId,
+                lesson_id: lessonId
+            },
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        return {
+            success: true,
+            message: response.data.message,
+            webinar_still_used: response.data.webinar_still_used,
+            cdn_deleted: response.data.cdn_deleted,
+            cdn_error: response.data.cdn_error,
+        };
+    }
+    catch (err: any) {
+        console.error('Error deleting webinar from lesson:', err);
+        
+        if (err.response?.data) {
+            return {
+                success: false,
+                error: err.response.data.error || 'Delete failed',
+            };
+        }
+        
+        return { 
+            success: false, 
+            error: err instanceof Error ? err.message : 'Unknown error occurred'
+        };
+    }
+}
+
+export async function DeleteSlideFromLesson(
+  slideId: number | string,
+  lessonId: number | string
+): Promise<DeleteSlideResponse> {
+    try {
+        const response = await axiosInstance.delete('/webinar/slide/delete', {
+            data: {
+                slide_id: slideId,
+                lesson_id: lessonId
+            },
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        return {
+            success: true,
+            message: response.data.message,
+            slide_still_used: response.data.slide_still_used,
+            cdn_deleted: response.data.cdn_deleted,
+            cdn_error: response.data.cdn_error,
+        };
+    }
+    catch (err: any) {
+        console.error('Error deleting slide from lesson:', err);
+        
+        if (err.response?.data) {
+            return {
+                success: false,
+                error: err.response.data.error || 'Delete failed',
             };
         }
         
