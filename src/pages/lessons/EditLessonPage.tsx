@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict } from '../../services/LessonService';
+import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
@@ -26,6 +26,7 @@ interface ConfirmationDialogProps {
     warningText?: string;
     confirmButtonText: string;
     confirmButtonColor?: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+    loading?: boolean;
 }
 
 const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
@@ -36,12 +37,13 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     description,
     warningText,
     confirmButtonText,
-    confirmButtonColor = 'error'
+    confirmButtonColor = 'error',
+    loading = false
 }) => {
     return (
         <Dialog
             open={open}
-            onClose={onClose}
+            onClose={loading ? undefined : onClose}
             aria-labelledby="confirmation-dialog-title"
             aria-describedby="confirmation-dialog-description"
             maxWidth="sm"
@@ -65,6 +67,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                     onClick={onClose} 
                     color="primary"
                     variant="outlined"
+                    disabled={loading}
                 >
                     Скасувати
                 </Button>
@@ -72,7 +75,8 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                     onClick={onConfirm} 
                     color={confirmButtonColor} 
                     variant="contained"
-                    startIcon={<DeleteIcon />}
+                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />}
+                    disabled={loading}
                 >
                     {confirmButtonText}
                 </Button>
@@ -88,11 +92,16 @@ const EditLessonPage: React.FC = () => {
     const [lessonData, setLessonData] = useState<LessonCardMeta | null>(null);
     const [webinarDicts, setWebinarDicts] = useState<WebinarDict[]>([]);
     const [slideDicts, setSlideDicts] = useState<SlideDict[]>([]);
-    const [testCards, setTestCards] = useState<TestCardMeta[]>([]);    const [tabValue, setTabValue] = useState<number>(0);
+    const [testCards, setTestCards] = useState<TestCardMeta[]>([]);    
+    const [tabValue, setTabValue] = useState<number>(0);
     const [dragOverVideo, setDragOverVideo] = useState(false);
-    const [dragOverSlides, setDragOverSlides] = useState(false);
+    const [dragOverSlides, setDragOverSlides] = useState(false);    
     const [deleteVideoDialogOpen, setDeleteVideoDialogOpen] = useState(false);
     const [deletePdfDialogOpen, setDeletePdfDialogOpen] = useState(false);
+    const [deletingVideo, setDeletingVideo] = useState(false);
+    const [deletingSlide, setDeletingSlide] = useState(false);
+    const [webinarToDelete, setWebinarToDelete] = useState<WebinarDict | null>(null);
+    const [slideToDelete, setSlideToDelete] = useState<SlideDict | null>(null);
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -221,35 +230,108 @@ const EditLessonPage: React.FC = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-    }, []);    const handleDeleteVideo = useCallback(() => {
+    }, []);    const handleDeleteVideo = useCallback((webinar: WebinarDict) => {
+        setWebinarToDelete(webinar);
         setDeleteVideoDialogOpen(true);
     }, []);
+      const handleConfirmDeleteVideo = useCallback(async () => {
+        if (!lessonData || !webinarToDelete) {
+            setDeleteVideoDialogOpen(false);
+            return;
+        }
 
-    const handleConfirmDeleteVideo = useCallback(() => {
-        console.log('Video deletion confirmed - placeholder action');
-        // TODO: Implement actual video deletion logic
+        setDeletingVideo(true);
+        try {
+            const result = await DeleteWebinarFromLesson(
+                webinarToDelete.webinar_id,
+                lessonData.lesson_id
+            );
+
+            if (result.success) {
+                console.log('Video deletion successful:', result.message);
+                
+                // Remove the webinar from the local state
+                setWebinarDicts(prev => prev.filter(w => w.webinar_id !== webinarToDelete.webinar_id));
+                
+                // Optionally show success message
+                // TODO: add a toast notification here
+                
+                // If webinar was completely deleted from system
+                if (!result.webinar_still_used) {
+                    console.log('Webinar was completely deleted from the system');
+                    if (result.cdn_deleted) {
+                        console.log('CDN file was successfully deleted');
+                    } else if (result.cdn_error) {
+                        console.warn('CDN deletion failed:', result.cdn_error);
+                    }
+                }
+            } else {
+                console.error('Video deletion failed:', result.error);
+                // You could add error notification here
+            }
+        } catch (error) {
+            console.error('Unexpected error during video deletion:', error);
+            // You could add error notification here
+        } finally {
+            setDeletingVideo(false);
+            setDeleteVideoDialogOpen(false);
+            setWebinarToDelete(null);
+        }
+    }, [lessonData, webinarToDelete]);    const handleCancelDeleteVideo = useCallback(() => {
         setDeleteVideoDialogOpen(false);
-    }, []);
-
-    const handleCancelDeleteVideo = useCallback(() => {
-        setDeleteVideoDialogOpen(false);
-    }, []);
-
-    // PDF action handlers
-    const handleDeletePdf = useCallback(() => {
+        setWebinarToDelete(null);
+    }, []);    // PDF action handlers
+    const handleDeletePdf = useCallback((slide: SlideDict) => {
+        setSlideToDelete(slide);
         setDeletePdfDialogOpen(true);
-    }, []);
+    }, []);    const handleConfirmDeletePdf = useCallback(async () => {
+        if (!lessonData || !slideToDelete) {
+            setDeletePdfDialogOpen(false);
+            return;
+        }
 
-    const handleConfirmDeletePdf = useCallback(() => {
-        console.log('PDF deletion confirmed - placeholder action');
-        // TODO: Implement actual PDF deletion logic
-        setDeletePdfDialogOpen(false);
-    }, []);
+        setDeletingSlide(true);
+        try {
+            const result = await DeleteSlideFromLesson(
+                slideToDelete.slide_id,
+                lessonData.lesson_id
+            );
 
-    const handleCancelDeletePdf = useCallback(() => {
+            if (result.success) {
+                console.log('Slide deletion successful:', result.message);
+                
+                // Remove the slide from the local state
+                setSlideDicts(prev => prev.filter(s => s.slide_id !== slideToDelete.slide_id));
+                
+                // Optionally show success message
+                // You could add a toast notification here
+                
+                // If slide was completely deleted from system
+                if (!result.slide_still_used) {
+                    console.log('Slide was completely deleted from the system');
+                    if (result.cdn_deleted) {
+                        console.log('CDN file was successfully deleted');
+                    } else if (result.cdn_error) {
+                        console.warn('CDN deletion failed:', result.cdn_error);
+                    }
+                }
+            } else {
+                console.error('Slide deletion failed:', result.error);
+                // You could add error notification here
+            }
+        } catch (error) {
+            console.error('Unexpected error during slide deletion:', error);
+            // You could add error notification here
+        } finally {
+            setDeletingSlide(false);
+            setDeletePdfDialogOpen(false);
+            setSlideToDelete(null);
+        }
+    }, [lessonData, slideToDelete]);    const handleCancelDeletePdf = useCallback(() => {
         setDeletePdfDialogOpen(false);
-    }, []);// Memoize the video component to keep it mounted
-    const videoComponent = useMemo(() => {
+        setSlideToDelete(null);
+    }, []);// Memoize the video components to keep them mounted
+    const videoComponents = useMemo(() => {
         return (
             <Box>
                 {/* Video Upload Zone */}
@@ -301,19 +383,29 @@ const EditLessonPage: React.FC = () => {
                             Огляд
                         </Button>
                     </Box>
-                </Paper>                {/* Existing Video Display */}
-                {webinarDicts.length > 0 && (
+                </Paper>
+
+                {/* Existing Videos Display */}
+                {webinarDicts.length > 0 && webinarDicts.map((webinar, index) => (
                     <Paper
+                        key={`webinar-${webinar.webinar_id}-${index}`}
                         elevation={0}
                         sx={{
                             p: 1,
+                            mb: webinarDicts.length > 1 ? 2 : 0,
                         }}
-                    >                        {webinarDicts[0].url ? (
+                    >
+                        {webinarDicts.length > 1 && (
+                            <Typography variant="h6" sx={{ mb: 1, color: theme.palette.primary.main }}>
+                                Відео {index + 1}
+                            </Typography>
+                        )}
+                        {webinar.url ? (
                             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', minHeight: '300px' }}>
                                 {/* Video Player */}
                                 <Box sx={{ flex: 1 }}>
                                     <VideoDisplay
-                                        src={webinarDicts[0].url}
+                                        src={webinar.url}
                                         controls={true}
                                         fluid={true}
                                         responsive={true}
@@ -333,11 +425,12 @@ const EditLessonPage: React.FC = () => {
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     height: '100%'
-                                }}>                                    <Button
+                                }}>
+                                    <Button
                                         variant="outlined"
                                         color="primary"
                                         startIcon={<DownloadIcon />}
-                                        onClick={() => handleDownloadVideo(webinarDicts[0].url)}
+                                        onClick={() => handleDownloadVideo(webinar.url)}
                                         sx={{ 
                                             whiteSpace: 'nowrap',
                                             width: '160px',
@@ -352,7 +445,7 @@ const EditLessonPage: React.FC = () => {
                                         variant="outlined"
                                         color="error"
                                         startIcon={<DeleteIcon />}
-                                        onClick={handleDeleteVideo}
+                                        onClick={() => handleDeleteVideo(webinar)}
                                         sx={{ 
                                             whiteSpace: 'nowrap',
                                             width: '160px',
@@ -371,11 +464,11 @@ const EditLessonPage: React.FC = () => {
                             </Typography>
                         )}
                     </Paper>
-                )}
+                ))}
             </Box>
         );
-    }, [webinarDicts, theme, dragOverVideo, handleVideoDrop, handleVideoDragOver, handleVideoDragLeave, handleVideoFileSelect, handleDownloadVideo, handleDeleteVideo]);    // Memoize the PDFDisplay component to keep it mounted
-    const pdfDisplayComponent = useMemo(() => {
+    }, [webinarDicts, theme, dragOverVideo, handleVideoDrop, handleVideoDragOver, handleVideoDragLeave, handleVideoFileSelect, handleDownloadVideo, handleDeleteVideo]);    // Memoize the PDFDisplay components to keep them mounted
+    const pdfDisplayComponents = useMemo(() => {
         return (
             <Box>
                 {/* Slides Upload Zone */}
@@ -426,57 +519,89 @@ const EditLessonPage: React.FC = () => {
                             Огляд
                         </Button>
                     </Box>
-                </Paper>                {/* Existing Slides Display */}
-                {slideDicts.length > 0 && slideDicts[0].slide_content && (
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: 1,
-                        }}
-                    >
-                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', minHeight: '300px' }}>
-                            {/* PDF Display */}
-                            <Box sx={{ flex: 1, width: '100%' }}>
-                                <PDFDisplay
-                                    pdfUrl={slideDicts[0].slide_content}
-                                    visiblePagePercentage={1}
-                                    containerWidthPercentage={80}
-                                />
-                            </Box>
-                            
-                            {/* Action Buttons */}
-                            <Box sx={{ 
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                gap: 1,
-                                maxWidth: '200px',
-                                flex: '0 0 auto',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                height: '100%'
-                            }}>
-                                <Button
-                                    variant="outlined"
-                                    color="error"
-                                    startIcon={<DeleteIcon />}
-                                    onClick={handleDeletePdf}
-                                    sx={{ 
-                                        whiteSpace: 'nowrap',
-                                        width: '160px',
-                                        '&:hover': {
-                                            backgroundColor: alpha(theme.palette.error.main, 0.05),
-                                        }
-                                    }}
-                                >
-                                    Видалити
-                                </Button>
-                            </Box>
-                        </Box>
-                    </Paper>
-                )}
+                </Paper>
+
+                {/* Existing Slides Display */}
+                {slideDicts.length > 0 && slideDicts.map((slide, index) => {
+                    if (slide.slide_content) {
+                        return (
+                            <Paper
+                                key={`slide-${slide.slide_id}-${index}`}
+                                elevation={0}
+                                sx={{
+                                    p: 1,
+                                    mb: slideDicts.length > 1 ? 2 : 0,
+                                }}
+                            >
+                                {slideDicts.length > 1 && (
+                                    <Typography variant="h6" sx={{ mb: 1, color: theme.palette.primary.main }}>
+                                        Презентація {index + 1}
+                                    </Typography>
+                                )}
+                                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', minHeight: '300px' }}>
+                                    {/* PDF Display */}
+                                    <Box sx={{ flex: 1, width: '100%' }}>
+                                        <PDFDisplay
+                                            pdfUrl={slide.slide_content}
+                                            visiblePagePercentage={1}
+                                            containerWidthPercentage={80}
+                                        />
+                                    </Box>
+                                    
+                                    {/* Action Buttons */}
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        flexDirection: 'column', 
+                                        gap: 1,
+                                        maxWidth: '200px',
+                                        flex: '0 0 auto',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        height: '100%'
+                                    }}>
+                                        <Button
+                                            variant="outlined"
+                                            color="error"
+                                            startIcon={<DeleteIcon />}
+                                            onClick={() => handleDeletePdf(slide)}
+                                            sx={{ 
+                                                whiteSpace: 'nowrap',
+                                                width: '160px',
+                                                '&:hover': {
+                                                    backgroundColor: alpha(theme.palette.error.main, 0.05),
+                                                }
+                                            }}
+                                        >
+                                            Видалити
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            </Paper>
+                        );
+                    }
+                    return (
+                        <Paper
+                            key={`slide-${slide.slide_id}-${index}`}
+                            elevation={0}
+                            sx={{
+                                p: 1,
+                                mb: slideDicts.length > 1 ? 2 : 0,
+                            }}
+                        >
+                            {slideDicts.length > 1 && (
+                                <Typography variant="h6" sx={{ mb: 1, color: theme.palette.primary.main }}>
+                                    Презентація {index + 1}
+                                </Typography>
+                            )}
+                            <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
+                                Презентація недоступна
+                            </Typography>
+                        </Paper>
+                    );
+                })}
             </Box>
         );
-    }, [slideDicts, theme, dragOverSlides, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect, handleDeletePdf]);    // State for test deletion dialogs
+    }, [slideDicts, theme, dragOverSlides, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect, handleDeletePdf]);// State for test deletion dialogs
     const [deleteTestDialogOpen, setDeleteTestDialogOpen] = useState(false);
     const [testToDelete, setTestToDelete] = useState<TestCardMeta | null>(null);
 
@@ -712,7 +837,7 @@ const EditLessonPage: React.FC = () => {
                     {/* Tab content - all content is always mounted but only visible based on the active tab */}
                     <Box sx={{ mt: 2 }}>                        {/* Video Tab Content */}
                         <Box sx={{ display: isTabVisible(getTabIndices.videoTabIndex) ? 'block' : 'none' }}>
-                            {videoComponent}
+                            {videoComponents}
                         </Box>{/* Slides Tab Content */}
                         <Box
                             sx={{
@@ -723,9 +848,8 @@ const EditLessonPage: React.FC = () => {
                                 borderRadius: '12px',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                            }}
-                        >
-                            {pdfDisplayComponent}
+                            }}                        >
+                            {pdfDisplayComponents}
                         </Box>
 
                         {/* Test Tabs Content */}
@@ -745,29 +869,29 @@ const EditLessonPage: React.FC = () => {
                 <Typography variant="h5" sx={{ textAlign: 'center', color: theme.palette.text.secondary }}>
                     Дані уроку недоступні
                 </Typography>
-            )}
-
-            {/* Delete Video Confirmation Dialog */}
+            )}            {/* Delete Video Confirmation Dialog */}
             <ConfirmationDialog
                 open={deleteVideoDialogOpen}
                 onClose={handleCancelDeleteVideo}
                 onConfirm={handleConfirmDeleteVideo}
                 title="Підтвердження видалення відео"
-                description="Ви впевнені, що хочете видалити це відео з уроку?"
+                description={`Ви впевнені, що хочете видалити відео ${webinarToDelete?.webinar_title ? `"${webinarToDelete.webinar_title}"` : ''} з уроку?`}
                 warningText="Ця дія не може бути скасована. Відео буде видалено назавжди."
                 confirmButtonText="Видалити відео"
                 confirmButtonColor="error"
+                loading={deletingVideo}
             />            {/* Delete PDF Confirmation Dialog */}
             <ConfirmationDialog
                 open={deletePdfDialogOpen}
                 onClose={handleCancelDeletePdf}
                 onConfirm={handleConfirmDeletePdf}
                 title="Підтвердження видалення презентації"
-                description="Ви впевнені, що хочете видалити цю презентацію з уроку?"
+                description={`Ви впевнені, що хочете видалити презентацію ${slideToDelete?.slide_title ? `"${slideToDelete.slide_title}"` : ''} з уроку?`}
                 warningText="Ця дія не може бути скасована. Презентацію буде видалено назавжди."
                 confirmButtonText="Видалити презентацію"
                 confirmButtonColor="error"
-            />            {/* Delete Test Confirmation Dialog */}
+                loading={deletingSlide}
+            />{/* Delete Test Confirmation Dialog */}
             <ConfirmationDialog
                 open={deleteTestDialogOpen}
                 onClose={handleCancelDeleteTest}

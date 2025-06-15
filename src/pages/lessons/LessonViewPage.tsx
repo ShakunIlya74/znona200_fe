@@ -97,19 +97,23 @@ const LessonViewPage: React.FC = () => {
             setActiveTestId(test.test_id);
             setReviewTestId(null);
         }
-    }, [testCards]);
-
-    // Memoize the video component to keep it mounted
-    const videoComponent = useMemo(() => {
+    }, [testCards]);    // Memoize the video components to keep them mounted
+    const videoComponents = useMemo(() => {
         if (webinarDicts.length > 0) {
-            const webinar = webinarDicts[0];            
-            return (
+            return webinarDicts.map((webinar, index) => (
                 <Paper
+                    key={`webinar-${index}`}
                     elevation={0}
                     sx={{
                         p: 1,
+                        mb: webinarDicts.length > 1 ? 2 : 0,
                     }}
                 >
+                    {webinarDicts.length > 1 && (
+                        <Typography variant="h6" sx={{ mb: 1, color: theme.palette.primary.main }}>
+                            Відео {index + 1}
+                        </Typography>
+                    )}
                     {webinar.url ? (
                         <VideoDisplay
                             src={webinar.url}
@@ -126,25 +130,45 @@ const LessonViewPage: React.FC = () => {
                         </Typography>
                     )}
                 </Paper>
-            );
+            ));
         }
         return null;
-    }, [webinarDicts, theme.palette.common.black, theme.palette.common.white]);
-
-    // Memoize the PDFDisplay component to keep it mounted
-    const pdfDisplayComponent = useMemo(() => {
-        if (slideDicts.length > 0 && slideDicts[0].slide_content) {
-            console.log('PDF URL:', slideDicts[0].slide_content);
-            return (
-                <PDFDisplay
-                    pdfUrl={slideDicts[0].slide_content}
-                    visiblePagePercentage={1}
-                />
-                
-            );
+    }, [webinarDicts, theme.palette.common.black, theme.palette.primary.main]);    // Memoize the PDFDisplay components to keep them mounted
+    const pdfDisplayComponents = useMemo(() => {
+        if (slideDicts.length > 0) {
+            return slideDicts.map((slide, index) => {
+                if (slide.slide_content) {
+                    console.log(`PDF URL ${index + 1}:`, slide.slide_content);
+                    return (
+                        <Box key={`slide-${index}`} sx={{ mb: slideDicts.length > 1 ? 2 : 0 }}>
+                            {slideDicts.length > 1 && (
+                                <Typography variant="h6" sx={{ mb: 1, color: theme.palette.primary.main }}>
+                                    Презентація {index + 1}
+                                </Typography>
+                            )}
+                            <PDFDisplay
+                                pdfUrl={slide.slide_content}
+                                visiblePagePercentage={1}
+                            />
+                        </Box>
+                    );
+                }
+                return (
+                    <Box key={`slide-${index}`} sx={{ mb: slideDicts.length > 1 ? 2 : 0 }}>
+                        {slideDicts.length > 1 && (
+                            <Typography variant="h6" sx={{ mb: 1, color: theme.palette.primary.main }}>
+                                Презентація {index + 1}
+                            </Typography>
+                        )}
+                        <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
+                            Презентація недоступна
+                        </Typography>
+                    </Box>
+                );
+            });
         }
         return null;
-    }, [slideDicts]);    // Memoize the test components to keep them mounted
+    }, [slideDicts, theme.palette.primary.main, theme.palette.text.secondary]);// Memoize the test components to keep them mounted
     const testComponents = useMemo(() => {
         return testCards.map((test, index) => (
             <Box
@@ -350,11 +374,10 @@ const LessonViewPage: React.FC = () => {
                         </Paper>
                     )}
                     {/* Tab content - all content is always mounted but only visible based on the active tab */}
-                    <Box sx={{ mt: 2 }}>
-                        {/* Video Tab Content */}
+                    <Box sx={{ mt: 2 }}>                        {/* Video Tab Content */}
                         {tabsConfig.hasVideos && (
                             <Box sx={{ display: isTabVisible(getTabIndices.videoTabIndex) ? 'block' : 'none' }}>
-                                {videoComponent}
+                                {videoComponents}
                             </Box>
                         )}
                         {/* Slides Tab Content */}
@@ -368,8 +391,7 @@ const LessonViewPage: React.FC = () => {
                                     borderRadius: '12px',
                                     justifyContent: 'center',
                                     alignItems: 'center',
-                                }}
-                            >                                {pdfDisplayComponent || (
+                                }}                            >                                {pdfDisplayComponents || (
                                     <Typography variant="h6" sx={{ color: theme.palette.text.secondary }}>
                                         Презентація недоступна
                                     </Typography>
