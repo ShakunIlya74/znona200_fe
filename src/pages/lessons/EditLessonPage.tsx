@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress, Alert } from '@mui/material';
+import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress, Alert, TextField, IconButton } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide } from '../../services/LessonService';
+import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide, UpdateLessonTitle } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
@@ -13,6 +13,9 @@ import VideoFileIcon from '@mui/icons-material/VideoFile';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import PDFDisplay from '../utils/PDFDisplay';
 import VideoDisplay from '../utils/VideoDisplay';
 
@@ -112,8 +115,13 @@ const EditLessonPage: React.FC = () => {
     // Upload state for slides
     const [uploadingSlide, setUploadingSlide] = useState(false);
     const [slideUploadProgress, setSlideUploadProgress] = useState(0);
-    const [slideUploadError, setSlideUploadError] = useState<string | null>(null);
+    const [slideUploadError, setSlideUploadError] = useState<string | null>(null);    
     const [slideUploadSuccess, setSlideUploadSuccess] = useState<string | null>(null);
+    // Title editing state
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [editedTitle, setEditedTitle] = useState('');
+    const [updatingTitle, setUpdatingTitle] = useState(false);
+    const [titleUpdateError, setTitleUpdateError] = useState<string | null>(null);
     
     const theme = useTheme();
     const navigate = useNavigate();
@@ -790,12 +798,72 @@ const EditLessonPage: React.FC = () => {
         }
         setDeleteTestDialogOpen(false);
         setTestToDelete(null);
-    }, [testToDelete]);
-
+    }, [testToDelete]);    
+    
     const handleCancelDeleteTest = useCallback(() => {
         setDeleteTestDialogOpen(false);
         setTestToDelete(null);
-    }, []);    // Memoize the test components with modern card design - show all tests in one container
+    }, []);
+
+    // Title editing handlers
+    const handleEditTitle = useCallback(() => {
+        if (lessonData) {
+            setEditedTitle(lessonData.lesson_name);
+            setIsEditingTitle(true);
+            setTitleUpdateError(null);
+        }
+    }, [lessonData]);
+
+    const handleCancelEditTitle = useCallback(() => {
+        setIsEditingTitle(false);
+        setEditedTitle('');
+        setTitleUpdateError(null);
+    }, []);
+
+    const handleConfirmEditTitle = useCallback(async () => {
+        if (!lessonData || !editedTitle.trim()) {
+            setTitleUpdateError('Назва вебінару не може бути порожньою');
+            return;
+        }
+
+        if (editedTitle.trim() === lessonData.lesson_name) {
+            setIsEditingTitle(false);
+            return;
+        }
+
+        setUpdatingTitle(true);
+        setTitleUpdateError(null);
+
+        try {
+            const result = await UpdateLessonTitle(lessonData.lesson_id, editedTitle.trim());
+
+            if (result.success) {
+                // Update local lesson data
+                setLessonData(prev => prev ? {
+                    ...prev,
+                    lesson_name: result.lesson_name || editedTitle.trim()
+                } : null);
+                
+                setIsEditingTitle(false);
+                setEditedTitle('');
+            } else {
+                setTitleUpdateError(result.error || 'Не вдалося оновити назву вебінару');
+            }
+        } catch (error) {
+            console.error('Error updating lesson title:', error);
+            setTitleUpdateError('Виникла помилка при оновленні назви вебінару');
+        } finally {
+            setUpdatingTitle(false);
+        }
+    }, [lessonData, editedTitle]);
+
+    const handleTitleInputKeyDown = useCallback((event: React.KeyboardEvent) => {
+        if (event.key === 'Enter') {
+            handleConfirmEditTitle();
+        } else if (event.key === 'Escape') {
+            handleCancelEditTitle();
+        }
+    }, [handleConfirmEditTitle, handleCancelEditTitle]);// Memoize the test components with modern card design - show all tests in one container
     const testComponents = useMemo(() => {
         if (testCards.length === 0) {
             return (
@@ -927,17 +995,96 @@ const EditLessonPage: React.FC = () => {
                             backgroundColor: alpha(theme.palette.primary.main, 0.05),
                         }
                     }}
-                />
-
-                {lessonData && (
-                    <Typography variant="h4" sx={{
-                        fontWeight: 600,
-                        color: theme.palette.primary.main,
-                        flexGrow: 1,
-                        fontSize: 'calc(2.125rem / 1.4)'
+                />                {lessonData && (
+                    <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 1, 
+                        flexGrow: 1 
                     }}>
-                        Редагування: {lessonData.lesson_name}
-                    </Typography>
+                        {isEditingTitle ? (
+                            <Box sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: 1, 
+                                flexGrow: 1 
+                            }}>
+                                <TextField
+                                    value={editedTitle}
+                                    onChange={(e) => setEditedTitle(e.target.value)}
+                                    onKeyDown={handleTitleInputKeyDown}
+                                    variant="outlined"
+                                    size="small"
+                                    autoFocus
+                                    disabled={updatingTitle}
+                                    error={!!titleUpdateError}
+                                    helperText={titleUpdateError}
+                                    sx={{
+                                        flexGrow: 1,
+                                        '& .MuiOutlinedInput-root': {
+                                            fontSize: 'calc(2.125rem / 1.4)',
+                                            fontWeight: 600,
+                                            color: theme.palette.primary.main,
+                                        }
+                                    }}
+                                />
+                                <IconButton
+                                    onClick={handleConfirmEditTitle}
+                                    disabled={updatingTitle || !editedTitle.trim()}
+                                    color="primary"
+                                    size="small"
+                                    sx={{
+                                        '&:hover': {
+                                            backgroundColor: alpha(theme.palette.success.main, 0.1),
+                                        }
+                                    }}
+                                >
+                                    {updatingTitle ? (
+                                        <CircularProgress size={20} />
+                                    ) : (
+                                        <CheckIcon />
+                                    )}
+                                </IconButton>
+                                <IconButton
+                                    onClick={handleCancelEditTitle}
+                                    disabled={updatingTitle}
+                                    color="secondary"
+                                    size="small"
+                                    sx={{
+                                        '&:hover': {
+                                            backgroundColor: alpha(theme.palette.error.main, 0.1),
+                                        }
+                                    }}
+                                >
+                                    <CloseIcon />
+                                </IconButton>
+                            </Box>
+                        ) : (
+                            <>
+                                <Typography variant="h4" sx={{
+                                    fontWeight: 600,
+                                    color: theme.palette.primary.main,
+                                    fontSize: 'calc(2.125rem / 1.4)'
+                                }}>
+                                    {lessonData.lesson_name}
+                                </Typography>
+                                <IconButton
+                                    onClick={handleEditTitle}
+                                    size="small"
+                                    sx={{
+                                        ml: 1,
+                                        color: theme.palette.text.secondary,
+                                        '&:hover': {
+                                            backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                                            color: theme.palette.primary.main,
+                                        }
+                                    }}
+                                >
+                                    <EditIcon fontSize="small" />
+                                </IconButton>
+                            </>
+                        )}
+                    </Box>
                 )}
             </Box>
 
