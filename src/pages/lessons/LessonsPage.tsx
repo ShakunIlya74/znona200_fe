@@ -15,13 +15,14 @@ import {
   Paper,
   alpha,
   InputBase,
-  InputAdornment
+  InputAdornment,
+  Button
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
-import { GetLessonsData, GetFolderLessons, LessonCardMeta } from '../../services/LessonService';
+import { GetLessonsData, GetFolderLessons, LessonCardMeta, CreateLesson } from '../../services/LessonService';
 import { declinateWord } from '../utils/utils';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
@@ -63,11 +64,11 @@ const LessonsPage: React.FC = () => {
   const [previousFolderId, setPreviousFolderId] = useState<number | null>(null);
   const [folderLessons, setFolderLessons] = useState<LessonCardMeta[]>([]);
   const [filteredLessons, setFilteredLessons] = useState<LessonCardMeta[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState<string>('');  const [loading, setLoading] = useState<boolean>(true);
   const [folderLoading, setFolderLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [creatingLesson, setCreatingLesson] = useState<boolean>(false);
   
   // Modal state for lesson dialog
   const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -263,8 +264,7 @@ const LessonsPage: React.FC = () => {
     console.log(`Viewing lesson with sha: ${lessonSha}`);
     navigate(`/webinar-view/${lessonSha}`);
   };
-  
-  // Handle lesson removal from folder
+    // Handle lesson removal from folder
   const handleLessonRemoved = async () => {
     if (openFolderId !== null) {
       // Reload the lessons for the current folder
@@ -280,6 +280,26 @@ const LessonsPage: React.FC = () => {
       } finally {
         setFolderLoading(false);
       }
+    }
+  };
+
+  // Handle creating a new lesson in the current folder
+  const handleCreateNewLesson = async () => {
+    if (!openFolderId) return;
+
+    setCreatingLesson(true);
+    try {
+      const response = await CreateLesson(openFolderId);
+      if (response.success && response.lfp_sha) {
+        navigate(`/webinars/edit/${response.lfp_sha}`);
+      } else {
+        setError('Failed to create new lesson');
+      }
+    } catch (err) {
+      console.error('Error creating new lesson:', err);
+      setError('An error occurred while creating a new lesson');
+    } finally {
+      setCreatingLesson(false);
     }
   };
 
@@ -540,9 +560,49 @@ const LessonsPage: React.FC = () => {
                     {folderLoading ? (
                       <Box sx={{ py: 3, px: 2, display: 'flex', justifyContent: 'center' }}>
                         <LoadingDots />
-                      </Box>
-                    ) : filteredLessons.length > 0 ? (
+                      </Box>                    ) : filteredLessons.length > 0 ? (
                       <List disablePadding>
+                        {/* Add "Create New Lesson" button for admin users */}
+                        {isAdmin && (
+                          <>
+                            <ListItemButton
+                              onClick={handleCreateNewLesson}
+                              disabled={creatingLesson}
+                              sx={{
+                                py: 1.5,
+                                px: 3,
+                                transition: 'all 0.15s ease',
+                                backgroundColor: alpha(theme.palette.success.light, 0.05),
+                                '&:hover': {
+                                  backgroundColor: alpha(theme.palette.success.light, 0.1),
+                                },
+                                display: 'flex',
+                                gap: 2
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  fontWeight: 600,
+                                  color: theme.palette.success.main,
+                                  minWidth: '24px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                +
+                              </Typography>
+                              <ListItemText
+                                primary={
+                                  <Typography sx={{ fontWeight: 500, color: theme.palette.success.main }}>
+                                    {creatingLesson ? 'Створення вебінару...' : 'Додати новий вебінар'}
+                                  </Typography>
+                                }
+                              />
+                            </ListItemButton>
+                            <Divider component="li" sx={{ borderColor: alpha(theme.palette.divider, 0.5) }} />
+                          </>
+                        )}
                         {filteredLessons.map((lesson, index, array) => {
                           // Get original index for consistent numbering
                           const originalIndex = getOriginalIndex(lesson.lesson_id);
@@ -604,18 +664,45 @@ const LessonsPage: React.FC = () => {
                         }}
                       >
                         Немає вебінарів, що відповідають вашому пошуковому запиту.
-                      </Typography>
-                    ) : (
-                      <Typography 
-                        sx={{ 
-                          py: 3, 
-                          px: 3, 
-                          textAlign: 'center',
-                          color: theme.palette.text.secondary
-                        }}
-                      >
-                        Немає Вебінраів для цієї папки.
-                      </Typography>
+                      </Typography>                    ) : (
+                      <Box sx={{ 
+                        py: 3, 
+                        px: 3, 
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 2
+                      }}>
+                        <Typography 
+                          sx={{ 
+                            color: theme.palette.text.secondary
+                          }}
+                        >
+                          Немає Вебінарів для цієї папки.
+                        </Typography>
+                        {/* Add "Create New Lesson" button for admin users in empty state */}
+                        {isAdmin && (
+                          <Button
+                            onClick={handleCreateNewLesson}
+                            disabled={creatingLesson}
+                            variant="contained"
+                            sx={{
+                              backgroundColor: theme.palette.success.main,
+                              '&:hover': {
+                                backgroundColor: theme.palette.success.dark,
+                              },
+                              borderRadius: '8px',
+                              textTransform: 'none',
+                              fontWeight: 600,
+                              px: 3,
+                              py: 1
+                            }}
+                          >
+                            {creatingLesson ? 'Створення вебінару...' : '+ Додати перший вебінар'}
+                          </Button>
+                        )}
+                      </Box>
                     )}
                   </Paper>
                 </Box>
