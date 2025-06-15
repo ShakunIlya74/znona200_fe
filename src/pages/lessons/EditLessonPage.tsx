@@ -1098,31 +1098,38 @@ const EditLessonPage: React.FC = () => {
                                 >
                                     <CloseIcon />
                                 </IconButton>
-                            </Box>
-                        ) : (
+                            </Box>                        ) : (
                             <>
-                                <Typography variant="h4" sx={{
-                                    fontWeight: 600,
-                                    color: theme.palette.primary.main,
-                                    fontSize: 'calc(2.125rem / 1.4)',
+                                {/* Left side: Title + Edit Icon */}
+                                <Box sx={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: 1,
                                     flexGrow: 1
                                 }}>
-                                    {lessonData.lesson_name}
-                                </Typography>
-                                <IconButton
-                                    onClick={handleEditTitle}
-                                    size="small"
-                                    sx={{
-                                        ml: 1,
-                                        color: theme.palette.text.secondary,
-                                        '&:hover': {
-                                            backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                                            color: theme.palette.primary.main,
-                                        }
-                                    }}
-                                >
-                                    <EditIcon fontSize="small" />
-                                </IconButton>
+                                    <Typography variant="h4" sx={{
+                                        fontWeight: 600,
+                                        color: theme.palette.primary.main,
+                                        fontSize: 'calc(2.125rem / 1.4)'
+                                    }}>
+                                        {lessonData.lesson_name}
+                                    </Typography>
+                                    <IconButton
+                                        onClick={handleEditTitle}
+                                        size="small"
+                                        sx={{
+                                            color: theme.palette.text.secondary,
+                                            '&:hover': {
+                                                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                                                color: theme.palette.primary.main,
+                                            }
+                                        }}
+                                    >
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
+                                
+                                {/* Right side: Delete Button */}
                                 <Button
                                     variant="outlined"
                                     color="error"
@@ -1130,7 +1137,6 @@ const EditLessonPage: React.FC = () => {
                                     onClick={handleDeleteLesson}
                                     disabled={deletingLesson}
                                     sx={{
-                                        ml: 2,
                                         borderRadius: '8px',
                                         fontWeight: 600,
                                         '&:hover': {
