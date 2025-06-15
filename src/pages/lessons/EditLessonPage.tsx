@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress, Alert, TextField, IconButton } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide, UpdateLessonTitle } from '../../services/LessonService';
+import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide, UpdateLessonTitle, DeleteLesson } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
@@ -781,9 +781,13 @@ const EditLessonPage: React.FC = () => {
                 })}
             </Box>
         );
-    }, [slideDicts, theme, dragOverSlides, uploadingSlide, slideUploadProgress, slideUploadError, slideUploadSuccess, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect, handleDeletePdf, setSlideUploadError, setSlideUploadSuccess]);// State for test deletion dialogs
+    }, [slideDicts, theme, dragOverSlides, uploadingSlide, slideUploadProgress, slideUploadError, slideUploadSuccess, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect, handleDeletePdf, setSlideUploadError, setSlideUploadSuccess]);    // State for test deletion dialogs
     const [deleteTestDialogOpen, setDeleteTestDialogOpen] = useState(false);
     const [testToDelete, setTestToDelete] = useState<TestCardMeta | null>(null);
+    
+    // State for lesson deletion dialog
+    const [deleteLessonDialogOpen, setDeleteLessonDialogOpen] = useState(false);
+    const [deletingLesson, setDeletingLesson] = useState(false);
 
     // Test action handlers
     const handleDeleteTest = useCallback((test: TestCardMeta) => {
@@ -799,10 +803,46 @@ const EditLessonPage: React.FC = () => {
         setDeleteTestDialogOpen(false);
         setTestToDelete(null);
     }, [testToDelete]);    
-    
-    const handleCancelDeleteTest = useCallback(() => {
+      const handleCancelDeleteTest = useCallback(() => {
         setDeleteTestDialogOpen(false);
         setTestToDelete(null);
+    }, []);
+
+    // Lesson deletion handlers
+    const handleDeleteLesson = useCallback(() => {
+        setDeleteLessonDialogOpen(true);
+    }, []);
+
+    const handleConfirmDeleteLesson = useCallback(async () => {
+        if (!lessonData) {
+            setDeleteLessonDialogOpen(false);
+            return;
+        }
+
+        setDeletingLesson(true);
+        try {
+            const result = await DeleteLesson(lessonData.lesson_id);
+
+            if (result.success) {
+                console.log('Lesson deletion successful:', result.message);
+                // Navigate back to lessons list after successful deletion
+                navigate('/webinars');
+            } else {
+                console.error('Lesson deletion failed:', result.error);
+                // TODO: Show error notification/toast
+                alert(`Помилка видалення вебінару: ${result.error}`);
+            }
+        } catch (error) {
+            console.error('Unexpected error during lesson deletion:', error);
+            alert('Виникла неочікувана помилка при видаленні вебінару');
+        } finally {
+            setDeletingLesson(false);
+            setDeleteLessonDialogOpen(false);
+        }
+    }, [lessonData, navigate]);
+
+    const handleCancelDeleteLesson = useCallback(() => {
+        setDeleteLessonDialogOpen(false);
     }, []);
 
     // Title editing handlers
@@ -1064,7 +1104,8 @@ const EditLessonPage: React.FC = () => {
                                 <Typography variant="h4" sx={{
                                     fontWeight: 600,
                                     color: theme.palette.primary.main,
-                                    fontSize: 'calc(2.125rem / 1.4)'
+                                    fontSize: 'calc(2.125rem / 1.4)',
+                                    flexGrow: 1
                                 }}>
                                     {lessonData.lesson_name}
                                 </Typography>
@@ -1082,6 +1123,25 @@ const EditLessonPage: React.FC = () => {
                                 >
                                     <EditIcon fontSize="small" />
                                 </IconButton>
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    startIcon={<DeleteIcon />}
+                                    onClick={handleDeleteLesson}
+                                    disabled={deletingLesson}
+                                    sx={{
+                                        ml: 2,
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        '&:hover': {
+                                            backgroundColor: alpha(theme.palette.error.main, 0.05),
+                                            borderColor: theme.palette.error.main,
+                                            transform: 'scale(1.02)',
+                                        }
+                                    }}
+                                >
+                                    {deletingLesson ? 'Видалення...' : 'Видалити вебінар'}
+                                </Button>
                             </>
                         )}
                     </Box>
@@ -1211,7 +1271,7 @@ const EditLessonPage: React.FC = () => {
                 confirmButtonText="Видалити презентацію"
                 confirmButtonColor="error"
                 loading={deletingSlide}
-            />{/* Delete Test Confirmation Dialog */}
+            />            {/* Delete Test Confirmation Dialog */}
             <ConfirmationDialog
                 open={deleteTestDialogOpen}
                 onClose={handleCancelDeleteTest}
@@ -1220,6 +1280,19 @@ const EditLessonPage: React.FC = () => {
                 description={`Ви впевнені, що хочете видалити квіз "${testToDelete?.test_name}" з уроку?`}
                 confirmButtonText="Видалити квіз"
                 confirmButtonColor="error"
+            />
+
+            {/* Delete Lesson Confirmation Dialog */}
+            <ConfirmationDialog
+                open={deleteLessonDialogOpen}
+                onClose={handleCancelDeleteLesson}
+                onConfirm={handleConfirmDeleteLesson}
+                title="Підтвердження видалення уроку"
+                description={`Ви впевнені, що хочете видалити урок "${lessonData?.lesson_name}"?`}
+                warningText="Ця дія не може бути скасована. Урок та всі пов'язані з ним матеріали (відео, презентації, квізи) будуть видалені назавжди."
+                confirmButtonText="Видалити урок"
+                confirmButtonColor="error"
+                loading={deletingLesson}
             />
         </Container>
     );
