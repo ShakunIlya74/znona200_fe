@@ -87,6 +87,17 @@ export interface UpdateLessonTitleResponse {
   error?: string;
 }
 
+export interface DeleteLessonResponse {
+  success: boolean;
+  message?: string;
+  lesson_name?: string;
+  deleted_webinars?: string[];
+  deleted_slides?: string[];
+  removed_test_assignments?: number;
+  cdn_errors?: string[];
+  error?: string;
+}
+
 export async function GetLessonsData() {
     try {
         const response = await axiosInstance.get('/webinars');
@@ -378,6 +389,44 @@ export async function UpdateLessonTitle(
             return {
                 success: false,
                 error: err.response.data.error || 'Lesson title update failed',
+            };
+        }
+        
+        return { 
+            success: false, 
+            error: err instanceof Error ? err.message : 'Unknown error occurred'
+        };
+    }
+}
+
+export async function DeleteLesson(lessonId: number | string): Promise<DeleteLessonResponse> {
+    try {
+        const response = await axiosInstance.delete('/lesson/delete', {
+            data: {
+                lesson_id: lessonId
+            },
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        return {
+            success: true,
+            message: response.data.message,
+            lesson_name: response.data.lesson_name,
+            deleted_webinars: response.data.deleted_webinars,
+            deleted_slides: response.data.deleted_slides,
+            removed_test_assignments: response.data.removed_test_assignments,
+            cdn_errors: response.data.cdn_errors,
+        };
+    }
+    catch (err: any) {
+        console.error('Error deleting lesson:', err);
+        
+        if (err.response?.data) {
+            return {
+                success: false,
+                error: err.response.data.error || 'Lesson deletion failed',
             };
         }
         
