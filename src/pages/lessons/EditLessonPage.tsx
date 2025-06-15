@@ -795,103 +795,115 @@ const EditLessonPage: React.FC = () => {
     const handleCancelDeleteTest = useCallback(() => {
         setDeleteTestDialogOpen(false);
         setTestToDelete(null);
-    }, []);
-
-    // Memoize the test components with modern card design
+    }, []);    // Memoize the test components with modern card design - show all tests in one container
     const testComponents = useMemo(() => {
-        return testCards.map((test, index) => (
-            <Box
-                key={`test-content-${test.test_id}`}
-                sx={{ py: 2 }}
-            >
-                <Paper
-                    elevation={2}
-                    sx={{
-                        p: 3,
-                        borderRadius: '16px',
-                        border: `1px solid ${alpha(theme.palette.grey[300], 0.3)}`,
-                        backgroundColor: theme.palette.background.paper,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 3,
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                            elevation: 4,
-                            borderColor: alpha(theme.palette.primary.main, 0.3),
-                            transform: 'translateY(-2px)',
-                        }
-                    }}
-                >
-                    {/* Test Content */}
-                    <Box sx={{ flex: 1 }}>
-                        <Typography 
-                            variant="h5" 
-                            gutterBottom
-                            sx={{ 
-                                fontWeight: 600,
-                                color: theme.palette.primary.main,
-                                mb: 1
-                            }}
-                        >
-                            {test.test_name}
-                        </Typography>
-                        
-                        {test.test_description && (
-                            <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                    mb: 2, 
-                                    color: theme.palette.text.secondary,
-                                    lineHeight: 1.6
-                                }}
-                            >
-                                {test.test_description}
-                            </Typography>
-                        )}
-                    </Box>
+        if (testCards.length === 0) {
+            return (
+                <Box sx={{ py: 4, textAlign: 'center' }}>
+                    <Typography variant="h6" color="text.secondary">
+                        Поки що немає доступних квізів
+                    </Typography>
+                </Box>
+            );
+        }
 
-                    {/* Remove Button */}
-                    <Box sx={{ 
-                        flex: '0 0 auto',
-                        display: 'flex',
-                        alignItems: 'center'
-                    }}>
-                        <Button
-                            variant="outlined"
-                            color="error"
-                            startIcon={<DeleteIcon />}
-                            onClick={() => handleDeleteTest(test)}
-                            sx={{ 
-                                whiteSpace: 'nowrap',
-                                minWidth: '140px',
-                                borderRadius: '8px',
-                                fontWeight: 600,
+        return (
+            <Box sx={{ py: 2 }}>
+                {testCards.map((test, index) => (
+                    <Box
+                        key={`test-content-${test.test_id}`}
+                        sx={{ mb: index < testCards.length - 1 ? 3 : 0 }}
+                    >
+                        <Paper
+                            elevation={2}
+                            sx={{
+                                p: 3,
+                                borderRadius: '16px',
+                                border: `1px solid ${alpha(theme.palette.grey[300], 0.3)}`,
+                                backgroundColor: theme.palette.background.paper,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 3,
+                                transition: 'all 0.2s ease-in-out',
                                 '&:hover': {
-                                    backgroundColor: alpha(theme.palette.error.main, 0.05),
-                                    borderColor: theme.palette.error.main,
-                                    transform: 'scale(1.02)',
+                                    elevation: 4,
+                                    borderColor: alpha(theme.palette.primary.main, 0.3),
+                                    transform: 'translateY(-2px)',
                                 }
                             }}
                         >
-                            Видалити
-                        </Button>
+                            {/* Test Content */}
+                            <Box sx={{ flex: 1 }}>
+                                <Typography 
+                                    variant="h5" 
+                                    gutterBottom
+                                    sx={{ 
+                                        fontWeight: 600,
+                                        color: theme.palette.primary.main,
+                                        mb: 1
+                                    }}
+                                >
+                                    {test.test_name}
+                                </Typography>
+                                
+                                {test.test_description && (
+                                    <Typography 
+                                        variant="body1" 
+                                        sx={{ 
+                                            mb: 2, 
+                                            color: theme.palette.text.secondary,
+                                            lineHeight: 1.6
+                                        }}
+                                    >
+                                        {test.test_description}
+                                    </Typography>
+                                )}
+                            </Box>
+
+                            {/* Remove Button */}
+                            <Box sx={{ 
+                                flex: '0 0 auto',
+                                display: 'flex',
+                                alignItems: 'center'
+                            }}>
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    startIcon={<DeleteIcon />}
+                                    onClick={() => handleDeleteTest(test)}
+                                    sx={{ 
+                                        whiteSpace: 'nowrap',
+                                        minWidth: '140px',
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        '&:hover': {
+                                            backgroundColor: alpha(theme.palette.error.main, 0.05),
+                                            borderColor: theme.palette.error.main,
+                                            transform: 'scale(1.02)',
+                                        }
+                                    }}
+                                >
+                                    Видалити
+                                </Button>
+                            </Box>
+                        </Paper>
                     </Box>
-                </Paper>
+                ))}
             </Box>
-        ));
+        );
     }, [testCards, theme, handleDeleteTest]);
 
     // Function to determine if a tab content should be visible
     const isTabVisible = (tabIndex: number): boolean => {
         return tabValue === tabIndex;
-    };    // Calculate tab indices - always show video and slides in edit mode
+    };    // Calculate tab indices - always show video, slides, and single tests tab in edit mode
     const getTabIndices = useMemo(() => {
         const videoTabIndex = 0;  // Always first tab
         const slideTabIndex = 1;  // Always second tab
-        const testStartIndex = 2; // Tests start from third tab
+        const testsTabIndex = 2;  // Single tests tab
 
-        return { videoTabIndex, slideTabIndex, testStartIndex };
+        return { videoTabIndex, slideTabIndex, testsTabIndex };
     }, []);
 
     return (
@@ -992,17 +1004,11 @@ const EditLessonPage: React.FC = () => {
                                     fontWeight: 600,
                                     py: 1.5
                                 }
-                            }}
-                        >
-                            {/* Always render tabs in edit mode: Videos, Slides, Tests */}
+                            }}                        >
+                            {/* Always render tabs in edit mode: Videos, Slides, Tests (singular) */}
                             <Tab label="Відео" />
                             <Tab label="Презентація" />
-                            {testCards.map((test, index) => (
-                                <Tab 
-                                    key={`test-${test.test_id}`} 
-                                    label={testCards.length > 1 ? `Квіз ${index + 1}` : 'Квіз'} 
-                                />
-                            ))}
+                            <Tab label="Квізи" />
                         </Tabs>
                     </Paper>
 
@@ -1022,19 +1028,14 @@ const EditLessonPage: React.FC = () => {
                                 alignItems: 'center',
                             }}                        >
                             {pdfDisplayComponents}
+                        </Box>                        {/* Test Tab Content - single tab with all tests */}
+                        <Box
+                            sx={{
+                                display: isTabVisible(getTabIndices.testsTabIndex) ? 'block' : 'none'
+                            }}
+                        >
+                            {testComponents}
                         </Box>
-
-                        {/* Test Tabs Content */}
-                        {testComponents.map((testComponent, index) => (
-                            <Box
-                                key={`test-wrapper-${index}`}
-                                sx={{
-                                    display: isTabVisible(getTabIndices.testStartIndex + index) ? 'block' : 'none'
-                                }}
-                            >
-                                {testComponent}
-                            </Box>
-                        ))}
                     </Box>
                 </>
             ) : (
