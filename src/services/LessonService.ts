@@ -79,6 +79,14 @@ export interface CreateLessonResponse {
   error?: string;
 }
 
+export interface UpdateLessonTitleResponse {
+  success: boolean;
+  lesson_id?: number;
+  lesson_name?: string;
+  message?: string;
+  error?: string;
+}
+
 export async function GetLessonsData() {
     try {
         const response = await axiosInstance.get('/webinars');
@@ -332,6 +340,44 @@ export async function CreateLesson(folderId: number | string): Promise<CreateLes
             return {
                 success: false,
                 error: err.response.data.error || 'Lesson creation failed',
+            };
+        }
+        
+        return { 
+            success: false, 
+            error: err instanceof Error ? err.message : 'Unknown error occurred'
+        };
+    }
+}
+
+export async function UpdateLessonTitle(
+  lessonId: number | string,
+  lessonName: string
+): Promise<UpdateLessonTitleResponse> {
+    try {
+        const response = await axiosInstance.put('/lesson/update-title', {
+            lesson_id: lessonId,
+            lesson_name: lessonName
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        return {
+            success: true,
+            lesson_id: response.data.lesson_id,
+            lesson_name: response.data.lesson_name,
+            message: response.data.message,
+        };
+    }
+    catch (err: any) {
+        console.error('Error updating lesson title:', err);
+        
+        if (err.response?.data) {
+            return {
+                success: false,
+                error: err.response.data.error || 'Lesson title update failed',
             };
         }
         
