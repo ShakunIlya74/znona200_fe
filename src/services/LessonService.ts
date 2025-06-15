@@ -73,6 +73,12 @@ export interface DeleteSlideResponse {
   error?: string;
 }
 
+export interface CreateLessonResponse {
+  success: boolean;
+  lfp_sha?: string;
+  error?: string;
+}
+
 export async function GetLessonsData() {
     try {
         const response = await axiosInstance.get('/webinars');
@@ -294,6 +300,38 @@ export async function DeleteSlideFromLesson(
             return {
                 success: false,
                 error: err.response.data.error || 'Delete failed',
+            };
+        }
+        
+        return { 
+            success: false, 
+            error: err instanceof Error ? err.message : 'Unknown error occurred'
+        };
+    }
+}
+
+export async function CreateLesson(folderId: number | string): Promise<CreateLessonResponse> {
+    try {
+        const response = await axiosInstance.post('/lesson-create', {
+            folderId: folderId
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        return {
+            success: true,
+            lfp_sha: response.data.lfp_sha,
+        };
+    }
+    catch (err: any) {
+        console.error('Error creating lesson:', err);
+        
+        if (err.response?.data) {
+            return {
+                success: false,
+                error: err.response.data.error || 'Lesson creation failed',
             };
         }
         
