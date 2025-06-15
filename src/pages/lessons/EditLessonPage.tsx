@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress, Alert } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson } from '../../services/LessonService';
+import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
@@ -102,6 +102,19 @@ const EditLessonPage: React.FC = () => {
     const [deletingSlide, setDeletingSlide] = useState(false);
     const [webinarToDelete, setWebinarToDelete] = useState<WebinarDict | null>(null);
     const [slideToDelete, setSlideToDelete] = useState<SlideDict | null>(null);
+    
+    // Upload state for videos
+    const [uploadingVideo, setUploadingVideo] = useState(false);
+    const [videoUploadProgress, setVideoUploadProgress] = useState(0);
+    const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
+    const [videoUploadSuccess, setVideoUploadSuccess] = useState<string | null>(null);
+    
+    // Upload state for slides
+    const [uploadingSlide, setUploadingSlide] = useState(false);
+    const [slideUploadProgress, setSlideUploadProgress] = useState(0);
+    const [slideUploadError, setSlideUploadError] = useState<string | null>(null);
+    const [slideUploadSuccess, setSlideUploadSuccess] = useState<string | null>(null);
+    
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -152,32 +165,88 @@ const EditLessonPage: React.FC = () => {
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue);
-    };
+    };    // Video upload handlers
+    const uploadVideoFile = useCallback(async (file: File) => {
+        if (!lessonData) {
+            setVideoUploadError('Lesson data not available');
+            return;
+        }
 
-    // Video upload handlers
+        setUploadingVideo(true);
+        setVideoUploadProgress(0);
+        setVideoUploadError(null);
+        setVideoUploadSuccess(null);
+
+        try {
+            const result = await UploadWebinar(
+                file,
+                file.name, // Use filename as webinar title
+                'WEBINAR', // video type
+                lessonData.lesson_id,
+                (progressEvent: any) => {
+                    if (progressEvent.total) {
+                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        setVideoUploadProgress(progress);
+                    }
+                }
+            );
+
+            if (result.success && result.webinar_id) {
+                setVideoUploadSuccess(`Video uploaded successfully: ${result.filename}`);
+                
+                // Add the new webinar to the local state
+                const newWebinar: WebinarDict = {
+                    webinar_id: result.webinar_id,
+                    webinar_title: file.name,
+                    url: result.url || '',
+                    video_type: 'WEBINAR'
+                };
+                setWebinarDicts(prev => [...prev, newWebinar]);
+                
+                // Clear success message after 5 seconds
+                setTimeout(() => setVideoUploadSuccess(null), 5000);
+            } else {
+                setVideoUploadError(result.error || 'Upload failed');
+            }
+        } catch (error) {
+            console.error('Error uploading video:', error);
+            setVideoUploadError(error instanceof Error ? error.message : 'Upload failed');
+        } finally {
+            setUploadingVideo(false);
+        }
+    }, [lessonData]);
+
     const handleVideoFileSelect = useCallback(() => {
+        if (uploadingVideo) return;
+        
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'video/*';
         input.onchange = (e) => {
             const files = (e.target as HTMLInputElement).files;
             if (files && files.length > 0) {
-                console.log('Video file selected:', files[0]);
-                // TODO: Implement video upload logic
+                uploadVideoFile(files[0]);
             }
         };
         input.click();
-    }, []);
+    }, [uploadVideoFile, uploadingVideo]);
 
     const handleVideoDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         setDragOverVideo(false);
+        
+        if (uploadingVideo) return;
+        
         const files = e.dataTransfer.files;
         if (files && files.length > 0) {
-            console.log('Video file dropped:', files[0]);
-            // TODO: Implement video upload logic
+            const file = files[0];
+            if (file.type.startsWith('video/')) {
+                uploadVideoFile(file);
+            } else {
+                setVideoUploadError('Please select a valid video file');
+            }
         }
-    }, []);
+    }, [uploadVideoFile, uploadingVideo]);
 
     const handleVideoDragOver = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -188,31 +257,87 @@ const EditLessonPage: React.FC = () => {
         e.preventDefault();
         setDragOverVideo(false);
     }, []);
-
     // Slides upload handlers
+    const uploadSlideFile = useCallback(async (file: File) => {
+        if (!lessonData) {
+            setSlideUploadError('Lesson data not available');
+            return;
+        }
+
+        setUploadingSlide(true);
+        setSlideUploadProgress(0);
+        setSlideUploadError(null);
+        setSlideUploadSuccess(null);
+
+        try {
+            const result = await UploadSlide(
+                file,
+                lessonData.lesson_id,
+                file.name, // Use filename as slide title
+                (progressEvent: any) => {
+                    if (progressEvent.total) {
+                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        setSlideUploadProgress(progress);
+                    }
+                }
+            );
+
+            if (result.success && result.slide_id) {
+                setSlideUploadSuccess(`Slide uploaded successfully: ${result.filename}`);
+                
+                // Add the new slide to the local state
+                const newSlide: SlideDict = {
+                    slide_id: result.slide_id,
+                    slide_title: file.name,
+                    slide_type: 'PDF',
+                    slide_content: result.url || ''
+                };
+                setSlideDicts(prev => [...prev, newSlide]);
+                
+                // Clear success message after 5 seconds
+                setTimeout(() => setSlideUploadSuccess(null), 5000);
+            } else {
+                setSlideUploadError(result.error || 'Upload failed');
+            }
+        } catch (error) {
+            console.error('Error uploading slide:', error);
+            setSlideUploadError(error instanceof Error ? error.message : 'Upload failed');
+        } finally {
+            setUploadingSlide(false);
+        }
+    }, [lessonData]);
+
     const handleSlidesFileSelect = useCallback(() => {
+        if (uploadingSlide) return;
+        
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.pdf';
         input.onchange = (e) => {
             const files = (e.target as HTMLInputElement).files;
             if (files && files.length > 0) {
-                console.log('Slides file selected:', files[0]);
-                // TODO: Implement slides upload logic
+                uploadSlideFile(files[0]);
             }
         };
         input.click();
-    }, []);
+    }, [uploadSlideFile, uploadingSlide]);
 
     const handleSlidesDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         setDragOverSlides(false);
+        
+        if (uploadingSlide) return;
+        
         const files = e.dataTransfer.files;
         if (files && files.length > 0) {
-            console.log('Slides file dropped:', files[0]);
-            // TODO: Implement slides upload logic
+            const file = files[0];
+            if (file.type === 'application/pdf') {
+                uploadSlideFile(file);
+            } else {
+                setSlideUploadError('Please select a valid PDF file');
+            }
         }
-    }, []);
+    }, [uploadSlideFile, uploadingSlide]);
 
     const handleSlidesDragOver = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -343,16 +468,17 @@ const EditLessonPage: React.FC = () => {
                         border: `2px dashed ${dragOverVideo ? theme.palette.primary.main : theme.palette.divider}`,
                         backgroundColor: dragOverVideo ? theme.palette.action.hover : 'transparent',
                         transition: 'all 0.2s ease-in-out',
-                        cursor: 'pointer',
+                        cursor: uploadingVideo ? 'not-allowed' : 'pointer',
+                        opacity: uploadingVideo ? 0.7 : 1,
                         '&:hover': {
-                            backgroundColor: theme.palette.action.hover,
-                            borderColor: theme.palette.primary.main,
+                            backgroundColor: uploadingVideo ? undefined : theme.palette.action.hover,
+                            borderColor: uploadingVideo ? undefined : theme.palette.primary.main,
                         }
                     }}
                     onDrop={handleVideoDrop}
                     onDragOver={handleVideoDragOver}
                     onDragLeave={handleVideoDragLeave}
-                    onClick={handleVideoFileSelect}
+                    onClick={uploadingVideo ? undefined : handleVideoFileSelect}
                 >
                     <Box sx={{ 
                         display: 'flex', 
@@ -364,26 +490,48 @@ const EditLessonPage: React.FC = () => {
                         <VideoFileIcon color="primary" sx={{ fontSize: 40 }} />
                         <Box sx={{ textAlign: 'center' }}>
                             <Typography variant="body1" color="primary">
-                                Перетягніть відео сюди або натисніть для вибору
+                                {uploadingVideo ? 'Завантаження відео...' : 'Перетягніть відео сюди або натисніть для вибору'}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 Підтримуються файли: MP4, AVI, MOV, WMV
                             </Typography>
-                            {/* TODO: check if they are accepted for video player */}
                         </Box>
                         <Button
                             variant="outlined"
-                            startIcon={<AttachFileIcon />}
+                            startIcon={uploadingVideo ? <CircularProgress size={20} /> : <AttachFileIcon />}
                             size="small"
+                            disabled={uploadingVideo}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleVideoFileSelect();
                             }}
                         >
-                            Огляд
+                            {uploadingVideo ? 'Завантаження...' : 'Огляд'}
                         </Button>
                     </Box>
                 </Paper>
+
+                {/* Upload Progress */}
+                {uploadingVideo && (
+                    <Box sx={{ mb: 2 }}>
+                        <LinearProgress variant="determinate" value={videoUploadProgress} />
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, textAlign: 'center' }}>
+                            {videoUploadProgress}% завантажено
+                        </Typography>
+                    </Box>
+                )}
+
+                {/* Upload Status Messages */}
+                {videoUploadError && (
+                    <Alert severity="error" sx={{ mb: 2 }} onClose={() => setVideoUploadError(null)}>
+                        {videoUploadError}
+                    </Alert>
+                )}
+                {videoUploadSuccess && (
+                    <Alert severity="success" sx={{ mb: 2 }} onClose={() => setVideoUploadSuccess(null)}>
+                        {videoUploadSuccess}
+                    </Alert>
+                )}
 
                 {/* Existing Videos Display */}
                 {webinarDicts.length > 0 && webinarDicts.map((webinar, index) => (
@@ -467,7 +615,7 @@ const EditLessonPage: React.FC = () => {
                 ))}
             </Box>
         );
-    }, [webinarDicts, theme, dragOverVideo, handleVideoDrop, handleVideoDragOver, handleVideoDragLeave, handleVideoFileSelect, handleDownloadVideo, handleDeleteVideo]);    // Memoize the PDFDisplay components to keep them mounted
+    }, [webinarDicts, theme, dragOverVideo, uploadingVideo, videoUploadProgress, videoUploadError, videoUploadSuccess, handleVideoDrop, handleVideoDragOver, handleVideoDragLeave, handleVideoFileSelect, handleDownloadVideo, handleDeleteVideo, setVideoUploadError, setVideoUploadSuccess]);    // Memoize the PDFDisplay components to keep them mounted
     const pdfDisplayComponents = useMemo(() => {
         return (
             <Box>
@@ -480,16 +628,17 @@ const EditLessonPage: React.FC = () => {
                         border: `2px dashed ${dragOverSlides ? theme.palette.primary.main : theme.palette.divider}`,
                         backgroundColor: dragOverSlides ? theme.palette.action.hover : 'transparent',
                         transition: 'all 0.2s ease-in-out',
-                        cursor: 'pointer',
+                        cursor: uploadingSlide ? 'not-allowed' : 'pointer',
+                        opacity: uploadingSlide ? 0.7 : 1,
                         '&:hover': {
-                            backgroundColor: theme.palette.action.hover,
-                            borderColor: theme.palette.primary.main,
+                            backgroundColor: uploadingSlide ? undefined : theme.palette.action.hover,
+                            borderColor: uploadingSlide ? undefined : theme.palette.primary.main,
                         }
                     }}
                     onDrop={handleSlidesDrop}
                     onDragOver={handleSlidesDragOver}
                     onDragLeave={handleSlidesDragLeave}
-                    onClick={handleSlidesFileSelect}
+                    onClick={uploadingSlide ? undefined : handleSlidesFileSelect}
                 >
                     <Box sx={{ 
                         display: 'flex', 
@@ -501,7 +650,7 @@ const EditLessonPage: React.FC = () => {
                         <PictureAsPdfIcon color="primary" sx={{ fontSize: 40 }} />
                         <Box sx={{ textAlign: 'center' }}>
                             <Typography variant="body1" color="primary">
-                                Перетягніть презентацію сюди або натисніть для вибору
+                                {uploadingSlide ? 'Завантаження презентації...' : 'Перетягніть презентацію сюди або натисніть для вибору'}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 Підтримуються файли PDF
@@ -509,17 +658,40 @@ const EditLessonPage: React.FC = () => {
                         </Box>
                         <Button
                             variant="outlined"
-                            startIcon={<AttachFileIcon />}
+                            startIcon={uploadingSlide ? <CircularProgress size={20} /> : <AttachFileIcon />}
                             size="small"
+                            disabled={uploadingSlide}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleSlidesFileSelect();
                             }}
                         >
-                            Огляд
+                            {uploadingSlide ? 'Завантаження...' : 'Огляд'}
                         </Button>
                     </Box>
                 </Paper>
+
+                {/* Upload Progress */}
+                {uploadingSlide && (
+                    <Box sx={{ mb: 2 }}>
+                        <LinearProgress variant="determinate" value={slideUploadProgress} />
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, textAlign: 'center' }}>
+                            {slideUploadProgress}% завантажено
+                        </Typography>
+                    </Box>
+                )}
+
+                {/* Upload Status Messages */}
+                {slideUploadError && (
+                    <Alert severity="error" sx={{ mb: 2 }} onClose={() => setSlideUploadError(null)}>
+                        {slideUploadError}
+                    </Alert>
+                )}
+                {slideUploadSuccess && (
+                    <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSlideUploadSuccess(null)}>
+                        {slideUploadSuccess}
+                    </Alert>
+                )}
 
                 {/* Existing Slides Display */}
                 {slideDicts.length > 0 && slideDicts.map((slide, index) => {
@@ -601,7 +773,7 @@ const EditLessonPage: React.FC = () => {
                 })}
             </Box>
         );
-    }, [slideDicts, theme, dragOverSlides, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect, handleDeletePdf]);// State for test deletion dialogs
+    }, [slideDicts, theme, dragOverSlides, uploadingSlide, slideUploadProgress, slideUploadError, slideUploadSuccess, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect, handleDeletePdf, setSlideUploadError, setSlideUploadSuccess]);// State for test deletion dialogs
     const [deleteTestDialogOpen, setDeleteTestDialogOpen] = useState(false);
     const [testToDelete, setTestToDelete] = useState<TestCardMeta | null>(null);
 
