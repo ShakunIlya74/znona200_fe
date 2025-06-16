@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress, Alert, TextField, IconButton } from '@mui/material';
+import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress, Alert, TextField, IconButton, Snackbar } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide, UpdateLessonTitle, DeleteLesson } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
@@ -116,14 +116,13 @@ const EditLessonPage: React.FC = () => {
     const [uploadingSlide, setUploadingSlide] = useState(false);
     const [slideUploadProgress, setSlideUploadProgress] = useState(0);
     const [slideUploadError, setSlideUploadError] = useState<string | null>(null);    
-    const [slideUploadSuccess, setSlideUploadSuccess] = useState<string | null>(null);
-    // Title editing state
+    const [slideUploadSuccess, setSlideUploadSuccess] = useState<string | null>(null);    // Title editing state
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [editedTitle, setEditedTitle] = useState('');
     const [updatingTitle, setUpdatingTitle] = useState(false);
     const [titleUpdateError, setTitleUpdateError] = useState<string | null>(null);
     
-    const theme = useTheme();
+      const theme = useTheme();
     const navigate = useNavigate();
 
     // Track available tabs to correctly map tab index to content
@@ -132,10 +131,9 @@ const EditLessonPage: React.FC = () => {
         hasSlides: false
     });
 
-    useEffect(() => {
-        const loadLessonData = async () => {
+    useEffect(() => {        const loadLessonData = async () => {
             if (!lfp_sha) {
-                setError('Lesson ID is missing');
+                setError('Ідентифікатор вебінару відсутній');
                 setLoading(false);
                 return;
             }
@@ -154,11 +152,11 @@ const EditLessonPage: React.FC = () => {
                         hasSlides: true  // Always show slides tab in edit mode
                     });
                 } else {
-                    setError(response.error || 'Failed to load lesson data');
+                    setError(response.error || 'Не вдалося завантажити дані вебінару');
                 }
             } catch (err) {
                 console.error(err);
-                setError('An error occurred while loading the lesson');
+                setError('Сталася помилка під час завантаження вебінару');
             } finally {
                 setLoading(false);
             }
@@ -214,11 +212,11 @@ const EditLessonPage: React.FC = () => {
                 // Clear success message after 5 seconds
                 setTimeout(() => setVideoUploadSuccess(null), 5000);
             } else {
-                setVideoUploadError(result.error || 'Upload failed');
+                setVideoUploadError(result.error || 'Завантаження не вдалося');
             }
         } catch (error) {
             console.error('Error uploading video:', error);
-            setVideoUploadError(error instanceof Error ? error.message : 'Upload failed');
+            setVideoUploadError(error instanceof Error ? error.message : 'Завантаження не вдалося');
         } finally {
             setUploadingVideo(false);
         }
@@ -251,7 +249,7 @@ const EditLessonPage: React.FC = () => {
             if (file.type.startsWith('video/')) {
                 uploadVideoFile(file);
             } else {
-                setVideoUploadError('Please select a valid video file');
+                setVideoUploadError('Будь ласка, виберіть файл правильного відеоформату');
             }
         }
     }, [uploadVideoFile, uploadingVideo]);
@@ -291,7 +289,7 @@ const EditLessonPage: React.FC = () => {
             );
 
             if (result.success && result.slide_id) {
-                setSlideUploadSuccess(`Slide uploaded successfully: ${result.filename}`);
+                setSlideUploadSuccess(`Презентація успішно завантажена: ${result.filename}`);
                 
                 // Add the new slide to the local state
                 const newSlide: SlideDict = {
@@ -305,11 +303,11 @@ const EditLessonPage: React.FC = () => {
                 // Clear success message after 5 seconds
                 setTimeout(() => setSlideUploadSuccess(null), 5000);
             } else {
-                setSlideUploadError(result.error || 'Upload failed');
+                setSlideUploadError(result.error || 'Завантаження не вдалося');
             }
         } catch (error) {
             console.error('Error uploading slide:', error);
-            setSlideUploadError(error instanceof Error ? error.message : 'Upload failed');
+            setSlideUploadError(error instanceof Error ? error.message : 'Завантаження не вдалося');
         } finally {
             setUploadingSlide(false);
         }
@@ -342,7 +340,7 @@ const EditLessonPage: React.FC = () => {
             if (file.type === 'application/pdf') {
                 uploadSlideFile(file);
             } else {
-                setSlideUploadError('Please select a valid PDF file');
+                setSlideUploadError('Будь ласка, оберіть файл PDF формату');
             }
         }
     }, [uploadSlideFile, uploadingSlide]);
@@ -1293,10 +1291,10 @@ const EditLessonPage: React.FC = () => {
                 open={deleteLessonDialogOpen}
                 onClose={handleCancelDeleteLesson}
                 onConfirm={handleConfirmDeleteLesson}
-                title="Підтвердження видалення уроку"
-                description={`Ви впевнені, що хочете видалити урок "${lessonData?.lesson_name}"?`}
-                warningText="Ця дія не може бути скасована. Урок та всі пов'язані з ним матеріали (відео, презентації, квізи) будуть видалені назавжди."
-                confirmButtonText="Видалити урок"
+                title="Підтвердження видалення вебінару"
+                description={`Ви впевнені, що хочете видалити вебінар "${lessonData?.lesson_name}"?`}
+                warningText="Ця дія не може бути скасована. Вебінар та всі пов'язані з ним медіа-матеріали (відео та презентації) будуть видалені назавжди."
+                confirmButtonText="Видалити вебінар"
                 confirmButtonColor="error"
                 loading={deletingLesson}
             />
