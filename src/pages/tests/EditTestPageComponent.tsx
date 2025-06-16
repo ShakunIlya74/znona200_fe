@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import { GetTestView, SaveEditedTest } from '../../services/TestService';
+import { GetTestView, SaveEditedTest, GetTestDataById, SaveEditedTestById } from '../../services/TestService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -182,13 +182,15 @@ const EditableTestName: React.FC<{
 };
 
 interface EditTestComponentProps {
-  tfp_sha: string;
+  tfp_sha?: string;
+  testId?: string | number;
   onBack?: () => void;
   showTopBar?: boolean;
 }
 
 const EditTestComponent: React.FC<EditTestComponentProps> = ({ 
   tfp_sha, 
+  testId: propTestId,
   onBack, 
   showTopBar = true 
 }) => {
@@ -201,9 +203,12 @@ const EditTestComponent: React.FC<EditTestComponentProps> = ({
   const [showAddQuestionSection, setShowAddQuestionSection] = useState<boolean>(false); // New state
   const [nextQuestionId, setNextQuestionId] = useState<number>(-1); // Negative IDs for new questions
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [testNameEdited, setTestNameEdited] = useState<string>('');
+  const [testNameEdited, setTestNameEdited] = useState<string>('');  
   const [isSaved, setIsSaved] = useState<boolean>(true);
   const [showExitDialog, setShowExitDialog] = useState<boolean>(false);
+  const [testId, setTestId] = useState<string | null>(
+    propTestId ? String(propTestId) : null
+  );
 
   // Create refs for each question for scroll functionality
   const questionRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
@@ -213,10 +218,10 @@ const EditTestComponent: React.FC<EditTestComponentProps> = ({
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
-  const headerOffset = getHeaderOffset(isMobile, isMedium);
-  useEffect(() => {
+  const headerOffset = getHeaderOffset(isMobile, isMedium);  useEffect(() => {
     const loadTestData = async () => {
-      if (!tfp_sha) {
+      // Check if we have either tfp_sha or testId
+      if (!tfp_sha && !propTestId) {
         setError('Test ID is missing');
         setLoading(false);
         return;
@@ -224,15 +229,32 @@ const EditTestComponent: React.FC<EditTestComponentProps> = ({
 
       setLoading(true);
       try {
-        const response = await GetTestView(tfp_sha);
+        let response;
+        
+        if (propTestId) {
+          // Use testId-based service
+          const testIdNumber = typeof propTestId === 'string' ? parseInt(propTestId) : propTestId;
+          response = await GetTestDataById(testIdNumber);
+        } else if (tfp_sha) {
+          // Use tfp_sha-based service
+          response = await GetTestView(tfp_sha);
+        } else {
+          throw new Error('Neither testId nor tfp_sha provided');
+        }
+
         console.log('Response:', response);
 
         if (response.success && response.full_test_with_answers) {
           const testDataFromApi = response.full_test_with_answers.test;
           setTestData(testDataFromApi);
           setTestNameEdited(testDataFromApi.test_name || '');
-          setQuestions(response.full_test_with_answers.questions.map(q => ({ ...q })));
+          setQuestions(response.full_test_with_answers.questions.map((q: any) => ({ ...q })));
           setIsSaved(true); // Initially mark as saved when loaded
+          
+          // Set testId from response
+          if (testDataFromApi.test_id) {
+            setTestId(String(testDataFromApi.test_id));
+          }
         } else {
           setError(response.error || 'Failed to load test data');
         }
@@ -245,7 +267,7 @@ const EditTestComponent: React.FC<EditTestComponentProps> = ({
     };
 
     loadTestData();
-  }, [tfp_sha]);
+  }, [tfp_sha, propTestId]);
 
   // Initialize refs for each question
   useEffect(() => {
@@ -529,9 +551,20 @@ const EditTestComponent: React.FC<EditTestComponentProps> = ({
     };
     
     console.log('Saving test:', testToSave);
-    
-    try {
-      const result = await SaveEditedTest(tfp_sha!, testToSave);
+      try {
+      let result;
+      
+      if (propTestId) {
+        // Use testId-based service
+        const testIdNumber = typeof propTestId === 'string' ? parseInt(propTestId) : propTestId;
+        result = await SaveEditedTestById(testIdNumber, testToSave);
+      } else if (tfp_sha) {
+        // Use tfp_sha-based service
+        result = await SaveEditedTest(tfp_sha, testToSave);
+      } else {
+        throw new Error('Neither testId nor tfp_sha available for saving');
+      }
+      
       if (result.success) {
         setIsSaved(true); // Mark as saved when successfully saved
         // Note: if we want to stay on the page after saving, remove this navigate
