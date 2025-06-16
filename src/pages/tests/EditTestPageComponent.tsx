@@ -18,7 +18,7 @@ import {
   CardContent
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { GetTestView, SaveEditedTest } from '../../services/TestService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { alpha } from '@mui/material/styles';
@@ -181,8 +181,17 @@ const EditableTestName: React.FC<{
   );
 };
 
-const EditTestComponent: React.FC = () => {
-  const { tfp_sha } = useParams<{ tfp_sha: string }>();
+interface EditTestComponentProps {
+  tfp_sha: string;
+  onBack?: () => void;
+  showTopBar?: boolean;
+}
+
+const EditTestComponent: React.FC<EditTestComponentProps> = ({ 
+  tfp_sha, 
+  onBack, 
+  showTopBar = true 
+}) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [testData, setTestData] = useState<TestCardMeta | null>(null);
@@ -205,7 +214,6 @@ const EditTestComponent: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const headerOffset = getHeaderOffset(isMobile, isMedium);
-
   useEffect(() => {
     const loadTestData = async () => {
       if (!tfp_sha) {
@@ -491,10 +499,13 @@ const EditTestComponent: React.FC = () => {
     setShowQuestionTypeDialog(false);
     scrollToQuestion(index);
   };
-
   // Handle back button click
   const handleBackClick = () => {
-    navigate('/tests');
+    if (onBack) {
+      onBack();
+    } else {
+      navigate('/tests');
+    }
   };
   // Handle save test
   const handleSaveTest = async () => {
@@ -541,20 +552,27 @@ const EditTestComponent: React.FC = () => {
     setTestNameEdited(newName);
     setIsSaved(false); // Mark as unsaved when test name is edited
   };
-
   // Handle exit with unsaved changes
   const handleExitClick = () => {
     if (!isSaved) {
       setShowExitDialog(true);
     } else {
-      navigate('/tests');
+      if (onBack) {
+        onBack();
+      } else {
+        navigate('/tests');
+      }
     }
   };
 
   // Handle exit confirmation
   const handleConfirmExit = () => {
     setShowExitDialog(false);
-    navigate('/tests');
+    if (onBack) {
+      onBack();
+    } else {
+      navigate('/tests');
+    }
   };
 
   // Handle exit cancellation
@@ -567,8 +585,8 @@ const EditTestComponent: React.FC = () => {
     ? 1  // Less padding for medium screens
     : 4; // Normal padding for other screen sizes
 
-  return (
-    <Container
+  return (    
+  <Container
       maxWidth={false}
       disableGutters
       sx={{
@@ -579,38 +597,40 @@ const EditTestComponent: React.FC = () => {
       }}
     >
       {/* Top Bar */}
-      <Box sx={{
-        p: 2,
-        borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
-        display: 'flex',
-        alignItems: 'center'
-      }}>
-        <Button
-          variant="text"
-          startIcon={<ArrowBackIcon />}
-          onClick={handleExitClick}
-          sx={{ color: theme.palette.primary.main }}
-        >
-          Назад до тестів
-        </Button>
-
-        {testData && (
-          <Box
-            sx={{
-              ml: 2,
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: { xs: 'flex-start', sm: 'center' }
-            }}
+      {showTopBar && (
+        <Box sx={{
+          p: 2,
+          borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          <Button
+            variant="text"
+            startIcon={<ArrowBackIcon />}
+            onClick={handleExitClick}
+            sx={{ color: theme.palette.primary.main }}
           >
-            <EditableTestName
-              value={testNameEdited}
-              onChange={handleTestNameChange}
-            />
-          </Box>
-        )}
-      </Box>
+            Назад до тестів
+          </Button>
+
+          {testData && (
+            <Box
+              sx={{
+                ml: 2,
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: { xs: 'flex-start', sm: 'center' }
+              }}
+            >
+              <EditableTestName
+                value={testNameEdited}
+                onChange={handleTestNameChange}
+              />
+            </Box>
+          )}
+        </Box>
+      )}
 
       {loading ? (
         <Box sx={{
