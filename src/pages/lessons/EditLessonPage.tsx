@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress, Alert, TextField, IconButton, Snackbar } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide, UpdateLessonTitle, DeleteLesson, CreateTestForLesson, RemoveTestFromLesson } from '../../services/LessonService';
+import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide, UpdateLessonTitle, DeleteLesson, CreateTestForLesson, RemoveTestFromLesson, AssignTestToLesson } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
 import EditTestComponent from '../tests/EditTestPageComponent';
+import TestSelectorComponent from '../tests/components/TestSelectorComponent';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
@@ -120,10 +121,14 @@ const EditLessonPage: React.FC = () => {
     const [slideUploadError, setSlideUploadError] = useState<string | null>(null);    
     const [slideUploadSuccess, setSlideUploadSuccess] = useState<string | null>(null);        // Test editing state
     const [editingTestId, setEditingTestId] = useState<number | null>(null);
-    
-    // Test creation state
+      // Test creation state
     const [creatingTest, setCreatingTest] = useState(false);
     const [testCreationError, setTestCreationError] = useState<string | null>(null);
+    
+    // Test selection state
+    const [showTestSelector, setShowTestSelector] = useState(false);
+    const [assigningTest, setAssigningTest] = useState(false);
+    const [testAssignError, setTestAssignError] = useState<string | null>(null);
     
     // Title editing state
     const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -892,8 +897,57 @@ const EditLessonPage: React.FC = () => {
             setTestCreationError('Виникла помилка при створенні квізу');
         } finally {
             setCreatingTest(false);
+        }    }, [lfp_sha, creatingTest]);
+
+    // Test selection handlers
+    const handleSelectExistingTest = useCallback(() => {
+        setShowTestSelector(true);
+        setTestAssignError(null);
+    }, []);
+
+    const handleTestSelect = useCallback(async (test: TestCardMeta) => {
+        if (!lessonData || assigningTest) {
+            return;
         }
-    }, [lfp_sha, creatingTest]);
+
+        setAssigningTest(true);
+        setTestAssignError(null);
+
+        try {
+            const result = await AssignTestToLesson(lessonData.lesson_id, test.test_id);
+
+            if (result.success) {
+                console.log('Test assigned successfully:', result);
+                
+                // Reload lesson data to get updated test cards
+                if (lfp_sha) {
+                    try {
+                        const response = await GetLessonView(lfp_sha) as LessonViewResponse;
+                        if (response.success) {
+                            setTestCards(response.test_cards || []);
+                        }
+                    } catch (error) {
+                        console.error('Error reloading lesson data:', error);
+                    }
+                }
+                
+                // Close the test selector
+                setShowTestSelector(false);
+            } else {
+                setTestAssignError(result.error || 'Не вдалося призначити квіз');
+            }
+        } catch (error) {
+            console.error('Error assigning test:', error);
+            setTestAssignError('Виникла помилка при призначенні квізу');
+        } finally {
+            setAssigningTest(false);
+        }
+    }, [lessonData, lfp_sha, assigningTest]);
+
+    const handleCancelTestSelect = useCallback(() => {
+        setShowTestSelector(false);
+        setTestAssignError(null);
+    }, []);
 
     // Lesson deletion handlers
     const handleDeleteLesson = useCallback(() => {
@@ -1102,62 +1156,107 @@ const EditLessonPage: React.FC = () => {
                             </Box>
                         </Paper>
                     </Box>
-                ))}
-
-                {/* Empty state or create button */}
+                ))}                {/* Empty state or create button */}
                 {testCards.length === 0 ? (
                     <Box sx={{ py: 4, textAlign: 'center' }}>
                         <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
                             Поки що немає доступних квізів
-                        </Typography>                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={creatingTest ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
-                            onClick={handleCreateTest}
-                            disabled={creatingTest}
-                            size="large"
-                            sx={{
-                                borderRadius: '12px',
-                                fontWeight: 600,
-                                px: 4,
-                                py: 1.5,
-                                '&:hover': {
-                                    backgroundColor: alpha(theme.palette.primary.main, 0.8),
-                                    transform: 'scale(1.02)',
-                                }
-                            }}
-                        >
-                            {creatingTest ? 'Створення квізу...' : 'Створити новий квіз'}
-                        </Button>
+                        </Typography>
+                        
+                        {/* Buttons container */}
+                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={creatingTest ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
+                                onClick={handleCreateTest}
+                                disabled={creatingTest}
+                                size="large"
+                                sx={{
+                                    borderRadius: '12px',
+                                    fontWeight: 600,
+                                    px: 4,
+                                    py: 1.5,
+                                    '&:hover': {
+                                        backgroundColor: alpha(theme.palette.primary.main, 0.8),
+                                        transform: 'scale(1.02)',
+                                    }
+                                }}
+                            >
+                                {creatingTest ? 'Створення квізу...' : 'Створити новий квіз'}
+                            </Button>
+                            
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={handleSelectExistingTest}
+                                disabled={creatingTest || assigningTest}
+                                size="large"
+                                sx={{
+                                    borderRadius: '12px',
+                                    fontWeight: 600,
+                                    px: 4,
+                                    py: 1.5,
+                                    '&:hover': {
+                                        backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                                        transform: 'scale(1.02)',
+                                    }
+                                }}
+                            >
+                                Обрати наявний тест
+                            </Button>
+                        </Box>
                     </Box>
                 ) : (
                     /* Create button when tests exist */
                     <Box sx={{ textAlign: 'center', mt: 2 }}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={creatingTest ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
-                            onClick={handleCreateTest}
-                            disabled={creatingTest}
-                            size="large"
-                            sx={{
-                                borderRadius: '12px',
-                                fontWeight: 600,
-                                px: 4,
-                                py: 1.5,
-                                '&:hover': {
-                                    backgroundColor: alpha(theme.palette.primary.main, 0.8),
-                                    transform: 'scale(1.02)',
-                                }
-                            }}
-                        >
-                            {creatingTest ? 'Створення квізу...' : 'Створити новий квіз'}
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={creatingTest ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
+                                onClick={handleCreateTest}
+                                disabled={creatingTest}
+                                size="large"
+                                sx={{
+                                    borderRadius: '12px',
+                                    fontWeight: 600,
+                                    px: 4,
+                                    py: 1.5,
+                                    '&:hover': {
+                                        backgroundColor: alpha(theme.palette.primary.main, 0.8),
+                                        transform: 'scale(1.02)',
+                                    }
+                                }}
+                            >
+                                {creatingTest ? 'Створення квізу...' : 'Створити новий квіз'}
+                            </Button>
+                            
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={handleSelectExistingTest}
+                                disabled={creatingTest || assigningTest}
+                                size="large"
+                                sx={{
+                                    borderRadius: '12px',
+                                    fontWeight: 600,
+                                    px: 4,
+                                    py: 1.5,
+                                    '&:hover': {
+                                        backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                                        transform: 'scale(1.02)',
+                                    }
+                                }}
+                            >
+                                Обрати наявний тест
+                            </Button>
+                        </Box>
                     </Box>
                 )}
             </Box>
         );
-    }, [testCards, theme, handleEditTest, handleDeleteTest, handleCreateTest, creatingTest, testCreationError, setTestCreationError]);// Function to determine if a tab content should be visible
+    }, [testCards, theme, handleEditTest, handleDeleteTest, handleCreateTest, handleSelectExistingTest, creatingTest, assigningTest, testCreationError, setTestCreationError]);// Function to determine if a tab content should be visible
     const isTabVisible = (tabIndex: number): boolean => {
         return tabValue === tabIndex;
     };
@@ -1415,6 +1514,53 @@ const EditLessonPage: React.FC = () => {
                                 display: isTabVisible(getTabIndices.testsTabIndex) ? 'block' : 'none'
                             }}
                         >
+                            {/* Test assignment error */}
+                            {testAssignError && (
+                                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setTestAssignError(null)}>
+                                    {testAssignError}
+                                </Alert>
+                            )}
+                            
+                            {/* Test selector component */}
+                            {showTestSelector && (
+                                <Box sx={{ mb: 3 }}>
+                                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: theme.palette.primary.main }}>
+                                        Оберіть тест для додавання до вебінару
+                                    </Typography>
+                                    <TestSelectorComponent
+                                        onTestSelect={handleTestSelect}
+                                        width="100%"
+                                        maxHeight="400px"
+                                        compact={true}
+                                        allowSearch={true}
+                                    />
+                                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
+                                        <Button
+                                            variant="outlined"
+                                            onClick={handleCancelTestSelect}
+                                            disabled={assigningTest}
+                                            sx={{
+                                                borderRadius: '8px',
+                                                fontWeight: 600,
+                                                px: 3
+                                            }}
+                                        >
+                                            Скасувати
+                                        </Button>
+                                    </Box>
+                                    {assigningTest && (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <CircularProgress size={20} />
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Додавання тесту до вебінару...
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    )}
+                                </Box>
+                            )}
+                            
                             {testComponents}
                         </Box>
                     </Box>
