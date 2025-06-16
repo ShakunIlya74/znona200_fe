@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress, Alert, TextField, IconButton, Snackbar } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide, UpdateLessonTitle, DeleteLesson } from '../../services/LessonService';
+import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide, UpdateLessonTitle, DeleteLesson, CreateTestForLesson } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
 import EditTestComponent from '../tests/EditTestPageComponent';
 import LoadingDots from '../../components/tools/LoadingDots';
@@ -15,6 +15,7 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import PDFDisplay from '../utils/PDFDisplay';
@@ -117,10 +118,12 @@ const EditLessonPage: React.FC = () => {
     const [uploadingSlide, setUploadingSlide] = useState(false);
     const [slideUploadProgress, setSlideUploadProgress] = useState(0);
     const [slideUploadError, setSlideUploadError] = useState<string | null>(null);    
-    const [slideUploadSuccess, setSlideUploadSuccess] = useState<string | null>(null);    
-
-    // Test editing state
+    const [slideUploadSuccess, setSlideUploadSuccess] = useState<string | null>(null);        // Test editing state
     const [editingTestId, setEditingTestId] = useState<number | null>(null);
+    
+    // Test creation state
+    const [creatingTest, setCreatingTest] = useState(false);
+    const [testCreationError, setTestCreationError] = useState<string | null>(null);
     
     // Title editing state
     const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -794,11 +797,32 @@ const EditLessonPage: React.FC = () => {
     const [deletingLesson, setDeletingLesson] = useState(false);    // Test action handlers
     const handleEditTest = useCallback((test: TestCardMeta) => {
         setEditingTestId(test.test_id);
-    }, []);
-
-    const handleBackFromTestEdit = useCallback(() => {
+    }, []);    
+    const handleBackFromTestEdit = useCallback(async () => {
         setEditingTestId(null);
-    }, []);
+        
+        // Reload lesson data to get updated test cards
+        if (lfp_sha) {
+            try {
+                const response = await GetLessonView(lfp_sha) as LessonViewResponse;
+                if (response.success) {
+                    // Update test cards with fresh data from server
+                    setTestCards(response.test_cards || []);
+                    
+                    // Optionally update other data if needed
+                    if (response.webinar_card) {
+                        setLessonData(response.webinar_card);
+                    }
+                    setWebinarDicts(response.webinar_dicts || []);
+                    setSlideDicts(response.slide_dicts || []);
+                } else {
+                    console.error('Failed to reload lesson data:', response.error);
+                }
+            } catch (error) {
+                console.error('Error reloading lesson data:', error);
+            }
+        }
+    }, [lfp_sha]);
 
     const handleDeleteTest = useCallback((test: TestCardMeta) => {
         setTestToDelete(test);
@@ -812,11 +836,36 @@ const EditLessonPage: React.FC = () => {
         }
         setDeleteTestDialogOpen(false);
         setTestToDelete(null);
-    }, [testToDelete]);    
-      const handleCancelDeleteTest = useCallback(() => {
+    }, [testToDelete]);        const handleCancelDeleteTest = useCallback(() => {
         setDeleteTestDialogOpen(false);
         setTestToDelete(null);
-    }, []);
+    }, []);    // Create test handler
+    const handleCreateTest = useCallback(async () => {
+        if (!lfp_sha || creatingTest) {
+            return;
+        }
+
+        setCreatingTest(true);
+        setTestCreationError(null);
+
+        try {
+            const result = await CreateTestForLesson(lfp_sha);
+
+            if (result.success && result.test_id) {
+                // Navigate to edit the newly created test
+                setEditingTestId(result.test_id);
+                
+                console.log('Test created successfully:', result);
+            } else {
+                setTestCreationError(result.error || 'Не вдалося створити квіз');
+            }
+        } catch (error) {
+            console.error('Error creating test:', error);
+            setTestCreationError('Виникла помилка при створенні квізу');
+        } finally {
+            setCreatingTest(false);
+        }
+    }, [lfp_sha, creatingTest]);
 
     // Lesson deletion handlers
     const handleDeleteLesson = useCallback(() => {
@@ -915,22 +964,20 @@ const EditLessonPage: React.FC = () => {
         }
     }, [handleConfirmEditTitle, handleCancelEditTitle]);// Memoize the test components with modern card design - show all tests in one container
     const testComponents = useMemo(() => {
-        if (testCards.length === 0) {
-            return (
-                <Box sx={{ py: 4, textAlign: 'center' }}>
-                    <Typography variant="h6" color="text.secondary">
-                        Поки що немає доступних квізів
-                    </Typography>
-                </Box>
-            );
-        }
-
         return (
             <Box sx={{ py: 2 }}>
-                {testCards.map((test, index) => (
+                {/* Error message for test creation */}
+                {testCreationError && (
+                    <Alert severity="error" sx={{ mb: 2 }} onClose={() => setTestCreationError(null)}>
+                        {testCreationError}
+                    </Alert>
+                )}
+
+                {/* Existing tests */}
+                {testCards.length > 0 && testCards.map((test, index) => (
                     <Box
                         key={`test-content-${test.test_id}`}
-                        sx={{ mb: index < testCards.length - 1 ? 3 : 0 }}
+                        sx={{ mb: 3 }}
                     >
                         <Paper
                             elevation={2}
@@ -977,7 +1024,9 @@ const EditLessonPage: React.FC = () => {
                                         {test.test_description}
                                     </Typography>
                                 )}
-                            </Box>                            {/* Action Buttons */}
+                            </Box>                            
+
+                            {/* Action Buttons */}
                             <Box sx={{ 
                                 flex: '0 0 auto',
                                 display: 'flex',
@@ -1026,9 +1075,61 @@ const EditLessonPage: React.FC = () => {
                         </Paper>
                     </Box>
                 ))}
+
+                {/* Empty state or create button */}
+                {testCards.length === 0 ? (
+                    <Box sx={{ py: 4, textAlign: 'center' }}>
+                        <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
+                            Поки що немає доступних квізів
+                        </Typography>                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={creatingTest ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
+                            onClick={handleCreateTest}
+                            disabled={creatingTest}
+                            size="large"
+                            sx={{
+                                borderRadius: '12px',
+                                fontWeight: 600,
+                                px: 4,
+                                py: 1.5,
+                                '&:hover': {
+                                    backgroundColor: alpha(theme.palette.primary.main, 0.8),
+                                    transform: 'scale(1.02)',
+                                }
+                            }}
+                        >
+                            {creatingTest ? 'Створення квізу...' : 'Створити новий квіз'}
+                        </Button>
+                    </Box>
+                ) : (
+                    /* Create button when tests exist */
+                    <Box sx={{ textAlign: 'center', mt: 2 }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={creatingTest ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
+                            onClick={handleCreateTest}
+                            disabled={creatingTest}
+                            size="large"
+                            sx={{
+                                borderRadius: '12px',
+                                fontWeight: 600,
+                                px: 4,
+                                py: 1.5,
+                                '&:hover': {
+                                    backgroundColor: alpha(theme.palette.primary.main, 0.8),
+                                    transform: 'scale(1.02)',
+                                }
+                            }}
+                        >
+                            {creatingTest ? 'Створення квізу...' : 'Створити новий квіз'}
+                        </Button>
+                    </Box>
+                )}
             </Box>
         );
-    }, [testCards, theme, handleEditTest, handleDeleteTest]);    // Function to determine if a tab content should be visible
+    }, [testCards, theme, handleEditTest, handleDeleteTest, handleCreateTest, creatingTest, testCreationError, setTestCreationError]);// Function to determine if a tab content should be visible
     const isTabVisible = (tabIndex: number): boolean => {
         return tabValue === tabIndex;
     };
