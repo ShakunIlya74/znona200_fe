@@ -3,6 +3,7 @@ import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button,
 import { useParams, useNavigate } from 'react-router-dom';
 import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide, UpdateLessonTitle, DeleteLesson } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
+import EditTestComponent from '../tests/EditTestPageComponent';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
@@ -116,7 +117,12 @@ const EditLessonPage: React.FC = () => {
     const [uploadingSlide, setUploadingSlide] = useState(false);
     const [slideUploadProgress, setSlideUploadProgress] = useState(0);
     const [slideUploadError, setSlideUploadError] = useState<string | null>(null);    
-    const [slideUploadSuccess, setSlideUploadSuccess] = useState<string | null>(null);    // Title editing state
+    const [slideUploadSuccess, setSlideUploadSuccess] = useState<string | null>(null);    
+
+    // Test editing state
+    const [editingTestId, setEditingTestId] = useState<number | null>(null);
+    
+    // Title editing state
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [editedTitle, setEditedTitle] = useState('');
     const [updatingTitle, setUpdatingTitle] = useState(false);
@@ -785,9 +791,15 @@ const EditLessonPage: React.FC = () => {
     
     // State for lesson deletion dialog
     const [deleteLessonDialogOpen, setDeleteLessonDialogOpen] = useState(false);
-    const [deletingLesson, setDeletingLesson] = useState(false);
+    const [deletingLesson, setDeletingLesson] = useState(false);    // Test action handlers
+    const handleEditTest = useCallback((test: TestCardMeta) => {
+        setEditingTestId(test.test_id);
+    }, []);
 
-    // Test action handlers
+    const handleBackFromTestEdit = useCallback(() => {
+        setEditingTestId(null);
+    }, []);
+
     const handleDeleteTest = useCallback((test: TestCardMeta) => {
         setTestToDelete(test);
         setDeleteTestDialogOpen(true);
@@ -965,14 +977,32 @@ const EditLessonPage: React.FC = () => {
                                         {test.test_description}
                                     </Typography>
                                 )}
-                            </Box>
-
-                            {/* Remove Button */}
+                            </Box>                            {/* Action Buttons */}
                             <Box sx={{ 
                                 flex: '0 0 auto',
                                 display: 'flex',
-                                alignItems: 'center'
+                                alignItems: 'center',
+                                gap: 2
                             }}>
+                                <Button
+                                    variant="outlined"
+                                    color="primary"
+                                    startIcon={<EditIcon />}
+                                    onClick={() => handleEditTest(test)}
+                                    sx={{ 
+                                        whiteSpace: 'nowrap',
+                                        minWidth: '120px',
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        '&:hover': {
+                                            backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                                            borderColor: theme.palette.primary.main,
+                                            transform: 'scale(1.02)',
+                                        }
+                                    }}
+                                >
+                                    Редагувати
+                                </Button>
                                 <Button
                                     variant="outlined"
                                     color="error"
@@ -998,12 +1028,12 @@ const EditLessonPage: React.FC = () => {
                 ))}
             </Box>
         );
-    }, [testCards, theme, handleDeleteTest]);
-
-    // Function to determine if a tab content should be visible
+    }, [testCards, theme, handleEditTest, handleDeleteTest]);    // Function to determine if a tab content should be visible
     const isTabVisible = (tabIndex: number): boolean => {
         return tabValue === tabIndex;
-    };    // Calculate tab indices - always show video, slides, and single tests tab in edit mode
+    };
+
+    // Calculate tab indices - always show video, slides, and single tests tab in edit mode
     const getTabIndices = useMemo(() => {
         const videoTabIndex = 0;  // Always first tab
         const slideTabIndex = 1;  // Always second tab
@@ -1011,6 +1041,17 @@ const EditLessonPage: React.FC = () => {
 
         return { videoTabIndex, slideTabIndex, testsTabIndex };
     }, []);
+
+    // If editing a test, render the EditTestComponent
+    if (editingTestId) {
+        return (
+            <EditTestComponent
+                testId={editingTestId}
+                onBack={handleBackFromTestEdit}
+                showTopBar={true}
+            />
+        );
+    }
 
     return (
         <Container maxWidth="lg" sx={{ py: 2 }}>
