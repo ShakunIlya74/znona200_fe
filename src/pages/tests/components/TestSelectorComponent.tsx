@@ -419,16 +419,16 @@ const TestSelectorComponent: React.FC<TestSelectorComponentProps> = ({
                         <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
                           <LoadingDots />
                         </Box>
-                      ) : filteredTests.length > 0 ? (
-                        <List sx={{ py: 0 }}>
+                      ) : filteredTests.length > 0 ? (                        <List sx={{ py: 0 }}>
                           {filteredTests.map((test, index) => (
-                            <ListItem key={test.test_id} sx={{ px: 0 }}>
+                            <ListItem key={test.test_id} sx={{ px: 0, py: 0 }}>
                               <ListItemButton
                                 onClick={() => handleTestClick(test)}
                                 sx={{
                                   borderRadius: 0,
                                   px: compact ? 2 : 3,
-                                  py: compact ? 1 : 1.5,
+                                  py: compact ? 0.5 : 0.8,
+                                  minHeight: compact ? '48px' : '56px',
                                   transition: 'all 0.2s ease-in-out',
                                   '&:hover': {
                                     backgroundColor: alpha(theme.palette.primary.main, 0.05),
@@ -444,28 +444,28 @@ const TestSelectorComponent: React.FC<TestSelectorComponentProps> = ({
                                     color: theme.palette.primary.main,
                                     fontSize: compact ? '1.2rem' : '1.4rem'
                                   }}
-                                />
-                                <ListItemText
+                                />                                <ListItemText
                                   primary={
                                     <Typography
                                       sx={{
                                         fontWeight: 500,
                                         fontSize: compact ? '0.9rem' : '1rem',
-                                        mb: compact ? 0.3 : 0.5
+                                        mb: compact ? 0.1 : 0.2,
+                                        lineHeight: 1.3
                                       }}
                                     >
                                       {test.test_name}
                                     </Typography>
-                                  }
-                                  secondary={
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                  }                                  secondary={
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mt: 0.1 }}>
                                       {test.test_description && (
                                         <Typography
                                           variant="body2"
                                           sx={{
                                             color: theme.palette.text.secondary,
                                             fontSize: compact ? '0.75rem' : '0.8rem',
-                                            flex: 1
+                                            flex: 1,
+                                            lineHeight: 1.2
                                           }}
                                         >
                                           {test.test_description.length > (compact ? 60 : 100)
@@ -485,7 +485,7 @@ const TestSelectorComponent: React.FC<TestSelectorComponentProps> = ({
                                             backgroundColor: alpha(theme.palette.primary.main, 0.1),
                                             color: theme.palette.primary.main,
                                             fontSize: compact ? '0.7rem' : '0.75rem',
-                                            height: compact ? '20px' : '24px'
+                                            height: compact ? '18px' : '20px'
                                           }}
                                         />
                                       )}
