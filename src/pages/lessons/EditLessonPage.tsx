@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, Typography, Container, Paper, Tabs, Tab, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, LinearProgress, Alert, TextField, IconButton, Snackbar } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide, UpdateLessonTitle, DeleteLesson, CreateTestForLesson } from '../../services/LessonService';
+import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict, DeleteWebinarFromLesson, DeleteSlideFromLesson, UploadWebinar, UploadSlide, UpdateLessonTitle, DeleteLesson, CreateTestForLesson, RemoveTestFromLesson } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
 import EditTestComponent from '../tests/EditTestPageComponent';
 import LoadingDots from '../../components/tools/LoadingDots';
@@ -791,6 +791,7 @@ const EditLessonPage: React.FC = () => {
     }, [slideDicts, theme, dragOverSlides, uploadingSlide, slideUploadProgress, slideUploadError, slideUploadSuccess, handleSlidesDrop, handleSlidesDragOver, handleSlidesDragLeave, handleSlidesFileSelect, handleDeletePdf, setSlideUploadError, setSlideUploadSuccess]);    // State for test deletion dialogs
     const [deleteTestDialogOpen, setDeleteTestDialogOpen] = useState(false);
     const [testToDelete, setTestToDelete] = useState<TestCardMeta | null>(null);
+    const [deletingTest, setDeletingTest] = useState(false);
     
     // State for lesson deletion dialog
     const [deleteLessonDialogOpen, setDeleteLessonDialogOpen] = useState(false);
@@ -827,16 +828,43 @@ const EditLessonPage: React.FC = () => {
     const handleDeleteTest = useCallback((test: TestCardMeta) => {
         setTestToDelete(test);
         setDeleteTestDialogOpen(true);
-    }, []);
-
-    const handleConfirmDeleteTest = useCallback(() => {
-        if (testToDelete) {
-            console.log('Test deletion confirmed - placeholder action', testToDelete.test_id);
-            // TODO: Implement actual test deletion logic
+    }, []);    
+    const handleConfirmDeleteTest = useCallback(async () => {
+        if (!lessonData || !testToDelete) {
+            setDeleteTestDialogOpen(false);
+            return;
         }
-        setDeleteTestDialogOpen(false);
-        setTestToDelete(null);
-    }, [testToDelete]);        const handleCancelDeleteTest = useCallback(() => {
+
+        setDeletingTest(true);
+        try {
+            const result = await RemoveTestFromLesson(
+                lessonData.lesson_id,
+                testToDelete.test_id
+            );
+
+            if (result.success) {
+                console.log('Test removal successful:', result.message);
+                
+                // Remove the test from the local state
+                setTestCards(prev => prev.filter(t => t.test_id !== testToDelete.test_id));
+                
+                // Optionally show success message
+                // TODO: add a toast notification here
+                
+            } else {
+                console.error('Test removal failed:', result.error);
+                // You could add error notification here
+                alert(`Помилка видалення квізу: ${result.error}`);
+            }
+        } catch (error) {
+            console.error('Unexpected error during test removal:', error);
+            alert('Виникла неочікувана помилка при видаленні квізу');
+        } finally {
+            setDeletingTest(false);
+            setDeleteTestDialogOpen(false);
+            setTestToDelete(null);
+        }
+    }, [lessonData, testToDelete]);const handleCancelDeleteTest = useCallback(() => {
         setDeleteTestDialogOpen(false);
         setTestToDelete(null);
     }, []);    // Create test handler
@@ -1424,8 +1452,10 @@ const EditLessonPage: React.FC = () => {
                 onConfirm={handleConfirmDeleteTest}
                 title="Підтвердження видалення квізу"
                 description={`Ви впевнені, що хочете видалити квіз "${testToDelete?.test_name}" з уроку?`}
+                warningText="Квіз буде відкріплений від уроку, але збережеться в системі."
                 confirmButtonText="Видалити квіз"
                 confirmButtonColor="error"
+                loading={deletingTest}
             />
 
             {/* Delete Lesson Confirmation Dialog */}

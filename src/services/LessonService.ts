@@ -122,6 +122,15 @@ export interface CreateTestForLessonResponse {
   error_type?: string;
 }
 
+export interface RemoveTestFromLessonResponse {
+  success: boolean;
+  message?: string;
+  lesson_id?: number;
+  test_id?: number;
+  error?: string;
+  error_type?: string;
+}
+
 export async function GetLessonsData() {
     try {
         const response = await axiosInstance.get('/webinars');
@@ -532,6 +541,45 @@ export async function CreateTestForLesson(
             return {
                 success: false,
                 error: err.response.data.error || 'Test creation failed',
+                error_type: err.response.data.error_type,
+            };
+        }
+        
+        return { 
+            success: false, 
+            error: err instanceof Error ? err.message : 'Unknown error occurred'
+        };
+    }
+}
+
+export async function RemoveTestFromLesson(
+  lessonId: number | string,
+  testId: number | string
+): Promise<RemoveTestFromLessonResponse> {
+    try {
+        const response = await axiosInstance.post('/lesson/remove-test', {
+            lesson_id: lessonId,
+            test_id: testId
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        return {
+            success: true,
+            message: response.data.message,
+            lesson_id: response.data.lesson_id,
+            test_id: response.data.test_id,
+        };
+    }
+    catch (err: any) {
+        console.error('Error removing test from lesson:', err);
+        
+        if (err.response?.data) {
+            return {
+                success: false,
+                error: err.response.data.error || 'Test removal failed',
                 error_type: err.response.data.error_type,
             };
         }
