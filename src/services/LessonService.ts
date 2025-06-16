@@ -98,6 +98,30 @@ export interface DeleteLessonResponse {
   error?: string;
 }
 
+export interface AssignTestToLessonResponse {
+  success: boolean;
+  message?: string;
+  lesson_id?: number;
+  test_id?: number;
+  error?: string;
+  error_type?: string;
+}
+
+export interface CreateTestForLessonResponse {
+  success: boolean;
+  test_id?: number;
+  tfp_sha?: string;
+  lesson_id?: number;
+  lesson_name?: string;
+  folder_id?: number;
+  assignment_position?: number;
+  assignment_id?: number;
+  assignment_error?: string;
+  message?: string;
+  error?: string;
+  error_type?: string;
+}
+
 export async function GetLessonsData() {
     try {
         const response = await axiosInstance.get('/webinars');
@@ -427,6 +451,88 @@ export async function DeleteLesson(lessonId: number | string): Promise<DeleteLes
             return {
                 success: false,
                 error: err.response.data.error || 'Lesson deletion failed',
+            };
+        }
+        
+        return { 
+            success: false, 
+            error: err instanceof Error ? err.message : 'Unknown error occurred'
+        };
+    }
+}
+
+export async function AssignTestToLesson(
+  lessonId: number | string,
+  testId: number | string
+): Promise<AssignTestToLessonResponse> {
+    try {
+        const response = await axiosInstance.post('/lesson/assign-test', {
+            lesson_id: lessonId,
+            test_id: testId
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        return {
+            success: true,
+            message: response.data.message,
+            lesson_id: response.data.lesson_id,
+            test_id: response.data.test_id,
+        };
+    }
+    catch (err: any) {
+        console.error('Error assigning test to lesson:', err);
+        
+        if (err.response?.data) {
+            return {
+                success: false,
+                error: err.response.data.error || 'Test assignment failed',
+                error_type: err.response.data.error_type,
+            };
+        }
+        
+        return { 
+            success: false, 
+            error: err instanceof Error ? err.message : 'Unknown error occurred'
+        };
+    }
+}
+
+export async function CreateTestForLesson(
+  lfpSha: string
+): Promise<CreateTestForLessonResponse> {
+    try {
+        const response = await axiosInstance.post('/lesson/create-test', {
+            lfp_sha: lfpSha
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        return {
+            success: true,
+            test_id: response.data.test_id,
+            tfp_sha: response.data.tfp_sha,
+            lesson_id: response.data.lesson_id,
+            lesson_name: response.data.lesson_name,
+            folder_id: response.data.folder_id,
+            assignment_position: response.data.assignment_position,
+            assignment_id: response.data.assignment_id,
+            assignment_error: response.data.assignment_error,
+            message: response.data.message,
+        };
+    }
+    catch (err: any) {
+        console.error('Error creating test for lesson:', err);
+        
+        if (err.response?.data) {
+            return {
+                success: false,
+                error: err.response.data.error || 'Test creation failed',
+                error_type: err.response.data.error_type,
             };
         }
         
