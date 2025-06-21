@@ -66,29 +66,6 @@ const LessonDialogComponent: React.FC<LessonModalProps> = ({
     navigate(`/webinars/edit/${lesson.lesson_sha}`);
   };
 
-  const handleDeleteLesson = async () => {
-    if (!lesson.lesson_sha) return;
-
-    setDeleteInProgress(true);
-    try {
-      // Replace with your actual delete lesson service call
-      const result = await removeLessonFromFolder(lesson.lesson_sha);
-      if (result.success) {
-        onClose();
-        if (onLessonRemoved) {
-          onLessonRemoved();
-        }
-      } else {
-        console.error('Failed to delete lesson:', result.error);
-        // Could add a toast/snackbar error notification here
-      }
-    } catch (error) {
-      console.error('Error deleting lesson:', error);
-    } finally {
-      setDeleteInProgress(false);
-    }
-  };
-
   const toggleDeleteMode = () => {
     setIsDeleting(!isDeleting);
   };
@@ -230,7 +207,7 @@ const LessonDialogComponent: React.FC<LessonModalProps> = ({
               color="error.main"
               sx={{ mb: 2, fontWeight: 500, textAlign: 'center' }}
             >
-              Ви впевнені, що хочете видалити цей урок з папки?
+              Ви впевнені, що хочете видалити цей вебінар з папки?
               <br/>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 Ця дія не може бути скасована.
@@ -248,7 +225,7 @@ const LessonDialogComponent: React.FC<LessonModalProps> = ({
                   <Box sx={{ mb: 2 }} />
                 </>
               )}
-              Що ви бажаєте зробити з цим уроком?
+              Що ви бажаєте зробити з цим вебінаром?
             </Typography>
           )}
         </DialogContent>
@@ -266,70 +243,10 @@ const LessonDialogComponent: React.FC<LessonModalProps> = ({
         >
           {isDeleting ? (
             <>
-              <Button
-                onClick={toggleDeleteMode}
-                variant="outlined"
-                disabled={deleteInProgress}
-                sx={getButtonSx('outlined')}
-              >
-                <Typography variant="body2">
-                  Скасувати
-                </Typography>
-              </Button>
-              <Button
-                onClick={handleDeleteLesson}
-                variant="contained"
-                disabled={deleteInProgress}
-                sx={getButtonSx('contained', theme.palette.error.main)}
-              >
-                {deleteInProgress ? (
-                  <Typography variant="body2">
-                    Видалення...
-                  </Typography>
-                ) : (
-                  <Typography variant="body2">
-                    Підтвердити видалення
-                  </Typography>
-                )}
-              </Button>
             </>
           ) : (
             <>
-              {/* Admin delete button */}
-              {isAdmin && (
-                <Button
-                  onClick={toggleDeleteMode}
-                  variant="outlined"
-                  sx={{
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    height: '120px',
-                    width: '120px',
-                    minWidth: 'unset',
-                    maxWidth: '120px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: 1,
-                    p: 2,
-                    transition: 'all 0.2s ease-in-out',
-                    borderColor: theme.palette.error.main,
-                    color: theme.palette.error.main,
-                    '&:hover': {
-                      borderColor: theme.palette.error.dark,
-                      backgroundColor: alpha(theme.palette.error.main, 0.05)
-                    }
-                  }}
-                >
-                  <DeleteIcon sx={{ fontSize: '2rem', mb: 1 }} />
-                  <Typography variant="body2" sx={{ textAlign: 'center' }}>
-                    Видалити з папки
-                  </Typography>
-                </Button>
-              )}
-
+              {/* TODO: add change folder button and logic */}
               {/* Admin edit button */}
               {isAdmin && (
                 <Button
@@ -359,7 +276,7 @@ const LessonDialogComponent: React.FC<LessonModalProps> = ({
               >
                 <VisibilityIcon sx={{ fontSize: '2rem', mb: 1 }} />
                 <Typography variant="body2">
-                  Переглянути урок
+                  Переглянути вебінар
                 </Typography>
               </Button>
             </>
@@ -368,13 +285,6 @@ const LessonDialogComponent: React.FC<LessonModalProps> = ({
       </Dialog>
     </>
   );
-};
-
-// Temporary placeholder function - replace with actual service call
-const removeLessonFromFolder = async (lessonSha: string) => {
-  // This function should be implemented in your LessonService
-  console.log(`Mock deletion of lesson with sha: ${lessonSha}`);
-  return { success: true, error: null };
 };
 
 export default LessonDialogComponent;
