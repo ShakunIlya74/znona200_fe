@@ -5,7 +5,9 @@ export interface MiniLectionCardMeta {
   minilection_id: number;
   minilection_sha: string;
   folder_id: number;
-  description?: string;
+  minilection_description?: string;
+  minilection_url?: string;
+  created_at?: string;
   // Add any additional fields returned by the API
 }
 
@@ -49,8 +51,7 @@ export async function GetMiniLectionView(minilection_sha: string): Promise<MiniL
       const response = await axiosInstance.get('/minilection-view/' + minilection_sha);
       return {
         success: true,
-        minilection_dict: response.data.minilection_dict,
-        folder_minilection_dicts: response.data.folder_minilection_dicts
+        ...response.data
       };
     }
     catch (err) {

@@ -6,6 +6,7 @@ import LoadingDots from '../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import VideoDisplay from './utils/VideoDisplay';
 
 const MinilectionViewPage: React.FC = () => {
     const { minilection_sha } = useParams<{ minilection_sha: string }>();
@@ -26,6 +27,7 @@ const MinilectionViewPage: React.FC = () => {
             setLoading(true);
             try {
                 const response = await GetMiniLectionView(minilection_sha) as MiniLectionViewResponse;
+                console.log('Minilection View Response:', response);
                 if (response.success && response.minilection_dict) {
                     setMinilectionData(response.minilection_dict);
                 } else {
@@ -95,25 +97,15 @@ const MinilectionViewPage: React.FC = () => {
                         border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
                         boxShadow: `0px 2px 8px ${alpha(theme.palette.common.black, 0.05)}`
                     }}
-                >
-                    <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                >                    <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                         {minilectionData.minilection_name}
                     </Typography>
                     <Divider sx={{ my: 2 }} />
                     
-                    {/* Minilection metadata */}
-                    <Box sx={{ mt: 2 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                            Minilection ID: {minilectionData.minilection_id}
-                        </Typography>
-                    </Box>
-                    
                     {/* Minilection description */}
-                    {minilectionData.description && (
+                    {/* TODO: make visable when it is editable */}
+                    {/* {minilectionData.minilection_description && (
                         <Box sx={{ mt: 3 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 500, mb: 1 }}>
-                                Description
-                            </Typography>
                             <Paper
                                 elevation={0}
                                 sx={{
@@ -123,34 +115,34 @@ const MinilectionViewPage: React.FC = () => {
                                 }}
                             >
                                 <Typography variant="body1">
-                                    {minilectionData.description}
+                                    {minilectionData.minilection_description}
                                 </Typography>
                             </Paper>
                         </Box>
-                    )}
+                    )} */}
                     
-                    {/* Content placeholder - would be replaced with actual minilection content */}
-                    <Box sx={{ mt: 4 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 500, mb: 2 }}>
-                            Minilection Content
-                        </Typography>
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: 0,
-                                backgroundColor: theme.palette.common.black,
-                                borderRadius: '12px',
-                                aspectRatio: '16/9',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center'
-                            }}
-                        >
-                            <Typography variant="body1" sx={{ color: theme.palette.common.white }}>
-                                Minilection content will be displayed here
-                            </Typography>
-                        </Paper>
-                    </Box>
+                    {/* Minilection Video Content */}
+                    {minilectionData.minilection_url && (
+                        <Box sx={{ mt: 4 }}>
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: 1,
+                                    borderRadius: '12px',
+                                }}
+                            >
+                                <VideoDisplay
+                                    src={minilectionData.minilection_url}
+                                    controls={true}
+                                    fluid={true}
+                                    responsive={true}
+                                    preload="metadata"
+                                    width="100%"
+                                    height="auto"
+                                />
+                            </Paper>
+                        </Box>
+                    )}
                 </Paper>
             ) : (
                 <Typography variant="h5" sx={{ textAlign: 'center', color: theme.palette.text.secondary }}>
