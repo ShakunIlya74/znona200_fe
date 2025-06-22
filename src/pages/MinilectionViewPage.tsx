@@ -50,12 +50,12 @@ const MinilectionViewPage: React.FC = () => {
 
     return (
         <Container maxWidth="lg" sx={{ py: 2 }}>
-            <Button 
-                variant="outlined" 
-                startIcon={<ArrowBackIcon />} 
+            <Button
+                variant="outlined"
+                startIcon={<ArrowBackIcon />}
                 onClick={handleBackClick}
-                sx={{ 
-                    mb: 2, 
+                sx={{
+                    mb: 2,
                     borderRadius: '8px',
                     color: theme.palette.primary.main,
                     borderColor: theme.palette.primary.main,
@@ -66,17 +66,17 @@ const MinilectionViewPage: React.FC = () => {
             >
                 Назад до мінілекцій
             </Button>
-            
+
             {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
                     <LoadingDots />
                 </Box>
             ) : error ? (
-                <Paper 
+                <Paper
                     elevation={0}
-                    sx={{ 
-                        p: 3, 
-                        borderRadius: '16px', 
+                    sx={{
+                        p: 3,
+                        borderRadius: '16px',
                         border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
                         backgroundColor: alpha(theme.palette.error.main, 0.05)
                     }}
@@ -97,38 +97,40 @@ const MinilectionViewPage: React.FC = () => {
                         border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
                         boxShadow: `0px 2px 8px ${alpha(theme.palette.common.black, 0.05)}`
                     }}
-                >                    <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                >
+                    <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                         {minilectionData.minilection_name}
                     </Typography>
                     <Divider sx={{ my: 2 }} />
-                    
+
                     {/* Minilection description */}
                     {/* TODO: make visable when it is editable */}
                     {/* {minilectionData.minilection_description && (
-                        <Box sx={{ mt: 3 }}>
-                            <Paper
-                                elevation={0}
-                                sx={{
-                                    p: 2,
-                                    backgroundColor: alpha(theme.palette.primary.main, 0.03),
-                                    borderRadius: '8px'
-                                }}
-                            >
-                                <Typography variant="body1">
-                                    {minilectionData.minilection_description}
-                                </Typography>
-                            </Paper>
-                        </Box>
-                    )} */}
-                    
+                                            <Box sx={{ mt: 3 }}>
+                                                <Paper
+                                                    elevation={0}
+                                                    sx={{
+                                                        p: 2,
+                                                        backgroundColor: alpha(theme.palette.primary.main, 0.03),
+                                                        borderRadius: '8px'
+                                                    }}
+                                                >
+                                                    <Typography variant="body1">
+                                                        {minilectionData.minilection_description}
+                                                    </Typography>
+                                                </Paper>
+                                            </Box>
+                                        )}  */}
+
                     {/* Minilection Video Content */}
                     {minilectionData.minilection_url && (
-                        <Box sx={{ mt: 4 }}>
+                        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
                             <Paper
                                 elevation={0}
                                 sx={{
                                     p: 1,
                                     borderRadius: '12px',
+                                    width: '80%'
                                 }}
                             >
                                 <VideoDisplay
