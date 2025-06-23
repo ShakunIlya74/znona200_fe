@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
     Box,
     Paper,
@@ -8,6 +8,8 @@ import {
     useTheme,
     alpha
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+
 import {
     Description as TextIcon,
     InsertDriveFile as FileIcon,
@@ -30,11 +32,15 @@ export interface FolderContentItem {
 interface FolderContentDrawerProps {
     items: FolderContentItem[];
     onItemClick?: (item: FolderContentItem) => void;
+    onUrlClick?: (url: string) => void;
 }
 
-const FolderContentDrawer: React.FC<FolderContentDrawerProps> = ({ items, onItemClick }) => {
+const FolderContentDrawer: React.FC<FolderContentDrawerProps> = ({ items, onItemClick, onUrlClick }) => {
     const [isHovered, setIsHovered] = useState(false);
     const theme = useTheme();
+    const navigate = useNavigate();
+    const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const getIcon = (type?: string) => {
         switch (type) {
@@ -51,46 +57,103 @@ const FolderContentDrawer: React.FC<FolderContentDrawerProps> = ({ items, onItem
             default:
                 return <TextIcon />;
         }
-    };
-
+    };    
     const handleItemClick = (item: FolderContentItem) => {
         if (onItemClick) {
             onItemClick(item);
+        } else if (onUrlClick && item.url) {
+            onUrlClick(item.url);
         } else if (item.url) {
-            window.open(item.url, '_blank');
+            // Try to navigate using React Router if it's an internal URL
+            try {
+                const url = new URL(item.url);
+                // If it's an external URL (different origin), open in new tab
+                if (url.origin !== window.location.origin) {
+                    window.open(item.url, '_blank');
+                } else {
+                    // If it's an internal URL, navigate using React Router
+                    navigate(url.pathname + url.search + url.hash);
+                }
+            } catch (error) {
+                // If URL constructor fails, treat as relative path and navigate
+                navigate(item.url);
+            }
         }
     };
 
-    const sortedItems = [...items].sort((a, b) => (a.position || 0) - (b.position || 0));    return (
+    const handleMouseEnter = useCallback(() => {
+        if (hoverTimeoutRef.current) {
+            clearTimeout(hoverTimeoutRef.current);
+        }
+        setIsHovered(true);
+    }, []);
+
+    const handleMouseLeave = useCallback((e: React.MouseEvent) => {
+        // Check if the mouse is still within the extended hover area
+        if (containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            const buffer = 30; // Extended buffer zone
+            
+            const isWithinBounds = 
+                e.clientX >= rect.left - buffer &&
+                e.clientX <= rect.right + buffer &&
+                e.clientY >= rect.top - buffer &&
+                e.clientY <= rect.bottom + buffer;
+            
+            if (isWithinBounds) {
+                return; // Don't close if still within bounds
+            }
+        }
+        
+        // Add a small delay before closing to prevent flickering
+        hoverTimeoutRef.current = setTimeout(() => {
+            setIsHovered(false);
+        }, 100);
+    }, []);
+
+    const sortedItems = [...items].sort((a, b) => (a.position || 0) - (b.position || 0));
+
+    return (
         <Box
+            ref={containerRef}
             sx={{
                 position: 'fixed',
-                right: '-10px', // Move slightly off-screen to account for border
+                right: 0,
                 top: '50%',
                 transform: 'translateY(-50%)',
                 zIndex: 1200,
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                width: isHovered ? '330px' : '66px', // Slightly wider to accommodate positioning
+                width: isHovered ? '320px' : '56px',
                 maxHeight: '80vh',
-                overflow: 'visible', // Allow content to be visible
-                // Create a larger invisible hover area using pseudo-element
+                overflow: 'visible',
+                // Extended invisible hover area
                 '&::before': {
                     content: '""',
                     position: 'absolute',
-                    top: '-20px',
-                    left: '-20px',
-                    right: '-20px',
-                    bottom: '-20px',
-                    zIndex: -1
+                    top: '-30px',
+                    left: '-30px',
+                    right: '-30px',
+                    bottom: '-30px',
+                    zIndex: -1,
+                    pointerEvents: 'auto'
+                },
+                // Ensure the component itself captures all pointer events
+                pointerEvents: 'auto'
+            }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onMouseMove={(e) => {
+                // Keep drawer open if mouse is moving within the component
+                if (!isHovered) {
+                    handleMouseEnter();
                 }
             }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >            <Paper
+        >
+            <Paper
                 elevation={8}
                 sx={{
                     height: '100%',
-                    borderRadius: isHovered ? '16px 0 0 16px' : '16px 0 0 16px',
+                    borderRadius: '16px 0 0 16px',
                     backgroundColor: theme.palette.background.paper,
                     border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
                     borderRight: 'none',
@@ -98,10 +161,22 @@ const FolderContentDrawer: React.FC<FolderContentDrawerProps> = ({ items, onItem
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
-                    // Position the paper to show properly on screen
-                    marginRight: '10px' // Pull back from the edge
+                    position: 'relative'
                 }}
             >
+                {/* Invisible hover extension on the left side */}
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        left: '-20px',
+                        top: 0,
+                        bottom: 0,
+                        width: '20px',
+                        zIndex: 1,
+                        pointerEvents: 'auto'
+                    }}
+                />
+
                 {/* Header */}
                 <Box
                     sx={{

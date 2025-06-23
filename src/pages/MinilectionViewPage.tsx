@@ -48,15 +48,18 @@ const MinilectionViewPage: React.FC = () => {
 
         loadMinilectionData();
     }, [minilection_sha]);    
-    
-    const handleBackClick = () => {
+      const handleBackClick = () => {
         navigate('/minilections');
     };
 
     const handleMinilectionClick = (item: FolderContentItem) => {
         if (item.card_sha && item.card_sha !== minilection_sha) {
-            navigate(`/minilection/${item.card_sha}`);
+            navigate(`/minilection-view/${item.card_sha}`);
         }
+    };
+
+    const handleUrlClick = (url: string) => {
+        navigate(url);
     };
 
     // Convert folder minilections to FolderContentItem format
@@ -180,13 +183,12 @@ const MinilectionViewPage: React.FC = () => {
                         No minilection data available
                     </Typography>
                 )}
-            </Container>
-
-            {/* Folder Content Drawer - only show if there are items */}
+            </Container>            {/* Folder Content Drawer - only show if there are items */}
             {folderContentItems.length > 0 && (
                 <FolderContentDrawer
                     items={folderContentItems}
                     onItemClick={handleMinilectionClick}
+                    onUrlClick={handleUrlClick}
                 />
             )}
         </>
