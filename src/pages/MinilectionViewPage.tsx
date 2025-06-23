@@ -62,15 +62,23 @@ const MinilectionViewPage: React.FC = () => {
     // Convert folder minilections to FolderContentItem format
     const folderContentItems: FolderContentItem[] = folderMinilections.map((minilection, index) => ({
         title: minilection.minilection_name,
-        url: `/minilection/${minilection.minilection_sha}`,
+        url: `/minilection-view/${minilection.minilection_sha}`,
         position: index + 1,
         is_selected: minilection.minilection_sha === minilection_sha,
         card_id: minilection.minilection_id.toString(),
         card_sha: minilection.minilection_sha,
         type: 'video' // Assuming minilections are video content
-    }));    return (
+    }));    
+      return (
         <>
-            <Container maxWidth="lg" sx={{ py: 2 }}>
+            <Container 
+                maxWidth="lg" 
+                sx={{ 
+                    py: 2,
+                    mr: folderContentItems.length > 0 ? '80px' : '0', // Add right margin when drawer is present
+                    transition: 'margin-right 0.3s ease'
+                }}
+            >
                 <Button
                     variant="outlined"
                     startIcon={<ArrowBackIcon />}

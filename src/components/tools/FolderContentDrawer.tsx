@@ -61,25 +61,32 @@ const FolderContentDrawer: React.FC<FolderContentDrawerProps> = ({ items, onItem
         }
     };
 
-    const sortedItems = [...items].sort((a, b) => (a.position || 0) - (b.position || 0));
-
-    return (
+    const sortedItems = [...items].sort((a, b) => (a.position || 0) - (b.position || 0));    return (
         <Box
             sx={{
                 position: 'fixed',
-                right: 0,
+                right: '-10px', // Move slightly off-screen to account for border
                 top: '50%',
                 transform: 'translateY(-50%)',
                 zIndex: 1200,
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                width: isHovered ? '320px' : '56px',
+                width: isHovered ? '330px' : '66px', // Slightly wider to accommodate positioning
                 maxHeight: '80vh',
-                overflow: 'hidden'
+                overflow: 'visible', // Allow content to be visible
+                // Create a larger invisible hover area using pseudo-element
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: '-20px',
+                    left: '-20px',
+                    right: '-20px',
+                    bottom: '-20px',
+                    zIndex: -1
+                }
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-        >
-            <Paper
+        >            <Paper
                 elevation={8}
                 sx={{
                     height: '100%',
@@ -90,7 +97,9 @@ const FolderContentDrawer: React.FC<FolderContentDrawerProps> = ({ items, onItem
                     boxShadow: `0px 8px 32px ${alpha(theme.palette.common.black, 0.12)}`,
                     overflow: 'hidden',
                     display: 'flex',
-                    flexDirection: 'column'
+                    flexDirection: 'column',
+                    // Position the paper to show properly on screen
+                    marginRight: '10px' // Pull back from the edge
                 }}
             >
                 {/* Header */}
