@@ -1,17 +1,13 @@
 // src/pages/MainPage.tsx
 import React from 'react';
-import { Box, Container } from '@mui/material';
+import { Box } from '@mui/material';
 import MainInfo from '../components/WelcomePage/MainInfo';
 import About from '../components/WelcomePage/About';
-// import Header from 'components/header/Header';
-// import MainInfo from 'components/mainInfo/MainInfo';
-// import About from 'components/about/About';
-// import Team from 'components/team/Team';
-// import Reviews from 'components/reviews/Reviews';
-// import Prices from 'components/prices/Prices';
-// import FAQ from 'components/faq/FAQ';
-// import Footer from 'components/footer/Footer';
-// import ComingSoon from 'components/mainInfo/components/PopUp/ComingSoon';
+import Team from '../components/WelcomePage/Team';
+import Reviews from '../components/WelcomePage/Reviews';
+import Prices from '../components/WelcomePage/Prices';
+import FAQ from '../components/WelcomePage/FAQ';
+import Footer from '../components/WelcomePage/Footer';
 
 const WelcomePage: React.FC = () => {
   return (
@@ -20,24 +16,20 @@ const WelcomePage: React.FC = () => {
       <Box
         sx={{
           flex: 1,
-          paddingY: { xs: 4, md: 0},
-          // width: '100vw',
-          // overflow: 'auto', // Adds scrollbars only if content overflows
+          paddingY: { xs: 4, md: 0 },
         }}
       >
         <MainInfo />
         <About />
-        {/* <Team />
+        <Team />
         <Reviews />
         <Prices />
-        <FAQ /> */}
+        <FAQ />
       </Box>
 
-      {/* <Footer />
-      <ComingSoon /> */}
-  </>
+      <Footer />
+    </>
   );
-  
 };
 
 export default WelcomePage;
