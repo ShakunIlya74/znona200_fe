@@ -114,39 +114,41 @@ const LessonViewPage: React.FC = () => {
     const videoComponents = useMemo(() => {
         if (webinarDicts.length > 0) {
             return webinarDicts.map((webinar, index) => (
-                <Paper
-                    key={`webinar-${index}`}
-                    elevation={0}
-                    sx={{
-                        p: 1,
-                        mb: webinarDicts.length > 1 ? 2 : 0,
-                    }}
-                >
-                    {webinarDicts.length > 1 && (
-                        <Typography variant="h6" sx={{ mb: 1, color: theme.palette.primary.main }}>
-                            Відео {index + 1}
-                        </Typography>
-                    )}
-                    {webinar.url ? (
-                        <VideoDisplay
-                            src={webinar.url}
-                            controls={true}
-                            fluid={true}
-                            responsive={true}
-                            preload="metadata"
-                            width="100%"
-                            height="auto"
-                        />
-                    ) : (
-                        <Typography variant="body1" sx={{ color: theme.palette.common.black }}>
-                            Відео недоступне
-                        </Typography>
-                    )}
-                </Paper>
+                <Box key={`webinar-${index}`} sx={{ display: 'flex', justifyContent: 'center', mb: webinarDicts.length > 1 ? 2 : 0 }}>
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 1,
+                            borderRadius: '12px',
+                            width: '70%'
+                        }}
+                    >
+                        {webinarDicts.length > 1 && (
+                            <Typography variant="h6" sx={{ mb: 1, color: theme.palette.primary.main }}>
+                                Відео {index + 1}
+                            </Typography>
+                        )}
+                        {webinar.url ? (
+                            <VideoDisplay
+                                src={webinar.url}
+                                controls={true}
+                                fluid={true}
+                                responsive={true}
+                                preload="metadata"
+                                width="100%"
+                                height="auto"
+                            />
+                        ) : (
+                            <Typography variant="body1" sx={{ color: theme.palette.common.black }}>
+                                Відео недоступне
+                            </Typography>
+                        )}
+                    </Paper>
+                </Box>
             ));
         }
         return null;
-    }, [webinarDicts, theme.palette.common.black, theme.palette.primary.main]);    // Memoize the PDFDisplay components to keep them mounted
+    }, [webinarDicts, theme.palette.common.black, theme.palette.primary.main]);// Memoize the PDFDisplay components to keep them mounted
     const pdfDisplayComponents = useMemo(() => {
         if (slideDicts.length > 0) {
             return slideDicts.map((slide, index) => {
