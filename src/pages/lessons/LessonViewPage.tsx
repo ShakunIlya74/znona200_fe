@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, Typography, Container, Paper, Divider, CircularProgress, Button, Tooltip, Tabs, Tab } from '@mui/material';
+import { Box, Typography, Container, Paper, Divider, CircularProgress, Button, Tooltip, Tabs, Tab, useMediaQuery } from '@mui/material';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { GetLessonView, LessonCardMeta, LessonViewResponse, WebinarDict, SlideDict } from '../../services/LessonService';
 import { TestCardMeta } from '../tests/interfaces';
@@ -12,20 +12,23 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PDFViewer from '../utils/PDFViewer';
 import PDFDisplay from '../utils/PDFDisplay';
 import VideoDisplay from '../utils/VideoDisplay';
+import FolderContentDrawer, { FolderContentItem } from '../../components/tools/FolderContentDrawer';
 
 const LessonViewPage: React.FC = () => {
     const { lfp_sha } = useParams<{ lfp_sha: string }>();
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-    const [lessonData, setLessonData] = useState<LessonCardMeta | null>(null);
+    const [error, setError] = useState<string | null>(null);    const [lessonData, setLessonData] = useState<LessonCardMeta | null>(null);
     const [webinarDicts, setWebinarDicts] = useState<WebinarDict[]>([]);
     const [slideDicts, setSlideDicts] = useState<SlideDict[]>([]);
-    const [testCards, setTestCards] = useState<TestCardMeta[]>([]);    const [isAdmin, setIsAdmin] = useState<boolean>(false);
+    const [testCards, setTestCards] = useState<TestCardMeta[]>([]);
+    const [folderLessons, setFolderLessons] = useState<LessonCardMeta[]>([]);
+    const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [tabValue, setTabValue] = useState<number>(0);
     const [activeTestId, setActiveTestId] = useState<number | null>(null);
     const [reviewTestId, setReviewTestId] = useState<number | null>(null);
     const theme = useTheme();
     const navigate = useNavigate();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     // Track available tabs to correctly map tab index to content
     const [tabsConfig, setTabsConfig] = useState<{ hasVideos: boolean, hasSlides: boolean }>({
@@ -43,13 +46,13 @@ const LessonViewPage: React.FC = () => {
 
             setLoading(true);
             try {
-                const response = await GetLessonView(lfp_sha) as LessonViewResponse;
-                console.log(response);
+                const response = await GetLessonView(lfp_sha) as LessonViewResponse;                console.log(response);
                 if (response.success && response.webinar_card) {
                     setLessonData(response.webinar_card);
                     setWebinarDicts(response.webinar_dicts || []);
                     setSlideDicts(response.slide_dicts || []);
                     setTestCards(response.test_cards || []);
+                    setFolderLessons(response.folder_lesson_dicts || []);
                     setIsAdmin(response.is_admin || false);
 
                     // Set tab configuration based on available content
@@ -69,13 +72,23 @@ const LessonViewPage: React.FC = () => {
         };
 
         loadLessonData();
-    }, [lfp_sha]);
-
-    const handleBackClick = () => {
+    }, [lfp_sha]);    const handleBackClick = () => {
         navigate('/webinars');
-    };    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    };
+
+    const handleLessonClick = (item: FolderContentItem) => {
+        if (item.card_sha && item.card_sha !== lfp_sha) {
+            navigate(`/webinar-view/${item.card_sha}`);
+        }
+    };
+
+    const handleUrlClick = (url: string) => {
+        navigate(url);
+    };
+
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue);
-    };    const handleStartTest = useCallback((testId: number) => {
+    };const handleStartTest = useCallback((testId: number) => {
         setActiveTestId(testId);
         setReviewTestId(null); // Clear review mode when starting a test
     }, []);
@@ -261,8 +274,29 @@ const LessonViewPage: React.FC = () => {
         return { videoTabIndex, slideTabIndex, testStartIndex };
     }, [tabsConfig]);
 
+    // Convert folder lessons to FolderContentItem format
+    const folderContentItems: FolderContentItem[] = useMemo(() => {
+        return folderLessons.map((lesson, index) => ({
+            title: lesson.lesson_name,
+            url: `/webinar-view/${lesson.lfp_sha}`,
+            position: index + 1,
+            is_selected: lesson.lfp_sha === lfp_sha,
+            card_id: lesson.lesson_id.toString(),
+            card_sha: lesson.lfp_sha,
+            type: 'video' // Assuming lessons contain video content
+        }));
+    }, [folderLessons, lfp_sha]);
+
     return (
-        <Container maxWidth="lg" sx={{ py: 2 }}>
+        <>
+            <Container 
+                maxWidth="lg" 
+                sx={{ 
+                    py: 2,
+                    mr: (folderContentItems.length > 0 && !isMobile) ? '80px' : '0', // Add right margin when drawer is present on desktop
+                    transition: 'margin-right 0.3s ease'
+                }}
+            >
             {/* Header section with back button and title */}
             <Box sx={{
                 display: 'flex',
@@ -410,13 +444,24 @@ const LessonViewPage: React.FC = () => {
                                 {testComponent}
                             </Box>
                         ))}
-                    </Box>
-                </>            ) : (
+                    </Box>                </>
+            ) : (
                 <Typography variant="h5" sx={{ textAlign: 'center', color: theme.palette.text.secondary }}>
                     Дані уроку недоступні
                 </Typography>
             )}
-        </Container>
+            </Container>
+
+            {/* Folder Content Drawer - only show if there are items */}
+            {folderContentItems.length > 0 && (
+                <FolderContentDrawer
+                    items={folderContentItems}
+                    onItemClick={handleLessonClick}
+                    onUrlClick={handleUrlClick}
+                    isMobile={isMobile}
+                />
+            )}
+        </>
     );
 };
 
