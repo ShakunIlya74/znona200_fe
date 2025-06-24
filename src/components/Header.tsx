@@ -182,7 +182,6 @@ function Header() {
     navigate('/settings');
     setSettingDropOpen(false);
   };
-
   // Content inside the drawer (used by both permanent and temporary drawers)
   const drawerContent = (
     <Box
@@ -190,7 +189,8 @@ function Header() {
         backgroundColor: '#f4f4f3',
         display: 'flex',
         flexDirection: 'column',
-
+        height: '100%', // Ensure full height
+        minHeight: '100vh', // Minimum full viewport height
       }}
       role="presentation"
     >
@@ -356,7 +356,15 @@ function Header() {
               md: HEADER_HEIGHT.md,
             },
           }}
-        >          <Typography id='page-title'
+        >
+          {/* Hamburger icon for mobile - moved to left */}
+          {isMobile && (
+            <IconButton onClick={toggleDrawer(true)} sx={{ mr: 2 }}>
+              <MenuIcon />
+            </IconButton>
+          )}
+
+          <Typography id='page-title'
             variant="h6"
             sx={{ 
               fontSize: { xs: '18px', sm: '22px', md: '28px' }, 
@@ -474,15 +482,7 @@ function Header() {
             >
               <LogoutOutlinedIcon sx={{ mr: 1 }} />
               Вийти
-            </MenuItem>
-          </Menu>
-
-          {/* Hamburger icon for mobile */}
-          {isMobile && (
-            <IconButton onClick={toggleDrawer(true)}>
-              <MenuIcon />
-            </IconButton>
-          )}
+            </MenuItem>          </Menu>
         </Toolbar>
       </AppBar>
 
@@ -507,9 +507,7 @@ function Header() {
             {drawerContent}
           </Box>
         </Drawer>
-      )}
-
-      {/* TEMPORARY DRAWER (for mobile) */}
+      )}      {/* TEMPORARY DRAWER (for mobile) */}
       <Drawer
         anchor="left"
         open={drawerOpen}
@@ -519,6 +517,7 @@ function Header() {
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
             width: 250,
+            backgroundColor: '#f4f4f3', // Ensure consistent background
           },
         }}
       >
