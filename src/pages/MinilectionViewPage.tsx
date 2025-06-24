@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Container, Paper, Divider, Button } from '@mui/material';
+import { Box, Typography, Container, Paper, Divider, Button, useMediaQuery } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GetMiniLectionView, MiniLectionCardMeta, MiniLectionViewResponse } from '../services/MiniLectionService';
 import LoadingDots from '../components/tools/LoadingDots';
@@ -17,6 +17,7 @@ const MinilectionViewPage: React.FC = () => {
     const [folderMinilections, setFolderMinilections] = useState<MiniLectionCardMeta[]>([]);
     const theme = useTheme();
     const navigate = useNavigate();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     useEffect(() => {
         const loadMinilectionData = async () => {
@@ -73,12 +74,12 @@ const MinilectionViewPage: React.FC = () => {
         type: 'video' // Assuming minilections are video content
     }));    
       return (
-        <>
-            <Container 
+        <>            
+        <Container 
                 maxWidth="lg" 
                 sx={{ 
                     py: 2,
-                    mr: folderContentItems.length > 0 ? '80px' : '0', // Add right margin when drawer is present
+                    mr: (folderContentItems.length > 0 && !isMobile) ? '80px' : '0', // Add right margin when drawer is present on desktop
                     transition: 'margin-right 0.3s ease'
                 }}
             >
@@ -189,6 +190,7 @@ const MinilectionViewPage: React.FC = () => {
                     items={folderContentItems}
                     onItemClick={handleMinilectionClick}
                     onUrlClick={handleUrlClick}
+                    isMobile={isMobile}
                 />
             )}
         </>
