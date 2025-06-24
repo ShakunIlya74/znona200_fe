@@ -248,19 +248,31 @@ const FolderContentDrawer: React.FC<FolderContentDrawerProps> = ({ items, onItem
                 <Box
                     sx={{
                         flex: 1,
-                        overflow: 'auto',
+                        overflow: shouldShowExpanded && sortedItems.length > 7 ? 'auto' : 'visible',
                         py: isMobile ? 0.5 : 1,
                         display: isMobile && !shouldShowExpanded ? 'none' : 'block', // Only hide on mobile when collapsed
-                        '&::-webkit-scrollbar': {
-                            width: '4px'
-                        },
-                        '&::-webkit-scrollbar-track': {
-                            background: 'transparent'
-                        },
-                        '&::-webkit-scrollbar-thumb': {
-                            background: alpha(theme.palette.grey[400], 0.5),
-                            borderRadius: '2px'
-                        }
+                        maxHeight: shouldShowExpanded ? 
+                            (isMobile ? 'calc(7 * 60px)' : 'calc(7 * 70px)') : 
+                            (isMobile ? 'calc(7 * 60px)' : 'calc(7 * 70px)'),
+                        // Custom thin scrollbar - only show when expanded
+                        ...(shouldShowExpanded && {
+                            '&::-webkit-scrollbar': {
+                                width: '2px'
+                            },
+                            '&::-webkit-scrollbar-track': {
+                                background: 'transparent'
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                                background: alpha(theme.palette.grey[400], 0.3),
+                                borderRadius: '1px',
+                                '&:hover': {
+                                    background: alpha(theme.palette.grey[400], 0.5)
+                                }
+                            },
+                            // Firefox scrollbar styling
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: `${alpha(theme.palette.grey[400], 0.3)} transparent`
+                        })
                     }}
                 >
                     {sortedItems.map((item, index) => (
@@ -305,10 +317,17 @@ const FolderContentDrawer: React.FC<FolderContentDrawerProps> = ({ items, onItem
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
+                                        // width: isMobile ? '24px' : '28px',
+                                        // height: isMobile ? '24px' : '28px',
                                         minWidth: isMobile ? '20px' : '24px',
+                                        // minHeight: isMobile ? '24px' : '28px',
+                                        // flexShrink: 0,
                                         color: item.is_selected
                                             ? theme.palette.primary.main
-                                            : theme.palette.text.secondary
+                                            : theme.palette.text.secondary,
+                                        '& svg': {
+                                            fontSize: isMobile ? '18px' : '20px'
+                                        }
                                     }}
                                 >
                                     {(shouldShowExpanded || (!isMobile && !shouldShowExpanded)) ? (
