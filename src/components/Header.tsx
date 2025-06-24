@@ -356,10 +356,14 @@ function Header() {
               md: HEADER_HEIGHT.md,
             },
           }}
-        >
-          <Typography id='page-title'
+        >          <Typography id='page-title'
             variant="h6"
-            sx={{ fontSize: '28px', flexGrow: 1, color: '#5b5f5e', pl: { xs: 0, md: 40 } }}
+            sx={{ 
+              fontSize: { xs: '18px', sm: '22px', md: '28px' }, 
+              flexGrow: 1, 
+              color: '#5b5f5e', 
+              pl: { xs: 0, md: 40 } 
+            }}
           >
             {menuTitles[selectedMenu]}
           </Typography>
@@ -383,8 +387,7 @@ function Header() {
                 alt="Profile"
                 style={{ width: '40px', height: '40px', borderRadius: '50%' }}
               />
-            ) : (
-              <Box
+            ) : (              <Box
                 sx={{
                   width: '45px',
                   height: '45px',
@@ -396,14 +399,18 @@ function Header() {
                   color: '#fff',
                   fontWeight: 'bold',
                   fontSize: '20px',
+                  flexShrink: 0, // Prevent shrinking
                 }}
               >
                 {userName && userSurname ? `${userName[0]}${userSurname[0]}` : ''}
-              </Box>
-            )}
+              </Box>            )}
             <Typography
               variant="body1"
-              sx={{ fontSize: '18px', color: '#5b5f5e' }}
+              sx={{ 
+                fontSize: '18px', 
+                color: '#5b5f5e',
+                display: { xs: 'none', md: 'block' }
+              }}
             >
               {userName} {userSurname}
             </Typography>
