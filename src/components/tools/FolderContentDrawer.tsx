@@ -11,7 +11,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import {
-    Description as TextIcon,
+    TextSnippetOutlined as TextIcon,
     InsertDriveFile as FileIcon,
     VideoFile as VideoIcon,
     PictureAsPdf as PdfIcon,
@@ -128,17 +128,15 @@ const FolderContentDrawer: React.FC<FolderContentDrawerProps> = ({ items, onItem
         position: 'fixed' as const,
         bottom: '16px',
         right: '16px',
-        transform: 'none',
-        width: shouldShowExpanded ? '280px' : '48px',
-        maxHeight: shouldShowExpanded ? '60vh' : '48px',
+        transform: 'none',        width: shouldShowExpanded ? '280px' : '48px',
+        maxHeight: shouldShowExpanded ? 'min(60vh, 30vh)' : '48px',
         zIndex: 1300, // Higher z-index for mobile
     } : {
         position: 'fixed' as const,
         right: 0,
         top: '50%',
-        transform: 'translateY(-50%)',
-        width: shouldShowExpanded ? '320px' : '56px',
-        maxHeight: '80vh',
+        transform: 'translateY(-50%)',        width: shouldShowExpanded ? '320px' : '56px',
+        maxHeight: 'min(80vh, 30vh)',
         zIndex: 1200,
     };
 
@@ -248,48 +246,62 @@ const FolderContentDrawer: React.FC<FolderContentDrawerProps> = ({ items, onItem
                 <Box
                     sx={{
                         flex: 1,
-                        overflow: shouldShowExpanded && sortedItems.length > 7 ? 'auto' : 'visible',
+                        overflow: shouldShowExpanded && sortedItems.length > 5 ? 'auto' : 'visible',
                         py: isMobile ? 0.5 : 1,
                         display: isMobile && !shouldShowExpanded ? 'none' : 'block', // Only hide on mobile when collapsed
                         maxHeight: shouldShowExpanded ? 
-                            (isMobile ? 'calc(7 * 60px)' : 'calc(7 * 70px)') : 
-                            (isMobile ? 'calc(7 * 60px)' : 'calc(7 * 70px)'),
+                            `min(calc(5 * ${isMobile ? '56px' : '64px'}), 30vh)` : 
+                            `min(calc(5 * ${isMobile ? '56px' : '64px'}), 30vh)`,
                         // Custom thin scrollbar - only show when expanded
                         ...(shouldShowExpanded && {
                             '&::-webkit-scrollbar': {
-                                width: '2px'
+                                width: '3px'
                             },
                             '&::-webkit-scrollbar-track': {
                                 background: 'transparent'
                             },
                             '&::-webkit-scrollbar-thumb': {
-                                background: alpha(theme.palette.grey[400], 0.3),
-                                borderRadius: '1px',
+                                background: alpha(theme.palette.grey[400], 0.4),
+                                borderRadius: '2px',
                                 '&:hover': {
-                                    background: alpha(theme.palette.grey[400], 0.5)
+                                    background: alpha(theme.palette.grey[400], 0.6)
                                 }
                             },
                             // Firefox scrollbar styling
                             scrollbarWidth: 'thin',
-                            scrollbarColor: `${alpha(theme.palette.grey[400], 0.3)} transparent`
-                        })
+                            scrollbarColor: `${alpha(theme.palette.grey[400], 0.4)} transparent`
+                        }),
+                        // Ensure clean cut-off without transparency bleeding
+                        position: 'relative',
+                        '&::after': shouldShowExpanded && sortedItems.length > 5 ? {
+                            content: '""',
+                            position: 'absolute',
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: '8px',
+                            background: `linear-gradient(to bottom, transparent, ${theme.palette.background.paper})`,
+                            pointerEvents: 'none',
+                            zIndex: 1
+                        } : {}
                     }}
                 >
                     {sortedItems.map((item, index) => (
                         <Box
-                            key={item.card_id || item.card_sha || index}
-                            sx={{
-                                px: isMobile ? 1 : (shouldShowExpanded ? 2 : 1),
-                                py: isMobile ? 0.25 : 0.5,
-                                transition: 'all 0.2s ease'
-                            }}
+                            key={item.card_id || item.card_sha || index}                                sx={{
+                                    px: isMobile ? 1 : (shouldShowExpanded ? 2 : 1),
+                                    py: isMobile ? 0.25 : 0.5,
+                                    transition: 'all 0.2s ease',
+                                    position: 'relative',
+                                    zIndex: 0 // Ensure items are below the fade overlay
+                                }}
                         >
                             <Paper
                                 elevation={0}
                                 sx={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    p: isMobile ? 0.75 : (shouldShowExpanded ? 1.5 : 1),
+                                    p: isMobile ? 0.75 : (shouldShowExpanded ? 1.25 : 1),
                                     borderRadius: isMobile ? '8px' : '12px',
                                     cursor: 'pointer',
                                     backgroundColor: item.is_selected
