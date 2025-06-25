@@ -14,7 +14,11 @@ import CloseIcon from '@mui/icons-material/Close';
 // Import your PopUp component if necessary
 // import PopUp from './PopUp';
 
-const PhoneInput: React.FC = () => {
+interface PhoneInputProps {
+  onMobile?: boolean;
+}
+
+const PhoneInput: React.FC<PhoneInputProps> = ({ onMobile = false }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
@@ -37,14 +41,15 @@ const PhoneInput: React.FC = () => {
           // margin: '0 auto', // Removed to align items to the left
           // padding: 2,
         }}
-      >
-        {/* Header Text */}
+      >        {/* Header Text */}
         <Typography
           variant="subtitle1"
           sx={{
             // display: isFocused ? 'none' : 'block',
             color: '#063231',
             textAlign: 'left',
+            fontSize: onMobile ? '0.9rem' : '0.95rem',
+            mb: onMobile ? 0.5 : 1,
           }}
         >
           Номер телефону:
@@ -54,102 +59,123 @@ const PhoneInput: React.FC = () => {
         <Box
           sx={{
             display: 'flex',
-            alignItems: 'center',
+            flexDirection: onMobile ? 'column' : 'row',
+            alignItems: onMobile ? 'stretch' : 'center',
             width: '100%',
-            border: isFocused ? '2px solid #006A68' : '1px solid #757877',
-            borderRadius: 2,
-            padding: 1,
-            transition: 'border 0.3s',
-            backgroundColor: '#FFFFFF',
+            gap: onMobile ? 1 : 0,
           }}
         >
-          {/* Call Icon */}
-          <InputAdornment position="start">
-            <CallIcon color="primary" />
-          </InputAdornment>
-
-          {/* Phone Input */}
-            <TextField
-            fullWidth
-            variant="standard"
-            placeholder={isFocused ? '(00) 000-0000' : 'Введіть номер телефону'}
-            value={phone}
-            autoComplete="off"
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(phone.length > 0)}
-            onChange={(e) => {
-              setPhone(e.target.value);
-              setPhoneError(false);
-              // Simple phone formatting (optional)
-              const cleaned = e.target.value.replace(/\D/g, '');
-              let formatted = cleaned;
-              if (cleaned.length > 3 && cleaned.length <= 6) {
-              formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
-              } else if (cleaned.length > 6) {
-              formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(
-                2,
-                5
-              )}-${cleaned.slice(5, 9)}`;
-              }
-              setPhone(formatted);
-            }}
+          {/* Phone Input Container */}
+          <Box
             sx={{
-              '& .MuiInputBase-root': {
-              fontSize: '18px',
-              },
-              '& .MuiInput-underline:before': {
-              borderBottom: 'none',
-              },
-              '& .MuiInput-underline:after': {
-              borderBottom: 'none',
-              },
+              display: 'flex',
+              alignItems: 'center',
+              width: onMobile ? '100%' : '50%',
+              border: isFocused ? '2px solid #006A68' : '1px solid #757877',
+              borderRadius: 2,
+              padding: onMobile ? '8px 12px' : 1,
+              transition: 'border 0.3s',
+              backgroundColor: '#FFFFFF',
             }}
+          >            {/* Call Icon */}
+            <InputAdornment position="start">
+              <CallIcon 
+                color="primary" 
+                sx={{ fontSize: onMobile ? '1.2rem' : '1.3rem' }}
+              />
+            </InputAdornment>
+
+            {/* Phone Input */}
+            <TextField
+              fullWidth
+              variant="standard"
+              placeholder={isFocused ? '(00) 000-0000' : 'Введіть номер телефону'}
+              value={phone}
+              autoComplete="off"
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(phone.length > 0)}
+              onChange={(e) => {
+                setPhone(e.target.value);
+                setPhoneError(false);
+                // Simple phone formatting (optional)
+                const cleaned = e.target.value.replace(/\D/g, '');
+                let formatted = cleaned;
+                if (cleaned.length > 3 && cleaned.length <= 6) {
+                  formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
+                } else if (cleaned.length > 6) {
+                  formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(
+                    2,
+                    5
+                  )}-${cleaned.slice(5, 9)}`;
+                }
+                setPhone(formatted);
+              }}              sx={{
+                '& .MuiInputBase-root': {
+                  fontSize: onMobile ? '16px' : '17px',
+                },
+                '& .MuiInput-underline:before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:after': {
+                  borderBottom: 'none',
+                },
+              }}
             />
+          </Box>
+
           {/* Submit Button */}
-          <Box sx={{ width: '50%', ml:1 }}>
+          <Box sx={{ 
+            width: onMobile ? '100%' : '50%', 
+            ml: onMobile ? 0 : 1 
+          }}>
             <Button
               variant="contained"
               color="primary"
               fullWidth
               onClick={handleRegisterClick}
-              disabled={isLoading}
-              sx={{
-                height: '45px',
+              disabled={isLoading}              sx={{
+                height: onMobile ? '48px' : '42px',
                 borderRadius: 2,
                 fontWeight: 700,
                 textTransform: 'none',
+                fontSize: onMobile ? '0.9rem' : '0.95rem',
                 '&:hover': {
-                    backgroundColor: '#004D40',
-                  },
+                  backgroundColor: '#004D40',
+                },
               }}
-            >
-              {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Запис на курс'}
+            >              {isLoading ? (
+                <CircularProgress size={onMobile ? 20 : 22} color="inherit" />
+              ) : (
+                'Запис на курс'
+              )}
             </Button>
           </Box>
-        </Box>
-
-        {/* Error Message */}
+        </Box>        {/* Error Message */}
         {phoneError && (
           <Typography
             variant="body2"
-            sx={{ color: 'red', marginTop: 1, fontSize: '14px' }}
+            sx={{ 
+              color: 'red', 
+              marginTop: 1, 
+              fontSize: onMobile ? '12px' : '13px',
+              textAlign: 'left',
+            }}
           >
             {phoneErrorText}
           </Typography>
         )}
 
 
-      </Box>
-
-      {/* Additional Info */}
+      </Box>      {/* Additional Info */}
       <Typography
         variant="body2"
         sx={{
           textAlign: 'center',
           color: '#757877',
-          fontSize: '14px',
-          mt: 0.5,
+          fontSize: onMobile ? '12px' : '13px',
+          mt: onMobile ? 1 : 0.5,
           mb: 1,
+          lineHeight: onMobile ? 1.3 : 1.4,
         }}
       >
         * Для зручного способу зв'язку рекомендуємо вказувати номер, прив'язаний до Telegram.

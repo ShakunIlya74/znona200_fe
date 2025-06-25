@@ -10,77 +10,77 @@ import PhoneInput from './PhoneInput';
 const MainInfo: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
 
   return (
     <Box
       sx={{
         display: 'flex',
-        flexDirection: { xs: 'column-reverse', md: 'row' },
+        flexDirection: { xs: 'column', md: 'row' },
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#cce8e6',
-        // width: '100%',
         flexGrow: 1,
-        padding: { xs: '20px', md: '0px' },
+        padding: { xs: '20px', sm: '20px 40px', md: '0px' },
+        minHeight: { xs: 'auto', md: '500px' },
       }}
-    >
-      {/* Free Space */}
+    >      {/* Free Space */}
       <Box
         sx={{
-          display: { xs: 'none', md: 'block' },
+          display: { xs: 'none', sm: 'block' },
           flex: '1 1 auto',
-          maxWidth: '10%',
-          // width: '100%',
-          flexGrow: 3,
+          maxWidth: { sm: '5%', md: '8%', lg: '10%' },
+          flexGrow: { sm: 1, md: 2, lg: 3 },
         }}
-      />
-
-      {/* Content Section */}
+      />      {/* Content Section */}
       <Box
         id='main-content-info'
         sx={{
           flex: '0 0 auto',
-          width: { xs: '100%', md: '600px' },
+          width: { xs: '100%', sm: '90%', md: '600px' },
+          maxWidth: { xs: '100%', sm: '500px', md: '600px' },
           textAlign: { xs: 'center', md: 'left' },
-          mb: { xs: 4, md: 0 },
-          padding: { xs: '10px 0', md: '20px 0' },
+          mb: { xs: 2, md: 0 },
+          padding: { xs: '10px 0', sm: '15px 0', md: '20px 0' },
           margin: { xs: '0 auto', md: '0' },
+          zIndex: 2,
         }}
       >        {/* Title */}
         <Typography
-          variant={isMobile ? 'h5' : 'h3'}
-          // variant="latoHeading
+          variant={isMobile ? 'h5' : isTablet ? 'h4' : 'h3'}
           sx={{
             fontFamily: "Lato",
             fontWeight: 700,
             color: '#063231',
             mb: 1.5,
-            // Lato font is now applied automatically via theme
+            fontSize: { 
+              xs: '1.5rem', 
+              sm: '1.8rem', 
+              md: '2.2rem', 
+              lg: '2.5rem' 
+            },
+            lineHeight: { xs: 1.3, sm: 1.2, md: 1.1 },
           }}
         >
           Готуємо до ЗНО{' '}
-          <Box component="span" sx={{ backgroundColor: '#FFFFFF', px: 0.5 }}>
+            <Box component="span" sx={{ backgroundColor: '#FFFFFF', px: 0.5, borderRadius: 1 }}>
             10 років
-          </Box>{' '}
+            </Box>{' '}
           i знаємо про підготовку все
-        </Typography>
-
-        {/* Subtitle */}
+        </Typography>        {/* Subtitle */}
         <Typography
           variant="subtitle1"
           sx={{
             color: '#3F6563',
+            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+            mb: { xs: 2, sm: 2.5, md: 3 },
           }}
         >
           Тобі потрібно лише стати одним із наших учнів, а ми допоможемо з усім іншим.
-        </Typography>
-
-        {/* Phone Input */}
+        </Typography>        {/* Phone Input */}
         <Box sx={{ }}>
-          <PhoneInput />
-        </Box>
-
-        {/* Statistics */}
+          <PhoneInput onMobile={isMobile} />
+        </Box>{/* Statistics */}
         <Box
           sx={{
             display: 'flex',
@@ -88,33 +88,32 @@ const MainInfo: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             textAlign: 'center',
-            // mb: 1.5,
-            gap: 0.5,
+            gap: { xs: 0.5, sm: 1 },
             width: '100%',
+            mb: { xs: 2, sm: 2.5, md: 3 },
           }}
         >
-          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Typography
+          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>            <Typography
               variant="h4"
               sx={{
                 fontFamily: 'lato, sans-serif',
                 fontStyle: 'normal',
                 fontWeight: 700,
-                fontSize: { xs: '30px', md: '45px' },
+                fontSize: { xs: '24px', sm: '30px', md: '38px', lg: '45px' },
                 color: '#18181B',
                 display: 'flex',
                 alignItems: 'center',
               }}
             >
               5000+
-            </Typography>
-            <Typography
+            </Typography>            <Typography
               variant="subtitle2"
               sx={{
                 color: '#757877',
                 display: 'flex',
                 alignItems: 'center',
-                ml: 2,
+                ml: { xs: 1, sm: 1.5, md: 2 },
+                fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' },
               }}
             >
               учнів
@@ -127,14 +126,13 @@ const MainInfo: React.FC = () => {
           </Box>
 
           {/* Second Stat */}
-          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Typography
+          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>            <Typography
               variant="h4"
               sx={{
                 fontFamily: 'lato, sans-serif',
                 fontStyle: 'normal',
                 fontWeight: 700,
-                fontSize: { xs: '30px', md: '45px' },
+                fontSize: { xs: '24px', sm: '30px', md: '38px', lg: '45px' },
                 lineHeight: '1',
                 color: '#18181B',
                 display: 'flex',
@@ -142,15 +140,15 @@ const MainInfo: React.FC = () => {
               }}
             >
               208
-            </Typography>
-            <Typography
+            </Typography>            <Typography
               variant="subtitle2"
               sx={{
                 color: '#757877',
-                ml: 2,
+                ml: { xs: 1, sm: 1.5, md: 2 },
                 display: 'flex',
                 alignItems: 'center',
                 lineHeight: '1.2',
+                fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.875rem' },
               }}
             >
               НМТ 2022-2023 <br /> двістібальників
@@ -159,41 +157,77 @@ const MainInfo: React.FC = () => {
           <Box sx={{ my: 0 }}>
             {/* free space */}
             </Box>
-        </Box>
+        </Box>        {/* Contact Icons and Mobile Image */}
+        <Box 
+          sx={{ 
+            mt: { xs: 2, sm: 2.5, md: 3 }, 
+            display: 'flex', 
+            justifyContent: { xs: 'space-between', md: 'flex-start' }, 
+            alignItems: 'center',
+            gap: { xs: 0, md: 1 },
+            width: '100%',
+          }}
+        >
+          {/* Contact Icons */}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <IconButton
+              color="primary"
+              onClick={() => window.open('https://t.me/znooonaa200', '_blank')}
+              aria-label="Telegram"
+              sx={{ 
+                fontSize: { xs: '1.2rem', sm: '1.5rem', md: '2rem' },
+                padding: { xs: '4px', sm: '6px', md: '8px' }
+              }}
+            >
+              <TelegramIcon fontSize="inherit" />
+            </IconButton>
+            <IconButton
+              color="primary"
+              onClick={() => window.open('https://www.instagram.com/znoona200/', '_blank')}
+              aria-label="Instagram"
+              sx={{ 
+                fontSize: { xs: '1.2rem', sm: '1.5rem', md: '2rem' },
+                padding: { xs: '4px', sm: '6px', md: '8px' }
+              }}
+            >
+              <InstagramIcon fontSize="inherit" />
+            </IconButton>
+          </Box>
 
-        {/* Contact Icons */}
-        <Box sx={{ mt: 3, display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' }, gap: 1 }}>
-          <IconButton
-            color="primary"
-            onClick={() => window.open('https://t.me/znooonaa200', '_blank')}
-            aria-label="Telegram"
+          {/* Mobile Image */}
+          <Box
+            sx={{
+              display: { xs: 'block', md: 'none' },
+              width: { xs: '120px', sm: '150px' },
+              height: 'auto',
+              opacity: 0.8,
+            }}
           >
-            <TelegramIcon fontSize="large" />
-          </IconButton>
-          <IconButton
-            color="primary"
-            onClick={() => window.open('https://www.instagram.com/znoona200/', '_blank')}
-            aria-label="Instagram"
-          >
-            <InstagramIcon fontSize="large" />
-          </IconButton>
+            <Box
+              component="img"
+              sx={{
+                width: '100%',
+                height: 'auto',
+                maxWidth: '100%',
+              }}
+              src={students}
+              alt="students"
+            />
+          </Box>
         </Box>
-      </Box>
-
-      {/* Image Section */}
+      </Box>      {/* Desktop Image Section */}
       <Box
         sx={{
+          display: { xs: 'none', md: 'flex' },
           flex: '1 1 auto',
           maxWidth: '50%',
           minWidth: '30%',
           width: '100%',
-          display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           mb: { xs: 4, md: 0 },
           mr: { xs: 0, md: 4 },
           flexGrow: 1,
-          // padding: { xs: '10px 0', md: '20px 0' },
         }}
       >
         <Box
