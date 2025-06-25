@@ -43,24 +43,27 @@ const MainInfo: React.FC = () => {
           flex: '0 0 auto',
           width: { xs: '100%', sm: '90%', md: '600px' },
           maxWidth: { xs: '100%', sm: '500px', md: '600px' },
-          textAlign: { xs: 'right', md: 'right' },
           mb: { xs: 2, md: 0 },
           padding: { 
-            xs: '10px 0', 
-            sm: '15px 20px', 
-            md: '20px 0' 
+            xs: '10px 20px', 
+            sm: '15px 30px', 
+            md: '20px 40px' 
           },
           margin: { xs: '0 auto', md: '0' },
           zIndex: 2,
+          // Create a consistent content container
+          border: { xs: 'none', md: 'none' },
+          borderRadius: { xs: 0, md: 2 },
+    
         }}
-      >{/* Title */}
+      >        {/* Title */}
         <Typography
           variant={isMobile ? 'h4' : isTablet ? 'h4' : 'h3'}
           sx={{
             fontFamily: "Lato",
             fontWeight: 700,
             color: '#063231',
-            mb: 1.5,
+            mb: 2,
             fontSize: { 
               xs: '1.5rem', 
               sm: '1.8rem', 
@@ -68,7 +71,10 @@ const MainInfo: React.FC = () => {
               lg: '2.5rem' 
             },
             lineHeight: { xs: 1.3, sm: 1.2, md: 1.1 },
-            textAlign: { xs: 'left', md: 'left' },
+            textAlign: 'left',
+            // Ensure consistent width
+            width: '100%',
+            maxWidth: '100%',
           }}
         >
           Готуємо до ЗНО{' '}
@@ -82,15 +88,22 @@ const MainInfo: React.FC = () => {
           sx={{
             color: '#3F6563',
             fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-            mb: { xs: 2, sm: 2.5, md: 3 },
-            textAlign: { xs: 'left', md: 'left' },
+            mb: { xs: 2.5, sm: 3, md: 3.5 },
+            textAlign: 'left',
+            lineHeight: 1.4,
+            // Ensure consistent width
+            width: '100%',
+            maxWidth: '100%',
           }}
         >
           Тобі потрібно лише стати одним із наших учнів, а ми допоможемо з усім іншим.
         </Typography>        {/* Phone Input */}
-        <Box sx={{ }}>
+        <Box sx={{ 
+          mb: { xs: 2.5, sm: 3, md: 3.5 },
+          width: '100%',
+        }}>
           <PhoneInput onMobile={isMobile} />
-        </Box>{/* Statistics */}
+        </Box>        {/* Statistics */}
         <Box
           sx={{
             display: 'flex',
@@ -98,12 +111,14 @@ const MainInfo: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             textAlign: 'center',
-            gap: { xs: 0.5, sm: 1 },
+            gap: { xs: 1, sm: 1.5, md: 2 },
             width: '100%',
-            mb: { xs: 2, sm: 2.5, md: 3 },
+            mb: { xs: 2.5, sm: 3, md: 3.5 },
+            // Add padding to align with text above
+            px: { xs: 0, sm: 0, md: 0 },
           }}
-        >
-            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>            <Typography
+        >            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 auto' }}>
+            <Typography
               variant="h4"
               sx={{
               fontFamily: 'lato, sans-serif',
@@ -116,7 +131,8 @@ const MainInfo: React.FC = () => {
               }}
             >
               5000+
-            </Typography>            <Typography
+            </Typography>
+            <Typography
               variant="subtitle2"
               sx={{
               color: '#757877',
@@ -128,15 +144,17 @@ const MainInfo: React.FC = () => {
             >
               учнів
             </Typography>
-            </Box>
-
-            {/* Divider */}
-            <Box sx={{ my: 0 }}>
+            </Box>            {/* Divider */}
+            <Box sx={{ 
+              my: 0, 
+              display: 'flex', 
+              justifyContent: 'center',
+              flex: '0 0 auto'
+            }}>
             <Box component="img" sx={{ width: 'auto', height: '50%' }} src={divider} alt="divider" />
-            </Box>
-
-            {/* Second Stat */}
-            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>            <Typography
+            </Box>            {/* Second Stat */}
+            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 auto', justifyContent: 'flex-end' }}>
+            <Typography
               variant="h4"
               sx={{
               fontFamily: 'lato, sans-serif',
@@ -150,7 +168,8 @@ const MainInfo: React.FC = () => {
               }}
             >
               208
-            </Typography>            <Typography
+            </Typography>
+            <Typography
               variant="subtitle2"
               sx={{
               color: '#757877',
@@ -164,27 +183,28 @@ const MainInfo: React.FC = () => {
               НМТ 2022-2023 <br /> двістібальників
             </Typography>
             </Box>
-          <Box sx={{ my: 0 }}>
-            {/* free space */}
-            </Box>
+          {/* Remove the empty box - it's not needed */}
         </Box>        {/* Contact Icons and Mobile Image */}
         <Box 
           sx={{ 
-            mt: { xs: 2, sm: 2.5, md: 3 }, 
             display: 'flex', 
             justifyContent: { xs: 'space-between', md: 'flex-start' }, 
             alignItems: 'center',
             gap: { xs: 0, md: 1 },
             width: '100%',
+            // Remove top margin to align with content flow
+            mt: 0,
           }}
         >
           {/* Contact Icons */}
             <Box sx={{ 
-              ml: { xs: 5, md: 6 },
               display: 'flex', 
               gap: 1,
-              justifyContent: { xs: 'center', md: 'flex-start' },
-              transform: { xs: 'translateX(-20px)', md: 'none' }
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              // Remove margin and transform for better alignment
+              ml: 0,
+              transform: 'none'
             }}>
               <IconButton
                 color="primary"
