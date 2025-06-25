@@ -8,12 +8,13 @@ import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PDFDisplay from './utils/PDFDisplay';
 import { getHeaderOffset } from '../components/Header';
+import FolderContentDrawer, { FolderContentItem } from '../components/tools/FolderContentDrawer';
 
 const NoteViewPage: React.FC = () => {
-    const { note_sha } = useParams<{ note_sha: string }>();
-    const [loading, setLoading] = useState<boolean>(true);
+    const { note_sha } = useParams<{ note_sha: string }>();    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [noteData, setNoteData] = useState<NoteCardMeta | null>(null);
+    const [folderNotes, setFolderNotes] = useState<NoteCardMeta[]>([]);
     const theme = useTheme();
     const navigate = useNavigate();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -29,10 +30,13 @@ const NoteViewPage: React.FC = () => {
             }
 
             setLoading(true);
-            try {
-                const response = await GetNoteView(note_sha) as NoteViewResponse;
+            try {                const response = await GetNoteView(note_sha) as NoteViewResponse;
                 if (response.success && response.note_dict) {
                     setNoteData(response.note_dict);
+                    // Set folder notes if available
+                    if (response.folder_note_dicts) {
+                        setFolderNotes(response.folder_note_dicts);
+                    }
                 } else {
                     setError(response.error || 'Failed to load note data');
                 }
@@ -47,7 +51,28 @@ const NoteViewPage: React.FC = () => {
         loadNoteData();
     }, [note_sha]);    const handleBackClick = () => {
         navigate('/notes');
-    };    // Calculate the height for the PDF viewer
+    };
+
+    const handleNoteClick = (item: FolderContentItem) => {
+        if (item.card_sha && item.card_sha !== note_sha) {
+            navigate(`/note-view/${item.card_sha}`);
+        }
+    };
+
+    const handleUrlClick = (url: string) => {
+        navigate(url);
+    };
+
+    // Convert folder notes to FolderContentItem format
+    const folderContentItems: FolderContentItem[] = folderNotes.map((note, index) => ({
+        title: note.note_name,
+        url: `/note-view/${note.note_sha}`,
+        position: index + 1,
+        is_selected: note.note_sha === note_sha,
+        card_id: note.note_id.toString(),
+        card_sha: note.note_sha,
+        type: 'pdf' // Notes are PDF content
+    }));// Calculate the height for the PDF viewer
     const calculatePDFHeight = () => {
         // Account for:
         // - Header offset (navigation bar)
@@ -64,8 +89,16 @@ const NoteViewPage: React.FC = () => {
         
         // Ensure minimum height
         return Math.max(availableHeight, 400);
-    };return (
-        <Container maxWidth="lg" sx={{ py: 2 }}>
+    };    return (
+        <>
+        <Container 
+            maxWidth="lg" 
+            sx={{ 
+                py: 2,
+                mr: (folderContentItems.length > 0 && !isMobile) ? '80px' : '0', // Add right margin when drawer is present on desktop
+                transition: 'margin-right 0.3s ease'
+            }}
+        >
             {/* Header section with back button and title */}
             <Box sx={{
                 display: 'flex',
@@ -150,12 +183,22 @@ const NoteViewPage: React.FC = () => {
                         )}
                     </Box>
                 </Box>
-            ) : (
-                <Typography variant="h5" sx={{ textAlign: 'center', color: theme.palette.text.secondary }}>
+            ) : (                <Typography variant="h5" sx={{ textAlign: 'center', color: theme.palette.text.secondary }}>
                     No note data available
                 </Typography>
             )}
         </Container>
+        
+        {/* Folder Content Drawer - only show if there are items */}
+        {folderContentItems.length > 0 && (
+            <FolderContentDrawer
+                items={folderContentItems}
+                onItemClick={handleNoteClick}
+                onUrlClick={handleUrlClick}
+                isMobile={isMobile}
+            />
+        )}
+        </>
     );
 };
 

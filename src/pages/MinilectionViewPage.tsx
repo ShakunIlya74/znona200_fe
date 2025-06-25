@@ -81,25 +81,7 @@ const MinilectionViewPage: React.FC = () => {
                     py: 2,
                     mr: (folderContentItems.length > 0 && !isMobile) ? '80px' : '0', // Add right margin when drawer is present on desktop
                     transition: 'margin-right 0.3s ease'
-                }}
-            >
-                <Button
-                    variant="outlined"
-                    startIcon={<ArrowBackIcon />}
-                    onClick={handleBackClick}
-                    sx={{
-                        mb: 2,
-                        borderRadius: '8px',
-                        color: theme.palette.primary.main,
-                        borderColor: theme.palette.primary.main,
-                        '&:hover': {
-                            backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                        }
-                    }}
-                >
-                    Назад до мінілекцій
-                </Button>
-
+                }}            >
                 {loading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
                         <LoadingDots />
@@ -129,11 +111,38 @@ const MinilectionViewPage: React.FC = () => {
                             borderRadius: '16px',
                             border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
                             boxShadow: `0px 2px 8px ${alpha(theme.palette.common.black, 0.05)}`
-                        }}
-                    >
-                        <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
-                            {minilectionData.minilection_name}
-                        </Typography>
+                        }}                    >
+                        {/* Header section with back button and title */}
+                        <Box sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            mb: 2,
+                            gap: 2
+                        }}>
+                            <Button
+                                variant="text"
+                                startIcon={<ArrowBackIcon />}
+                                onClick={handleBackClick}
+                                sx={{
+                                    borderRadius: '8px',
+                                    color: theme.palette.primary.main,
+                                    minWidth: 'auto',
+                                    px: 1,
+                                    '&:hover': {
+                                        backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                                    }
+                                }}
+                            />
+                            
+                            <Typography variant="h4" sx={{
+                                fontWeight: 600,
+                                color: theme.palette.primary.main,
+                                flexGrow: 1
+                            }}>
+                                {minilectionData.minilection_name}
+                            </Typography>
+                        </Box>
+                        
                         <Divider sx={{ my: 2 }} />
 
                         {/* Minilection description */}

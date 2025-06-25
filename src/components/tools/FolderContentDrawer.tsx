@@ -13,8 +13,8 @@ import { useNavigate } from 'react-router-dom';
 import {
     TextSnippetOutlined as TextIcon,
     InsertDriveFile as FileIcon,
-    VideoFile as VideoIcon,
-    PictureAsPdf as PdfIcon,
+    SmartDisplayOutlined as VideoIcon,
+    ArticleOutlined as NotesIcon,
     AudioFile as AudioIcon,
     Image as ImageIcon
 } from '@mui/icons-material';
@@ -49,7 +49,7 @@ const FolderContentDrawer: React.FC<FolderContentDrawerProps> = ({ items, onItem
             case 'video':
                 return <VideoIcon />;
             case 'pdf':
-                return <PdfIcon />;
+                return <NotesIcon />;
             case 'audio':
                 return <AudioIcon />;
             case 'image':

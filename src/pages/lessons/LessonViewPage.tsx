@@ -286,7 +286,7 @@ const LessonViewPage: React.FC = () => {
             is_selected: lesson.lfp_sha === lfp_sha,
             card_id: lesson.lesson_id.toString(),
             card_sha: lesson.lfp_sha,
-            type: 'video' // Assuming lessons contain video content
+            type: 'text' // Assuming lessons contain video content
         }));
     }, [folderLessons, lfp_sha]);
 
