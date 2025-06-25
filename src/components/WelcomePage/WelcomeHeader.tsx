@@ -28,7 +28,7 @@ interface MenuItem {
 
 const WelcomeHeader: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg')); // Changed from 'md' to 'lg' for earlier mobile switch
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -56,10 +56,28 @@ const WelcomeHeader: React.FC = () => {
   return (
     <>
       <AppBar position="sticky" sx={{ backgroundColor: '#FFFFFF', boxShadow: 'none' }}>
-        <Toolbar sx={{ justifyContent: 'space-between', padding: '2% 20%', paddingX: { xs: '5%', md: '5%' } }}>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
           {/* Logo */}
-          <Box component={Link} to="/" sx={{ display: 'flex', alignItems: 'center' }}>
-            <img src={ZnoLogo} alt="Logo ZNO" style={{ height: '50px' }} />
+          <Box 
+            component={Link} 
+            to="/" 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              flexShrink: 0, // Prevent logo from shrinking
+              maxWidth: { xs: 'calc(100vw - 120px)', sm: 'none' } // Prevent logo from taking too much space on mobile
+            }}
+          >
+            <img 
+              src={ZnoLogo} 
+              alt="Logo ZNO" 
+              style={{ 
+                height: '50px',
+                maxHeight: '50px',
+                width: 'auto',
+                maxWidth: '100%'
+              }} 
+            />
           </Box>
 
           {/* Desktop Menu */}
@@ -144,13 +162,21 @@ const WelcomeHeader: React.FC = () => {
 
           {/* Mobile Menu Icon */}
           {isMobile && (
-            <IconButton onClick={toggleDrawer(true)} aria-label="menu" color="inherit">
+            <IconButton 
+              onClick={toggleDrawer(true)} 
+              aria-label="menu" 
+              color="inherit"
+              sx={{
+                flexShrink: 0, // Prevent burger icon from shrinking
+                minWidth: '48px',
+                padding: '8px'
+              }}
+            >
               <MenuIcon sx={{ color: '#3F6563' }} />
             </IconButton>
           )}
         </Toolbar>
       </AppBar>
-
       {/* Mobile Drawer */}
       <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
         <Box
