@@ -514,8 +514,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             </Typography>
           </Box>        )}
       </Box>
-      
-      {/* Watermark Overlay - positioned relative to the entire PDF viewer component */}
+        {/* Watermark Overlay - positioned relative to the entire PDF viewer component */}
       {showWatermark && (
         <Box
           sx={{
@@ -533,13 +532,28 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
               ${alpha(theme.palette.text.secondary, 0.03)} 100px,
               ${alpha(theme.palette.text.secondary, 0.03)} 200px
             )`,
+            // Top-left corner
             '&::before': {
               content: '"ZNO NA 200"',
               position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%) rotate(-45deg)',
-              fontSize: '48px',
+              top: '15%',
+              left: '15%',
+              transform: 'rotate(-45deg)',
+              fontSize: '42px',
+              fontWeight: 'bold',
+              color: alpha(theme.palette.text.secondary, 0.06),
+              whiteSpace: 'nowrap',
+              userSelect: 'none',
+              pointerEvents: 'none',
+            },
+            // Top-right corner
+            '&::after': {
+              content: '"ZNO NA 200"',
+              position: 'absolute',
+              top: '15%',
+              right: '15%',
+              transform: 'rotate(45deg)',
+              fontSize: '42px',
               fontWeight: 'bold',
               color: alpha(theme.palette.text.secondary, 0.06),
               whiteSpace: 'nowrap',
@@ -547,7 +561,62 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
               pointerEvents: 'none',
             }
           }}
-        />
+        >
+          {/* Bottom-left corner */}
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: '15%',
+              left: '15%',
+              transform: 'rotate(45deg)',
+              fontSize: '42px',
+              fontWeight: 'bold',
+              color: alpha(theme.palette.text.secondary, 0.06),
+              whiteSpace: 'nowrap',
+              userSelect: 'none',
+              pointerEvents: 'none',
+              '&::before': {
+                content: '"ZNO NA 200"',
+              }
+            }}
+          />
+          {/* Bottom-right corner */}
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: '15%',
+              right: '15%',
+              transform: 'rotate(-45deg)',
+              fontSize: '42px',
+              fontWeight: 'bold',
+              color: alpha(theme.palette.text.secondary, 0.06),
+              whiteSpace: 'nowrap',
+              userSelect: 'none',
+              pointerEvents: 'none',
+              '&::before': {
+                content: '"ZNO NA 200"',
+              }
+            }}
+          />
+          {/* Center watermark */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%) rotate(-45deg)',
+              fontSize: '58px',
+              fontWeight: 'bold',
+              color: alpha(theme.palette.text.secondary, 0.08),
+              whiteSpace: 'nowrap',
+              userSelect: 'none',
+              pointerEvents: 'none',
+              '&::before': {
+                content: '"ZNO NA 200"',
+              }
+            }}
+          />
+        </Box>
       )}
     </Paper>
   );
