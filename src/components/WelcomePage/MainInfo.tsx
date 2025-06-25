@@ -46,14 +46,16 @@ const MainInfo: React.FC = () => {
           padding: { xs: '10px 0', md: '20px 0' },
           margin: { xs: '0 auto', md: '0' },
         }}
-      >
-        {/* Title */}
+      >        {/* Title */}
         <Typography
           variant={isMobile ? 'h5' : 'h3'}
+          // variant="latoHeading
           sx={{
+            fontFamily: "Lato",
             fontWeight: 700,
             color: '#063231',
             mb: 1.5,
+            // Lato font is now applied automatically via theme
           }}
         >
           Готуємо до ЗНО{' '}
