@@ -66,7 +66,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ onMobile = false }) => {
           }}
         >
           {/* Phone Input Container */}
-          <Box
+            <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -77,11 +77,11 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ onMobile = false }) => {
               transition: 'border 0.3s',
               backgroundColor: '#FFFFFF',
             }}
-          >            {/* Call Icon */}
+            >            {/* Call Icon */}
             <InputAdornment position="start">
               <CallIcon 
-                color="primary" 
-                sx={{ fontSize: onMobile ? '1.2rem' : '1.3rem' }}
+              color="primary" 
+              sx={{ fontSize: onMobile ? '1.2rem' : '1.1rem' }}
               />
             </InputAdornment>
 
@@ -95,33 +95,33 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ onMobile = false }) => {
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(phone.length > 0)}
               onChange={(e) => {
-                setPhone(e.target.value);
-                setPhoneError(false);
-                // Simple phone formatting (optional)
-                const cleaned = e.target.value.replace(/\D/g, '');
-                let formatted = cleaned;
-                if (cleaned.length > 3 && cleaned.length <= 6) {
-                  formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
-                } else if (cleaned.length > 6) {
-                  formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(
-                    2,
-                    5
-                  )}-${cleaned.slice(5, 9)}`;
-                }
-                setPhone(formatted);
+              setPhone(e.target.value);
+              setPhoneError(false);
+              // Simple phone formatting (optional)
+              const cleaned = e.target.value.replace(/\D/g, '');
+              let formatted = cleaned;
+              if (cleaned.length > 3 && cleaned.length <= 6) {
+                formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
+              } else if (cleaned.length > 6) {
+                formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(
+                2,
+                5
+                )}-${cleaned.slice(5, 9)}`;
+              }
+              setPhone(formatted);
               }}              sx={{
-                '& .MuiInputBase-root': {
-                  fontSize: onMobile ? '16px' : '17px',
-                },
-                '& .MuiInput-underline:before': {
-                  borderBottom: 'none',
-                },
-                '& .MuiInput-underline:after': {
-                  borderBottom: 'none',
-                },
+              '& .MuiInputBase-root': {
+                fontSize: onMobile ? '16px' : '14px',
+              },
+              '& .MuiInput-underline:before': {
+                borderBottom: 'none',
+              },
+              '& .MuiInput-underline:after': {
+                borderBottom: 'none',
+              },
               }}
             />
-          </Box>
+            </Box>
 
           {/* Submit Button */}
           <Box sx={{ 
