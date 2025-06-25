@@ -19,20 +19,47 @@ const InfoBlock: React.FC<InfoBlockProps> = ({ number, title, text }) => {
     return (
         <Box
             sx={{
-                // minWidth: 0
-                // p: 2,
-                // m: 1,
+                p: 3,
+                backgroundColor: 'white',
+                borderRadius: 2,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}
         >
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+            <Typography 
+                variant="h2" 
+                sx={{ 
+                    fontWeight: 'bold',
+                    color: '#A8D5BA', // Light teal color
+                    fontSize: '96px',
+                    lineHeight: 1,
+                    mb: 1
+                }}
+            >
                 {number}
             </Typography>
-            <Typography variant="subtitle1" sx={{ mt: 1 }}>
+            <Typography 
+                variant="h6" 
+                sx={{ 
+                    fontWeight: 'bold',
+                    color: '#2E3E3E', // Dark color for title
+                    mb: 2,
+                    fontSize: '18px'
+                }}
+            >
                 {title}
             </Typography>
-            <Box sx={{ mt: 1 }}>
+            <Box>
                 {text.map((line, idx) => (
-                    <Typography key={idx} variant="body2" sx={{ mt: idx > 0 ? 1 : 0 }}>
+                    <Typography 
+                        key={idx} 
+                        variant="body2" 
+                        sx={{ 
+                            color: '#6B6B6B', // Gray color for text
+                            lineHeight: 1.6,
+                            fontSize: '14px',
+                            mt: idx > 0 ? 1 : 0 
+                        }}
+                    >
                         {line}
                     </Typography>
                 ))}
@@ -112,15 +139,15 @@ const About: React.FC = () => {
 
     return (
         <Box id="about" sx={{
-            backgroundColor: '#f2f1f2', flexGrow: 1,
-
+            backgroundColor: '#f2f1f2', 
+            flexGrow: 1,
+            p: 4
         }}>
             {/* Title */}
-            <Box sx={{ mb: 4 }}>
-                <Typography variant="h3" align="left" sx={{ fontWeight: 'bold', fontSize: '44px' }}>
+            <Box sx={{ mb: 6 }}>
+                <Typography variant="h3" align="left" sx={{ fontWeight: 'bold', fontSize: '44px', mb: 4 }}>
                     Про курси
                 </Typography>
-
 
                 {/* First Block */}
                 <Box
@@ -131,18 +158,17 @@ const About: React.FC = () => {
                         flexDirection: { xs: 'column', md: 'row' },
                         alignItems: 'center',
                         justifyContent: 'center',
-                        mb: 4,
-                        pr: { xs: 0, md: 10 },
+                        mb: 6,
+                        gap: 4,
                     }}
                 >
                     <Box
                         id="grid1"
                         sx={{
-                            width: '60%',
+                            width: { xs: '100%', md: '60%' },
                             display: 'grid',
-                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
-                            gridTemplateRows: 'repeat(2, auto)',
-                            gap: 2,
+                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                            gap: 3,
                         }}
                     >
                         <InfoBlock number={info[0].number} title={info[0].title} text={info[0].text} />
@@ -154,16 +180,11 @@ const About: React.FC = () => {
                     <Box
                         sx={{
                             flex: '1 1 auto',
-                            maxWidth: '40%',
-                            minWidth: '10%',
+                            maxWidth: { xs: '100%', md: '40%' },
                             width: '100%',
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            mb: { xs: 4, md: 0 },
-                            mr: { xs: 0, md: 0 },
-                            flexGrow: 1,
-                            // padding: { xs: '10px 0', md: '20px 0' },
                         }}
                     >
                         <Box
@@ -172,14 +193,13 @@ const About: React.FC = () => {
                                 width: '100%',
                                 height: 'auto',
                                 maxWidth: '100%',
-                                mr: { xs: 0, md: 0 },
                             }}
                             src={sapiens}
                             alt="sapiens"
                         />
                     </Box>
-
                 </Box>
+
                 {/* Second Block */}
                 <Box
                     sx={{
@@ -187,23 +207,19 @@ const About: React.FC = () => {
                         flexDirection: { xs: 'column', md: 'row' },
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 2,
+                        gap: 4,
                         width: '100%',
                     }}
                 >
                     <Box
                         sx={{
                             flex: '1 1 auto',
-                            maxWidth: '40%',
-                            minWidth: '10%',
+                            maxWidth: { xs: '100%', md: '40%' },
                             width: '100%',
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            mb: { xs: 4, md: 0 },
-                            mr: { xs: 0, md: 0 },
-                            flexGrow: 1,
-                            // padding: { xs: '10px 0', md: '20px 0' },
+                            order: { xs: 2, md: 1 }
                         }}
                     >
                         <Box
@@ -212,7 +228,6 @@ const About: React.FC = () => {
                                 width: '100%',
                                 height: 'auto',
                                 maxWidth: '100%',
-                                mr: { xs: 0, md: 0 },
                             }}
                             src={sapiens2}
                             alt="sapiens2"
@@ -221,11 +236,11 @@ const About: React.FC = () => {
                     <Box
                         id="grid2"
                         sx={{
-                            width: '60%',
+                            width: { xs: '100%', md: '60%' },
                             display: 'grid',
-                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
-                            gridTemplateRows: 'repeat(2, auto)',
-                            gap: 2,
+                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                            gap: 3,
+                            order: { xs: 1, md: 2 }
                         }}
                     >
                         <InfoBlock number={info[4].number} title={info[4].title} text={info[4].text} />
@@ -240,11 +255,3 @@ const About: React.FC = () => {
 };
 
 export default About;
-
-
-
-
-
-
-
-
