@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -65,9 +65,8 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
   const findCorrectOptionForCategory = (categoryId: number): MatchingOption | null => {
     return options.find(o => o.matching_category_id === categoryId) || null;
   };
-
   // Function to update row heights
-  const updateRowHeight = (rowIndex: number, height: number) => {
+  const updateRowHeight = useCallback((rowIndex: number, height: number) => {
     setRowHeights(prev => {
       // Only update the height if it's greater than the current one or not set
       if (!prev[rowIndex] || height > prev[rowIndex]) {
@@ -78,7 +77,7 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
       }
       return prev;
     });
-  };
+  }, []);
 
   return (
     <Box>
@@ -287,15 +286,16 @@ const AnswerBox = ({
   updateRowHeight: (index: number, height: number) => void;
   rowHeight: number;
 }) => {
-  const boxRef = useRef<HTMLDivElement>(null);
-
-  // Update row height when content changes
+  const boxRef = useRef<HTMLDivElement>(null);  // Update row height when content changes
   useEffect(() => {
     const updateHeight = () => {
       if (boxRef.current) {
         // Get the actual content height
         const height = boxRef.current.scrollHeight;
-        updateRowHeight(rowIndex, height);
+        // Only update if height is different from current rowHeight
+        if (height !== rowHeight) {
+          updateRowHeight(rowIndex, height);
+        }
       }
     };
 
@@ -316,7 +316,7 @@ const AnswerBox = ({
         resizeObserver.unobserve(boxRef.current);
       }
     };
-  }, [userMatchedOption, correctOption, updateRowHeight, rowIndex]);
+  }, [userMatchedOption, correctOption, rowIndex, rowHeight, updateRowHeight]);
 
   return (
     <Paper
