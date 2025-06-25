@@ -195,14 +195,17 @@ const WelcomeHeader: React.FC = () => {
             <IconButton onClick={toggleDrawer(false)}>
               <CloseIcon />
             </IconButton>
-          </Box>
-
-          {/* Logo */}
+          </Box>          {/* Logo */}
           <Box component={Link} to="/" sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <img src={ZnoLogo} alt="Logo ZNO" style={{ height: '40px' }} />
-            <Typography variant="h6" sx={{ ml: 1, color: '#063231', fontWeight: 700 }}>
-              ZnoNa200
-            </Typography>
+            <img 
+              src={ZnoLogo} 
+              alt="Logo ZNO" 
+              style={{ 
+                height: '40px',
+                maxWidth: '100%',
+                width: 'auto'
+              }} 
+            />
           </Box>
 
           {/* Menu Items */}
@@ -212,46 +215,65 @@ const WelcomeHeader: React.FC = () => {
                 <ListItemText primary={menu.text} sx={{ color: '#3F6563', fontSize: '16px' }} />
               </ListItemButton>
             ))}
-          </List>
-
-          {/* Action Buttons */}
+          </List>          {/* Action Buttons */}
           <Box sx={{ mt: 'auto' }}>
-            <Button
-              component={Link}
-              to="/login"
-              variant="outlined"
-              fullWidth
-              sx={{
-                color: '#006A68',
-                borderColor: '#006A68',
-                textTransform: 'none',
-                // fontSize removed from here
-                mb: 2,
-                '&:hover': {
-                  borderColor: '#006A68',
-                  backgroundColor: '#E0F7FA',
-                },
-              }}
-            >
-              <Typography sx={{ fontSize: '24px' }}>Увійти</Typography>
-            </Button>
-            <Button
-              component={Link}
-              to="/register"
-              variant="contained"
-              fullWidth
-              sx={{
-                backgroundColor: '#006A68',
-                color: '#FFFFFF',
-                textTransform: 'none',
-                // fontSize removed from here
-                '&:hover': {
-                  backgroundColor: '#004D40',
-                },
-              }}
-            >
-              <Typography sx={{ fontSize: '18px' }}>Запис на курс</Typography>
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                component={Link}
+                to="/menu"
+                variant="contained"
+                fullWidth
+                sx={{
+                  backgroundColor: '#006A68',
+                  color: '#FFFFFF',
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: '#004D40',
+                  },
+                }}
+              >
+                <Typography sx={{ fontSize: '20px' }}>Мій кабінет</Typography>
+              </Button>
+            ) : (
+              <>
+                <Button
+                  component={Link}
+                  to="/login"
+                  variant="outlined"
+                  fullWidth
+                  sx={{
+                    color: '#006A68',
+                    borderColor: '#006A68',
+                    textTransform: 'none',
+                    // fontSize removed from here
+                    mb: 2,
+                    '&:hover': {
+                      borderColor: '#006A68',
+                      backgroundColor: '#E0F7FA',
+                    },
+                  }}
+                >
+                  <Typography sx={{ fontSize: '24px' }}>Увійти</Typography>
+                </Button>
+                <Button
+                  component={Link}
+                  to="/register"
+                  variant="contained"
+                  fullWidth
+                  sx={{
+                    backgroundColor: '#006A68',
+                    color: '#FFFFFF',
+                    textTransform: 'none',
+                    // fontSize removed from here
+                    '&:hover': {
+                      backgroundColor: '#004D40',
+                    },
+                  }}
+                >
+                  <Typography sx={{ fontSize: '18px' }}>Запис на курс</Typography>
+                </Button>
+              </>
+            )}
           </Box>
         </Box>
       </Drawer>
