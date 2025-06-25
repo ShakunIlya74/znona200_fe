@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, Typography } from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Typography, useTheme } from '@mui/material';
 import sapiens from '../../source/mainPage/sapiens.svg';
 import sapiens2 from '../../source/mainPage/sapiens_2.svg';
 
@@ -13,9 +13,14 @@ interface InfoBlockProps {
     number: string;
     title: string;
     text: string[];
+    index: number;
+    isVisible: boolean;
+    slideDirection: 'left' | 'right';
 }
 
-const InfoBlock: React.FC<InfoBlockProps> = ({ number, title, text }) => {
+const InfoBlock: React.FC<InfoBlockProps> = ({ number, title, text, index, isVisible, slideDirection }) => {
+    const theme = useTheme();
+
     return (
         <Box
             sx={{
@@ -23,13 +28,27 @@ const InfoBlock: React.FC<InfoBlockProps> = ({ number, title, text }) => {
                 backgroundColor: 'white',
                 borderRadius: 2,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                transform: isVisible 
+                    ? 'translateX(0px)' 
+                    : slideDirection === 'left' 
+                        ? 'translateX(-100px)' 
+                        : 'translateX(100px)',
+                opacity: isVisible ? 1 : 0,
+                transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                transitionDelay: `${index * 0.1}s`,
+                '&:hover': {
+                    transform: isVisible ? 'translateY(-8px) scale(1.02)' : undefined,
+                    boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                    transition: 'all 0.3s ease-out',
+                },
             }}
         >
             <Typography 
                 variant="h2" 
                 sx={{ 
                     fontWeight: 'bold',
-                    color: '#A8D5BA', // Light teal color
+                    color: theme.palette.primary.main,
+                    opacity: 0.7,
                     fontSize: '96px',
                     lineHeight: 1,
                     mb: 1
@@ -41,7 +60,7 @@ const InfoBlock: React.FC<InfoBlockProps> = ({ number, title, text }) => {
                 variant="h6" 
                 sx={{ 
                     fontWeight: 'bold',
-                    color: '#2E3E3E', // Dark color for title
+                    color: theme.palette.text.primary,
                     mb: 2,
                     fontSize: '18px'
                 }}
@@ -54,7 +73,7 @@ const InfoBlock: React.FC<InfoBlockProps> = ({ number, title, text }) => {
                         key={idx} 
                         variant="body2" 
                         sx={{ 
-                            color: '#6B6B6B', // Gray color for text
+                            color: theme.palette.text.secondary,
                             lineHeight: 1.6,
                             fontSize: '14px',
                             mt: idx > 0 ? 1 : 0 
@@ -68,7 +87,92 @@ const InfoBlock: React.FC<InfoBlockProps> = ({ number, title, text }) => {
     );
 };
 
+interface AnimatedGridProps {
+    children: React.ReactNode;
+    gridId: string;
+}
+
+const AnimatedGrid: React.FC<AnimatedGridProps> = ({ children, gridId }) => {
+    const [isVisible, setIsVisible] = useState(false);
+    const gridRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                }
+            },
+            {
+                threshold: 0.2,
+                rootMargin: '50px',
+            }
+        );
+
+        if (gridRef.current) {
+            observer.observe(gridRef.current);
+        }
+
+        return () => {
+            if (gridRef.current) {
+                observer.unobserve(gridRef.current);
+            }
+        };
+    }, []);
+
+    return (
+        <Box
+            ref={gridRef}
+            id={gridId}
+            sx={{
+                width: { xs: '100%', md: '60%' },
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                gap: 3,
+            }}
+        >
+            {React.Children.map(children, (child, index) => {
+                if (React.isValidElement(child)) {
+                    return React.cloneElement(child, { 
+                        ...child.props, 
+                        index, 
+                        isVisible 
+                    });
+                }
+                return child;
+            })}
+        </Box>
+    );
+};
+
 const About: React.FC = () => {
+    const theme = useTheme();
+    const [titleVisible, setTitleVisible] = useState(false);
+    const titleRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setTitleVisible(true);
+                }
+            },
+            {
+                threshold: 0.5,
+            }
+        );
+
+        if (titleRef.current) {
+            observer.observe(titleRef.current);
+        }
+
+        return () => {
+            if (titleRef.current) {
+                observer.unobserve(titleRef.current);
+            }
+        };
+    }, []);
+
     const info: Info[] = [
         {
             number: '01',
@@ -141,11 +245,23 @@ const About: React.FC = () => {
         <Box id="about" sx={{
             backgroundColor: '#f2f1f2', 
             flexGrow: 1,
-            p: 4
+            p: 4,
+            overflow: 'hidden', // Prevent horizontal scrollbar during animations
         }}>
             {/* Title */}
-            <Box sx={{ mb: 6 }}>
-                <Typography variant="h3" align="left" sx={{ fontWeight: 'bold', fontSize: '44px', mb: 4 }}>
+            <Box ref={titleRef} sx={{ mb: 6 }}>
+                <Typography 
+                    variant="h3" 
+                    align="left" 
+                    sx={{ 
+                        fontWeight: 'bold', 
+                        fontSize: '44px', 
+                        mb: 4,
+                        transform: titleVisible ? 'translateY(0px)' : 'translateY(50px)',
+                        opacity: titleVisible ? 1 : 0,
+                        transition: 'all 0.8s ease-out',
+                    }}
+                >
                     Про курси
                 </Typography>
 
@@ -162,20 +278,12 @@ const About: React.FC = () => {
                         gap: 4,
                     }}
                 >
-                    <Box
-                        id="grid1"
-                        sx={{
-                            width: { xs: '100%', md: '60%' },
-                            display: 'grid',
-                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-                            gap: 3,
-                        }}
-                    >
-                        <InfoBlock number={info[0].number} title={info[0].title} text={info[0].text} />
-                        <InfoBlock number={info[1].number} title={info[1].title} text={info[1].text} />
-                        <InfoBlock number={info[2].number} title={info[2].title} text={info[2].text} />
-                        <InfoBlock number={info[3].number} title={info[3].title} text={info[3].text} />
-                    </Box>
+                    <AnimatedGrid gridId="grid1">
+                        <InfoBlock number={info[0].number} title={info[0].title} text={info[0].text} index={0} isVisible={false} slideDirection="left" />
+                        <InfoBlock number={info[1].number} title={info[1].title} text={info[1].text} index={1} isVisible={false} slideDirection="left" />
+                        <InfoBlock number={info[2].number} title={info[2].title} text={info[2].text} index={2} isVisible={false} slideDirection="left" />
+                        <InfoBlock number={info[3].number} title={info[3].title} text={info[3].text} index={3} isVisible={false} slideDirection="left" />
+                    </AnimatedGrid>
 
                     <Box
                         sx={{
@@ -198,17 +306,16 @@ const About: React.FC = () => {
                             alt="sapiens"
                         />
                     </Box>
-                </Box>
-
-                {/* Second Block */}
+                </Box>                {/* Second Block */}
                 <Box
                     sx={{
+                        boxSizing: 'border-box',
+                        mx: 'auto',
                         display: 'flex',
                         flexDirection: { xs: 'column', md: 'row' },
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 4,
-                        width: '100%',
                     }}
                 >
                     <Box
@@ -219,7 +326,6 @@ const About: React.FC = () => {
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            order: { xs: 2, md: 1 }
                         }}
                     >
                         <Box
@@ -233,21 +339,13 @@ const About: React.FC = () => {
                             alt="sapiens2"
                         />
                     </Box>
-                    <Box
-                        id="grid2"
-                        sx={{
-                            width: { xs: '100%', md: '60%' },
-                            display: 'grid',
-                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-                            gap: 3,
-                            order: { xs: 1, md: 2 }
-                        }}
-                    >
-                        <InfoBlock number={info[4].number} title={info[4].title} text={info[4].text} />
-                        <InfoBlock number={info[5].number} title={info[5].title} text={info[5].text} />
-                        <InfoBlock number={info[6].number} title={info[6].title} text={info[6].text} />
-                        <InfoBlock number={info[7].number} title={info[7].title} text={info[7].text} />
-                    </Box>
+
+                    <AnimatedGrid gridId="grid2">
+                        <InfoBlock number={info[4].number} title={info[4].title} text={info[4].text} index={0} isVisible={false} slideDirection="right" />
+                        <InfoBlock number={info[5].number} title={info[5].title} text={info[5].text} index={1} isVisible={false} slideDirection="right" />
+                        <InfoBlock number={info[6].number} title={info[6].title} text={info[6].text} index={2} isVisible={false} slideDirection="right" />
+                        <InfoBlock number={info[7].number} title={info[7].title} text={info[7].text} index={3} isVisible={false} slideDirection="right" />
+                    </AnimatedGrid>
                 </Box>
             </Box>
         </Box>
