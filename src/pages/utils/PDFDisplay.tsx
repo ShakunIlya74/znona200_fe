@@ -10,7 +10,9 @@ const PDFDisplay: React.FC<PDFViewerProps> = (props) => {
     const pdfUrl = useMemo(() => {
         // In development, use a local dummy PDF file from public folder
         // In production, use the proxied URL
-        return isDevelopment
+        return isDevelopment && (props?.visiblePagePercentage ?? 1) < 1
+            ? `${window.location.origin}/notes.pdf`
+            : isDevelopment && (props?.visiblePagePercentage ?? 1) === 1
             ? `${window.location.origin}/slide.pdf`
             : props.pdfUrl;
     }, [isDevelopment, props.pdfUrl]);

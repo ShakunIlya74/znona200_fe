@@ -6,6 +6,7 @@ import LoadingDots from '../components/tools/LoadingDots';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PDFDisplay from './utils/PDFDisplay';
 
 const NoteViewPage: React.FC = () => {
     const { note_sha } = useParams<{ note_sha: string }>();
@@ -62,7 +63,7 @@ const NoteViewPage: React.FC = () => {
                     }
                 }}
             >
-                Назад до нотаток
+                Назад до конспектів
             </Button>
             
             {loading ? (
@@ -101,16 +102,8 @@ const NoteViewPage: React.FC = () => {
                     </Typography>
                     <Divider sx={{ my: 2 }} />
                     
-                    {/* Note metadata */}
-                    <Box sx={{ mt: 2 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                            Note ID: {noteData.note_id}
-                        </Typography>
-
-                    </Box>
-                    
                     {/* Note description (if available) */}
-                    {noteData.note_description && (
+                    {/* {noteData.note_description && (
                         <Box sx={{ mt: 3 }}>
                             <Paper
                                 elevation={0}
@@ -125,20 +118,34 @@ const NoteViewPage: React.FC = () => {
                                 </Typography>
                             </Paper>
                         </Box>
-                    )}
-                    
+                    )}                     */}
                     {/* Note content */}
                     <Box sx={{ mt: 4 }}>
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: 3,
-                                backgroundColor: alpha(theme.palette.primary.main, 0.02),
-                                borderRadius: '12px',
-                                minHeight: '300px'
-                            }}
-                        >
-                        </Paper>
+                        {(noteData.watermarked_pdf_url || noteData.pdf_url) ? (
+                            <PDFDisplay
+                                pdfUrl={noteData.watermarked_pdf_url || noteData.pdf_url!}
+                                visiblePagePercentage={0.6}
+                                allowDownloading={false}
+                                containerHeight={600}
+                            />
+                        ) : (
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: 3,
+                                    backgroundColor: alpha(theme.palette.grey[100], 0.5),
+                                    borderRadius: '12px',
+                                    minHeight: '200px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
+                                    PDF не доступний для цього конспекту
+                                </Typography>
+                            </Paper>
+                        )}
                     </Box>
                 </Paper>
             ) : (
