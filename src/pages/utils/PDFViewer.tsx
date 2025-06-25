@@ -199,7 +199,40 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     link.click();
     document.body.removeChild(link);
   };
-  
+
+  // Function to prevent context menu (right-click menu)
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
+  // Function to prevent drag operations
+  const handleDragStart = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
+  // Function to prevent selection
+  const handleSelectStart = (e: Event) => {
+    e.preventDefault();
+    return false;
+  };
+
+  // Add effect to disable text selection and context menu on the container
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      // Disable text selection
+      container.addEventListener('selectstart', handleSelectStart);
+      
+      return () => {
+        container.removeEventListener('selectstart', handleSelectStart);
+      };
+    }
+  }, []);
+
   return (    <Paper 
       elevation={2} 
       data-pdf-container
@@ -323,10 +356,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             </Tooltip>
           )}
         </Box>
-      </Box>
-        {/* PDF Document Container */}
+      </Box>        {/* PDF Document Container */}
       <Box 
         ref={containerRef}
+        onContextMenu={handleContextMenu}
+        onDragStart={handleDragStart}
         sx={{ 
           height: dynamicContainerHeight, 
           overflowY: 'auto',
@@ -335,23 +369,44 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           alignItems: 'flex-start',
           padding: 2,
           backgroundColor: theme.palette.grey[50],
+          userSelect: 'none', // Disable text selection
+          WebkitUserSelect: 'none', // Safari
+          MozUserSelect: 'none', // Firefox
+          msUserSelect: 'none', // IE/Edge
+          WebkitTouchCallout: 'none', // iOS Safari
+          WebkitUserDrag: 'none', // Disable drag
+          KhtmlUserSelect: 'none', // Konqueror
+          '& *': {
+            userSelect: 'none !important',
+            WebkitUserSelect: 'none !important',
+            MozUserSelect: 'none !important',
+            msUserSelect: 'none !important',
+            WebkitTouchCallout: 'none !important',
+            WebkitUserDrag: 'none !important',
+            KhtmlUserSelect: 'none !important',
+            pointerEvents: 'auto', // Keep pointer events for scrolling
+          },
+          '& canvas': {
+            pointerEvents: 'none', // Disable pointer events on PDF canvas specifically
+          }
         }}
       >
         {error ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', px: 3 }}>
             <Typography color="error" align="center">{error}</Typography>
           </Box>
-        ) : (
-          <Document
+        ) : (          <Document
             file={pdfUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
+            onContextMenu={handleContextMenu}
             loading={
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                 <CircularProgress size={40} sx={{ color: theme.palette.primary.main }} />
               </Box>
             }
-          >            {numPages !== null && numPages > 0 && (
+          >
+            {numPages !== null && numPages > 0 && (
               <Page
                 pageNumber={pageNumber}
                 scale={scale}
@@ -359,6 +414,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                 renderTextLayer={false}
                 width={pageWidth || undefined} // Use calculated width or undefined
                 onRenderSuccess={onPageRenderSuccess}
+                onContextMenu={handleContextMenu}
+                onDragStart={handleDragStart}
               />
             )}
           </Document>
