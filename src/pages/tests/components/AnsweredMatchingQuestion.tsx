@@ -60,10 +60,15 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
   const isMatchCorrect = (option: MatchingOption, categoryId: number): boolean => {
     return option.matching_category_id === categoryId;
   };
-
   // Find the correct option for a category
   const findCorrectOptionForCategory = (categoryId: number): MatchingOption | null => {
     return options.find(o => o.matching_category_id === categoryId) || null;
+  };
+
+  // Find options that weren't matched by the user
+  const findUnmatchedOptions = (): MatchingOption[] => {
+    const matchedOptionIds = userMatches.map(m => m.option_id);
+    return options.filter(option => !matchedOptionIds.includes(option.id));
   };
   // Function to update row heights
   const updateRowHeight = useCallback((rowIndex: number, height: number) => {
@@ -212,10 +217,57 @@ const AnsweredMatchingQuestion: React.FC<AnsweredMatchingQuestionProps> = ({
                 updateRowHeight={updateRowHeight}
                 rowHeight={rowHeights[index] || 0}
               />
-            );
-          })}
+            );          })}
         </Box>
       </Box>
+
+      {/* Leftover/Unmatched Options Section */}
+      {findUnmatchedOptions().length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle1" sx={{
+            mb: 1,
+            fontWeight: 600,
+            borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.8)}`,
+            pb: 0.5,
+            color: theme.palette.text.secondary
+          }}>
+            Невикористані варіанти:
+          </Typography>
+          
+          <Box sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 1,
+            mt: 1
+          }}>
+            {findUnmatchedOptions().map((option) => (
+              <Paper
+                key={`unmatched-${option.id}`}
+                elevation={0}
+                sx={{
+                  py: 1,
+                  px: 2,
+                  borderRadius: '16px',
+                  border: `1px solid ${alpha(theme.palette.grey[400], 0.6)}`,
+                  backgroundColor: alpha(theme.palette.grey[100], 0.5),
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    fontStyle: 'italic'
+                  }}
+                >
+                  {option.text}
+                </Typography>
+              </Paper>
+            ))}
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 };
