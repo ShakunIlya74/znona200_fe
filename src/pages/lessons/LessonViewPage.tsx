@@ -164,6 +164,7 @@ const LessonViewPage: React.FC = () => {
                             <PDFDisplay
                                 pdfUrl={slide.slide_content}
                                 visiblePagePercentage={1}
+                                // showWatermark={true}
                             />
                         </Box>
                     );

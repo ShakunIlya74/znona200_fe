@@ -129,6 +129,7 @@ const NoteViewPage: React.FC = () => {
                                 visiblePagePercentage={0.6}
                                 allowDownloading={false}
                                 containerHeight={calculatePDFHeight()}
+                                showWatermark={true}
                             />                        ) : (
                             <Paper
                                 elevation={0}

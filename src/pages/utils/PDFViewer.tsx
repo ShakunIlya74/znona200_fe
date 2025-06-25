@@ -35,6 +35,7 @@ export interface PDFViewerProps {
   containerHeight?: number; // Container height in pixels
   containerWidthPercentage?: number; // Container width as percentage of available space (0-100), overrides responsive widths if provided
   allowDownloading?: boolean; // Whether to show download button, true by default
+  showWatermark?: boolean; // Whether to show watermark overlay, true by default
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({
@@ -43,15 +44,19 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   containerHeight = 800,
   containerWidthPercentage,
   allowDownloading = true,
+  showWatermark = false,
 }) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);  const [pageWidth, setPageWidth] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);  
+  const [pageWidth, setPageWidth] = useState<number | null>(null);
   const [pageHeight, setPageHeight] = useState<number | null>(null);
   const [isPageHeightSet, setIsPageHeightSet] = useState<boolean>(false);
+  const [isScreenshotAttempted, setIsScreenshotAttempted] = useState<boolean>(false);
+  const [showWarning, setShowWarning] = useState<boolean>(false);
   const theme = useTheme();
   
   // Add responsive breakpoints
@@ -117,7 +122,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     
     // Clean up
     return () => window.removeEventListener('resize', updatePageWidth);
-  }, [responsiveWidth, containerWidthPercentage]);  // Function to handle document load success
+  }, [responsiveWidth, containerWidthPercentage]);  
+  
+  // Function to handle document load success
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
     setLoading(false);
@@ -125,6 +132,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     setPageHeight(null);
     setIsPageHeightSet(false);
   };
+  
   // Function to handle page render success to get page dimensions
   const onPageRenderSuccess = (page: any) => {
     // Only set page height once when first page is rendered
@@ -175,12 +183,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   // Reset zoom to default
   const resetZoom = () => {
     setScale(1);
-  };  // Scroll to top of container when page changes
+  };  
+  
+  // Scroll to top of container when page changes
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = 0;
     }
   }, [pageNumber]);
+  
   // Reset page height only when scale changes (not when page changes)
   useEffect(() => {
     // Reset page height when zoom changes to allow container to adjust to new scaled size
@@ -220,6 +231,59 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     return false;
   };
 
+  // Function to handle potential screenshot attempts
+  const handleScreenshotAttempt = () => {
+    setIsScreenshotAttempted(true);
+    setShowWarning(true);
+    
+    // Hide content temporarily
+    setTimeout(() => {
+      setIsScreenshotAttempted(false);
+    }, 2000);
+    
+    // Hide warning after 5 seconds
+    setTimeout(() => {
+      setShowWarning(false);
+    }, 5000);
+  };
+
+  // Function to detect screenshot key combinations
+  const handleKeyDown = (e: KeyboardEvent) => {
+    // Common screenshot key combinations
+    const isScreenshotKey = 
+      // Windows: Print Screen, Alt+Print Screen, Win+Print Screen
+      (e.key === 'PrintScreen') ||
+      // Mac: Cmd+Shift+3, Cmd+Shift+4, Cmd+Shift+5
+      (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key)) ||
+      // Windows Snipping Tool: Win+Shift+S
+      (e.metaKey && e.shiftKey && e.key === 'S') ||
+      // Some other combinations
+      (e.ctrlKey && e.shiftKey && e.key === 'I'); // DevTools
+
+    if (isScreenshotKey) {
+      e.preventDefault();
+      handleScreenshotAttempt();
+    }
+  };
+
+  // Function to detect when window loses focus (potential screenshot)
+  const handleVisibilityChange = () => {
+    if (document.hidden) {
+      handleScreenshotAttempt();
+    }
+  };
+
+  // Add keyboard and visibility listeners
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Add effect to disable text selection and context menu on the container
   useEffect(() => {
     const container = containerRef.current;
@@ -232,8 +296,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       };
     }
   }, []);
-
-  return (    <Paper 
+  return (    
+    <Paper 
       elevation={2} 
       data-pdf-container
       sx={{ 
@@ -243,9 +307,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         overflow: 'hidden',
         backgroundColor: theme.palette.background.paper,
         mx: 'auto', // Center the container
+        position: 'relative', // Enable absolute positioning for watermark
       }}
     >
-      {/* PDF Controls */}      <Box 
+      {/* PDF Controls */}      
+      <Box 
         sx={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
@@ -369,6 +435,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           alignItems: 'flex-start',
           padding: 2,
           backgroundColor: theme.palette.grey[50],
+          position: 'relative',
           userSelect: 'none', // Disable text selection
           WebkitUserSelect: 'none', // Safari
           MozUserSelect: 'none', // Firefox
@@ -376,6 +443,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           WebkitTouchCallout: 'none', // iOS Safari
           WebkitUserDrag: 'none', // Disable drag
           KhtmlUserSelect: 'none', // Konqueror
+          filter: isScreenshotAttempted ? 'blur(10px)' : 'none',
+          transition: 'filter 0.3s ease',
           '& *': {
             userSelect: 'none !important',
             WebkitUserSelect: 'none !important',
@@ -385,17 +454,16 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             WebkitUserDrag: 'none !important',
             KhtmlUserSelect: 'none !important',
             pointerEvents: 'auto', // Keep pointer events for scrolling
-          },
-          '& canvas': {
+          },          '& canvas': {
             pointerEvents: 'none', // Disable pointer events on PDF canvas specifically
           }
         }}
-      >
-        {error ? (
+      >{error ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', px: 3 }}>
             <Typography color="error" align="center">{error}</Typography>
           </Box>
-        ) : (          <Document
+        ) : (          
+          <Document
             file={pdfUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
@@ -417,10 +485,70 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                 onContextMenu={handleContextMenu}
                 onDragStart={handleDragStart}
               />
-            )}
-          </Document>
+            )}          </Document>
         )}
+        
+        {/* Screenshot Warning Overlay */}
+        {showWarning && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 1000,
+              backgroundColor: alpha(theme.palette.error.main, 0.9),
+              color: theme.palette.error.contrastText,
+              padding: 3,
+              borderRadius: 2,
+              textAlign: 'center',
+              minWidth: 300,
+              boxShadow: theme.shadows[8],
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              ⚠️ Скріншоти заборонені
+            </Typography>
+            <Typography variant="body2">
+              Це захищений контент. Створення скріншотів не дозволено.
+            </Typography>
+          </Box>        )}
       </Box>
+      
+      {/* Watermark Overlay - positioned relative to the entire PDF viewer component */}
+      {showWatermark && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            pointerEvents: 'none',
+            zIndex: 10, // Above PDF content but below modals
+            background: `repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 100px,
+              ${alpha(theme.palette.text.secondary, 0.03)} 100px,
+              ${alpha(theme.palette.text.secondary, 0.03)} 200px
+            )`,
+            '&::before': {
+              content: '"ZNO NA 200"',
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%) rotate(-45deg)',
+              fontSize: '48px',
+              fontWeight: 'bold',
+              color: alpha(theme.palette.text.secondary, 0.06),
+              whiteSpace: 'nowrap',
+              userSelect: 'none',
+              pointerEvents: 'none',
+            }
+          }}
+        />
+      )}
     </Paper>
   );
 };
