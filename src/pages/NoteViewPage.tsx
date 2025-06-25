@@ -45,26 +45,41 @@ const NoteViewPage: React.FC = () => {
 
     const handleBackClick = () => {
         navigate('/notes');
-    };
-
-    return (
+    };    return (
         <Container maxWidth="lg" sx={{ py: 2 }}>
-            <Button 
-                variant="outlined" 
-                startIcon={<ArrowBackIcon />} 
-                onClick={handleBackClick}
-                sx={{ 
-                    mb: 2, 
-                    borderRadius: '8px',
-                    color: theme.palette.primary.main,
-                    borderColor: theme.palette.primary.main,
-                    '&:hover': {
-                        backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                    }
-                }}
-            >
-                Назад до конспектів
-            </Button>
+            {/* Header section with back button and title */}
+            <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                mb: 2,
+                gap: 2
+            }}>
+                <Button
+                    variant="text"
+                    startIcon={<ArrowBackIcon />}
+                    onClick={handleBackClick}
+                    sx={{
+                        borderRadius: '8px',
+                        color: theme.palette.primary.main,
+                        minWidth: 'auto',
+                        px: 1,
+                        '&:hover': {
+                            backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                        }
+                    }}
+                />
+                
+                {noteData && (
+                    <Typography variant="h5" sx={{
+                        fontWeight: 600,
+                        color: theme.palette.primary.main,
+                        flexGrow: 1,
+                        fontSize: '1.5rem'
+                    }}>
+                        {noteData.note_name}
+                    </Typography>
+                )}
+            </Box>
             
             {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
@@ -86,41 +101,10 @@ const NoteViewPage: React.FC = () => {
                     <Typography color="error">
                         {error}
                     </Typography>
-                </Paper>
-            ) : noteData ? (
-                <Paper
-                    elevation={0}
-                    sx={{
-                        p: 3,
-                        borderRadius: '16px',
-                        border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
-                        boxShadow: `0px 2px 8px ${alpha(theme.palette.common.black, 0.05)}`
-                    }}
-                >
-                    <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
-                        {noteData.note_name}
-                    </Typography>
-                    <Divider sx={{ my: 2 }} />
-                    
-                    {/* Note description (if available) */}
-                    {/* {noteData.note_description && (
-                        <Box sx={{ mt: 3 }}>
-                            <Paper
-                                elevation={0}
-                                sx={{
-                                    p: 2,
-                                    backgroundColor: alpha(theme.palette.primary.main, 0.03),
-                                    borderRadius: '8px'
-                                }}
-                            >
-                                <Typography variant="body1">
-                                    {noteData.note_description}
-                                </Typography>
-                            </Paper>
-                        </Box>
-                    )}                     */}
+                </Paper>            ) : noteData ? (
+                <Box sx={{ mt: 1 }}>
                     {/* Note content */}
-                    <Box sx={{ mt: 4 }}>
+                    <Box>
                         {(noteData.watermarked_pdf_url || noteData.pdf_url) ? (
                             <PDFDisplay
                                 pdfUrl={noteData.watermarked_pdf_url || noteData.pdf_url!}
@@ -147,7 +131,7 @@ const NoteViewPage: React.FC = () => {
                             </Paper>
                         )}
                     </Box>
-                </Paper>
+                </Box>
             ) : (
                 <Typography variant="h5" sx={{ textAlign: 'center', color: theme.palette.text.secondary }}>
                     No note data available
