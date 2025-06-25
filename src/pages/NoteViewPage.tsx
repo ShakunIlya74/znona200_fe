@@ -110,11 +110,8 @@ const NoteViewPage: React.FC = () => {
                     </Box>
                     
                     {/* Note description (if available) */}
-                    {noteData.description && (
+                    {noteData.note_description && (
                         <Box sx={{ mt: 3 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 500, mb: 1 }}>
-                                Description
-                            </Typography>
                             <Paper
                                 elevation={0}
                                 sx={{
@@ -124,7 +121,7 @@ const NoteViewPage: React.FC = () => {
                                 }}
                             >
                                 <Typography variant="body1">
-                                    {noteData.description}
+                                    {noteData.note_description}
                                 </Typography>
                             </Paper>
                         </Box>
@@ -132,9 +129,6 @@ const NoteViewPage: React.FC = () => {
                     
                     {/* Note content */}
                     <Box sx={{ mt: 4 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 500, mb: 2 }}>
-                            Note Content
-                        </Typography>
                         <Paper
                             elevation={0}
                             sx={{
