@@ -239,15 +239,62 @@ const About: React.FC = () => {
                 ' • Комплексний + Контроль',
             ],
         },
-    ];
-
-    return (
+    ];    return (
         <Box id="about" sx={{
             backgroundColor: '#f2f1f2', 
             flexGrow: 1,
             p: 4,
             overflow: 'hidden', // Prevent horizontal scrollbar during animations
         }}>
+            {/* Scroll to view more indicator */}
+            <Box 
+                sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    mb: 4,
+                    opacity: titleVisible ? 0 : 1,
+                    transition: 'opacity 0.5s ease-out',
+                    pointerEvents: titleVisible ? 'none' : 'auto',
+                }}
+            >
+                <Typography 
+                    variant="body1" 
+                    sx={{ 
+                        color: theme.palette.text.secondary,
+                        fontSize: '16px',
+                        fontWeight: 500,
+                        mb: 1,
+                        textAlign: 'center'
+                    }}
+                >
+                    Гортай вниз, щоб дізнатися більше
+                </Typography>
+                <Box
+                    sx={{
+                        fontSize: '24px',
+                        color: theme.palette.primary.main,
+                        animation: titleVisible ? 'none' : 'bounce 2s infinite',
+                        '@keyframes bounce': {
+                            '0%, 20%, 53%, 80%, 100%': {
+                                transform: 'translate3d(0,0,0)',
+                            },
+                            '40%, 43%': {
+                                transform: 'translate3d(0, -8px, 0)',
+                            },
+                            '70%': {
+                                transform: 'translate3d(0, -4px, 0)',
+                            },
+                            '90%': {
+                                transform: 'translate3d(0, -2px, 0)',
+                            },
+                        },
+                    }}
+                >
+                    ↓
+                </Box>
+            </Box>
+
             {/* Title */}
             <Box ref={titleRef} sx={{ mb: 6 }}>
                 <Typography 
