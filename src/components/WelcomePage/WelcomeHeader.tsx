@@ -46,11 +46,17 @@ const WelcomeHeader: React.FC = () => {
     { text: 'Команда', to: 'team' },
     { text: 'Відгуки', to: 'reviews' },
     { text: 'Ціни', to: 'price' },
-    { text: 'Контакти', to: 'contacts' },
+    { text: 'Контакти', to: 'footer' },
   ];
-
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open);
+  };
+
+  const scrollToElement = (elementId: string) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -78,16 +84,13 @@ const WelcomeHeader: React.FC = () => {
                 maxWidth: '100%'
               }} 
             />
-          </Box>
-
-          {/* Desktop Menu */}
+          </Box>          {/* Desktop Menu */}
           {!isMobile && (
             <Box sx={{ display: 'flex', alignItems: 'center', mr: 3 }}>
               {menus.map((menu) => (
                 <Button
                   key={menu.to}
-                  component={Link}
-                  to={`/${menu.to}`}
+                  onClick={() => scrollToElement(menu.to)}
                   sx={{
                     color: '#3F6563',
                     textTransform: 'none',
@@ -206,16 +209,20 @@ const WelcomeHeader: React.FC = () => {
                 width: 'auto'
               }} 
             />
-          </Box>
-
-          {/* Menu Items */}
+          </Box>          {/* Menu Items */}
           <List>
             {menus.map((menu) => (
-              <ListItemButton key={menu.to} component={Link} to={`/${menu.to}`} onClick={toggleDrawer(false)}>
+              <ListItemButton 
+                key={menu.to} 
+                onClick={() => {
+                  scrollToElement(menu.to);
+                  setDrawerOpen(false);
+                }}
+              >
                 <ListItemText primary={menu.text} sx={{ color: '#3F6563', fontSize: '16px' }} />
               </ListItemButton>
             ))}
-          </List>          {/* Action Buttons */}
+          </List>{/* Action Buttons */}
           <Box sx={{ mt: 'auto' }}>
             {isAuthenticated ? (
               <Button

@@ -20,14 +20,22 @@ const Footer: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const footerLinks = [
-    { text: 'Про курс', to: '/about' },
-    { text: 'Команда', to: '/team' },
-    { text: 'Відгуки', to: '/reviews' },
-    { text: 'Ціни', to: '/price' },
+    { text: 'Про курс', to: 'about' },
+    { text: 'Команда', to: 'team' },
+    { text: 'Відгуки', to: 'reviews' },
+    { text: 'Ціни', to: 'price' },
   ];
+
+  const scrollToElement = (elementId: string) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <Box
+    id="footer"
       component="footer"
       sx={{
         backgroundColor: '#063231',
@@ -37,18 +45,17 @@ const Footer: React.FC = () => {
       }}
     >
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-        <Grid container spacing={4}>
-          {/* Navigation Links */}
+        <Grid container spacing={4}>          {/* Navigation Links */}
           <Grid item xs={12} md={4}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {footerLinks.map((link) => (
                 <Link
                   key={link.to}
-                  component={RouterLink}
-                  to={link.to}
+                  onClick={() => scrollToElement(link.to)}
                   sx={{
                     color: 'white',
                     textDecoration: 'none',
+                    cursor: 'pointer',
                     '&:hover': {
                       textDecoration: 'underline',
                     },
