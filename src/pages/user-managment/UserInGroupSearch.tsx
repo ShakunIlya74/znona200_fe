@@ -38,11 +38,12 @@ import { debounce } from 'lodash';
 interface CompactUserCardProps {
     user: UserInfo;
     groupId: string | number;
+    index: number;
     onUserRemoved?: () => void;
     onRemoveUser?: (userId: number | string, groupId: number | string) => Promise<boolean>;
 }
 
-const CompactUserCard: React.FC<CompactUserCardProps> = ({ user, groupId, onUserRemoved, onRemoveUser }) => {
+const CompactUserCard: React.FC<CompactUserCardProps> = ({ user, groupId, index, onUserRemoved, onRemoveUser }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -114,14 +115,38 @@ const CompactUserCard: React.FC<CompactUserCardProps> = ({ user, groupId, onUser
                 transition: 'all 0.2s ease-in-out',
                 position: 'relative'
             }}
-            >
-            <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
+            >            <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
+                {/* Number Badge */}
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    minWidth: 32,
+                    height: 32,
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    borderRadius: '50%',
+                    mr: isMobile ? 0 : 1.5,
+                    mb: isMobile ? 1 : 0,
+                    alignSelf: isMobile ? 'flex-start' : 'center'
+                }}>
+                    <Typography 
+                        variant="caption" 
+                        sx={{ 
+                            fontWeight: 600,
+                            color: theme.palette.primary.main,
+                            fontSize: '0.75rem'
+                        }}
+                    >
+                        {index}
+                    </Typography>
+                </Box>
+
                 {/* Left Column: Avatar, Name, and Status */}
                 <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'flex-start', 
                 gap: 1.5,
-                width: isMobile ? '100%' : '50%'
+                width: isMobile ? '100%' : '45%'
                 }}>
                 {!isMobile && (
                     <Avatar 
@@ -565,24 +590,25 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId, onRemove
                 
                 {/* Display Search Results or All Users */}
                 {!initialLoading && !searchLoading && (
-                    <>
-                        {/* Show search results when searching */}
-                        {searchQuery.trim() && searchResults.map((user) => (
+                    <>                        {/* Show search results when searching */}
+                        {searchQuery.trim() && searchResults.map((user, index) => (
                             <CompactUserCard 
                                 key={user.user_id} 
                                 user={user} 
                                 groupId={groupId}
+                                index={index + 1}
                                 onUserRemoved={refreshSearch}
                                 onRemoveUser={onRemoveUser}
                             />
                         ))}
                         
                         {/* Show all users when not searching */}
-                        {!searchQuery.trim() && allUsers.map((user) => (
+                        {!searchQuery.trim() && allUsers.map((user, index) => (
                             <CompactUserCard 
                                 key={user.user_id} 
                                 user={user} 
                                 groupId={groupId}
+                                index={index + 1}
                                 onUserRemoved={refreshSearch}
                                 onRemoveUser={onRemoveUser}
                             />
