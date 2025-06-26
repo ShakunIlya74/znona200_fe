@@ -38,7 +38,7 @@ const Footer: React.FC = () => {
     id="footer"
       component="footer"
       sx={{
-        backgroundColor: '#063231',
+        backgroundColor: '#3f6563',
         color: 'white',
         py: 6,
         px: { xs: 2, md: 4 },

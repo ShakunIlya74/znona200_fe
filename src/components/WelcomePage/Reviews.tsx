@@ -226,15 +226,17 @@ const Reviews: React.FC = () => {
       </Box>
     </Box>
   );
-
   // Mobile Carousel Layout
   const MobileCarousel = () => (
     <Box
       sx={{
         position: 'relative',
         maxWidth: 400,
+        minHeight: '500px',
         mx: 'auto',
         px: 4,
+        display: 'flex',
+        alignItems: 'center',
       }}
     >
       <IconButton
@@ -254,60 +256,50 @@ const Reviews: React.FC = () => {
         <ArrowBackIosIcon />
       </IconButton>
 
-      <AnimatePresence mode="wait">
-        <motion.div
+      <AnimatePresence mode="wait">        <motion.div
           key={currentIndex}
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -100 }}
           transition={{ duration: 0.3 }}
+          style={{ width: '100%' }}
         >
-          <Card
-            sx={{
-              borderRadius: 3,
-              overflow: 'hidden',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-            }}
-          >
-            {/* Screenshot */}
+          <Box sx={{ position: 'relative' }}>
+            {/* Chat Screenshot */}
             <Box
               component="img"
               src={reviews[currentIndex].screenshotUrl}
               alt={`${reviews[currentIndex].name} review`}
               sx={{
                 width: '100%',
-                height: '300px',
-                objectFit: 'cover',
+                height: 'auto',
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                border: '2px solid rgba(255,255,255,0.8)',
+                transition: 'transform 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                },
               }}
             />
             
-            {/* Author Info */}
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Avatar
-                  src={reviews[currentIndex].avatar}
-                  alt={reviews[currentIndex].name}
-                  sx={{ width: 50, height: 50, mr: 2 }}
-                />
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                    {reviews[currentIndex].name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {reviews[currentIndex].course}
-                  </Typography>
-                </Box>
-                <Rating value={reviews[currentIndex].rating} readOnly size="small" />
-              </Box>
-              <Typography variant="body2">
-                {reviews[currentIndex].text}
-              </Typography>
-            </CardContent>
-          </Card>
+            {/* Author Avatar - positioned in corner */}
+            <Avatar
+              src={reviews[currentIndex].avatar}
+              alt={reviews[currentIndex].name}
+              sx={{
+                width: 80,
+                height: 80,
+                position: 'absolute',
+                bottom: -10,
+                right: -10,
+                border: '3px solid white',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+              }}
+            />
+          </Box>
         </motion.div>
-      </AnimatePresence>
-
-      <IconButton
+      </AnimatePresence>      <IconButton
         onClick={handleNext}
         sx={{
           position: 'absolute',
@@ -325,7 +317,17 @@ const Reviews: React.FC = () => {
       </IconButton>
 
       {/* Pagination Dots */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, gap: 1 }}>
+      <Box 
+        sx={{ 
+          position: 'absolute',
+          bottom: -40,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 1,
+        }}
+      >
         {reviews.map((_, index) => (
           <Box
             key={index}
@@ -368,7 +370,7 @@ const Reviews: React.FC = () => {
             color: '#063231',
           }}
         >
-          Відгуки наших студентів
+          Відгуки
         </Typography>
 
         <motion.div

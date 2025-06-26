@@ -16,6 +16,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 
@@ -99,13 +100,12 @@ const Prices: React.FC = () => {
       },
     },
   };
-
   return (
     <Box
       id="price"
       ref={ref}
       sx={{
-        py: 8,
+        py: 4,
         px: { xs: 2, md: 4 },
         backgroundColor: '#fff',
       }}
@@ -115,7 +115,7 @@ const Prices: React.FC = () => {
           variant="h3"
           sx={{
             fontWeight: 'bold',
-            mb: 6,
+            mb: 3,
             textAlign: 'center',
             color: '#063231',
           }}
@@ -131,17 +131,21 @@ const Prices: React.FC = () => {
                 initial="hidden"
                 animate={inView ? 'visible' : 'hidden'}
                 transition={{ delay: index * 0.2 }}
-              >
-                <Card
+              >                <Card
                   sx={{
                     height: '100%',
                     position: 'relative',
                     borderRadius: 3,
                     border: plan.highlighted ? '2px solid #006A68' : '1px solid #e0e0e0',
                     overflow: 'visible',
+                    boxShadow: plan.highlighted 
+                      ? '0 12px 40px rgba(100, 100, 100, 0.25), 0 8px 16px rgba(0, 0, 0, 0.1)' 
+                      : '0 2px 8px rgba(0, 0, 0, 0.08)',
+                    transform: plan.highlighted ? 'translateY(-4px)' : 'none',
+                    transition: 'all 0.3s ease-in-out',
                   }}
                 >
-                  {plan.highlighted && (
+                  {/* {plan.highlighted && (
                     <Chip
                       label="РЕКОМЕНДОВАНО"
                       sx={{
@@ -153,16 +157,16 @@ const Prices: React.FC = () => {
                         color: 'white',
                         fontWeight: 'bold',
                       }}
-                    />
-                  )}
-                  <CardContent sx={{ p: 4 }}>
+                    />                  )} */}
+                  <CardContent sx={{ p: 3 }}>
                     <Typography
-                      variant="h5"
+                      variant="h6"
                       sx={{
                         fontWeight: 'bold',
-                        mb: 1,
+                        mb: 0.5,
                         textAlign: 'center',
                         color: '#063231',
+                        fontSize: '1.1rem',
                       }}
                     >
                       {plan.name}
@@ -170,22 +174,23 @@ const Prices: React.FC = () => {
                     <Typography
                       variant="body2"
                       sx={{
-                        mb: 3,
+                        mb: 2,
                         textAlign: 'center',
                         color: '#757877',
+                        fontSize: '0.8rem',
                       }}
                     >
                       Ціни актуальні до 15 вересня
                     </Typography>
 
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" sx={{ mb: 0.5, fontSize: '0.85rem' }}>
                         <strong>{plan.monthlyPrice}</strong> - помісячна оплата (8 місяців)
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
+                      <Typography variant="body2" sx={{ mb: 0.5, fontSize: '0.85rem' }}>
                         <strong>{plan.halfYearPrice}</strong> - оплата 50/50 (8 місяців, знижка 10%)
                       </Typography>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
+                      <Typography variant="body2" sx={{ mb: 0.5, fontSize: '0.85rem' }}>
                         <strong>{plan.yearlyPrice}</strong> - оплата за рік (8 місяців, знижка 20%)
                       </Typography>
                     </Box>
@@ -193,46 +198,56 @@ const Prices: React.FC = () => {
                     <Typography
                       variant="subtitle2"
                       sx={{
-                        mb: 2,
+                        mb: 1,
                         fontWeight: 'bold',
                         color: '#063231',
+                        fontSize: '0.9rem',
                       }}
                     >
                       ОСОБЛИВОСТІ
                     </Typography>
 
-                    <List dense sx={{ mb: 3 }}>
-                      {plan.features.map((feature, idx) => (
-                        <ListItem key={idx} sx={{ px: 0 }}>
-                          <ListItemIcon sx={{ minWidth: 30 }}>
-                            <CheckIcon
-                              sx={{
-                                color: feature.included ? '#4caf50' : '#e0e0e0',
-                                fontSize: 20,
-                              }}
-                            />
+                    <List dense sx={{ mb: 2,  }}>                      {plan.features.map((feature, idx) => (
+                        <ListItem key={idx} sx={{ px: 0, py: 0.2 }}>
+                          <ListItemIcon sx={{ minWidth: 24 }}>
+                            {feature.included ? (
+                              <CheckIcon
+                                sx={{
+                                  color: '#4caf50',
+                                  fontSize: 16,
+                                }}
+                              />
+                            ) : (
+                              <CloseIcon
+                                sx={{
+                                  color: '#e0e0e0',
+                                  fontSize: 16,
+                                }}
+                              />
+                            )}
                           </ListItemIcon>
                           <ListItemText
                             primary={feature.text}
                             sx={{
                               '& .MuiListItemText-primary': {
-                                fontSize: '0.875rem',
+                                fontSize: '0.8rem',
                                 color: feature.included ? '#063231' : '#9e9e9e',
+                                lineHeight: 1.2,
                               },
                             }}
                           />
                         </ListItem>
                       ))}
                     </List>
-
                     <Button
                       variant="contained"
                       fullWidth
+                      onClick={() => window.open('https://t.me/yaryna_yaromii', '_self')}
                       sx={{
                         backgroundColor: '#006A68',
                         color: 'white',
-                        py: 1.5,
-                        fontSize: '1rem',
+                        py: 1,
+                        fontSize: '0.9rem',
                         fontWeight: 'bold',
                         '&:hover': {
                           backgroundColor: '#004D40',
