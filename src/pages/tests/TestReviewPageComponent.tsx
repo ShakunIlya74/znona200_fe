@@ -19,6 +19,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
+import StarIcon from '@mui/icons-material/Star';
 import { getHeaderOffset } from '../../components/Header';
 import { FullTestWithAnswers, Question, TestCardMeta } from './interfaces';
 import AnsweredMultipleChoiceQuestion from './components/AnsweredMultipleChoiceQuestion';
@@ -301,8 +302,7 @@ const TestReviewComponent: React.FC<TestReviewComponentProps> = ({
                 Огляд відповідей
               </Typography>
 
-              {/* Score summary */}
-              <Paper
+              {/* Score summary */}              <Paper
                 elevation={0}
                 sx={{
                   p: 2,
@@ -316,15 +316,29 @@ const TestReviewComponent: React.FC<TestReviewComponentProps> = ({
                   Ваш результат:
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
-                    {totalScore.toFixed(1)}
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
-                    з {maxPossibleScore.toFixed(1)} можливих
-                  </Typography>
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
+                       {((totalScore / maxPossibleScore) * 100).toFixed(0)}%
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    {[1, 2, 3].map((starNumber) => {
+                      const percentage = (totalScore / maxPossibleScore) * 100;
+                      const isActive = percentage >= starNumber * 30;
+                      return (
+                        <StarIcon
+                          key={starNumber}
+                          sx={{
+                            fontSize: '2rem',
+                            color: isActive ? '#FFD700' : theme.palette.grey[400]
+                          }}
+                        />
+                      );
+                    })}
+                  </Box>
                 </Box>
                 <Typography variant="body2" sx={{ mt: 1, color: theme.palette.text.secondary }}>
-                  {((totalScore / maxPossibleScore) * 100).toFixed(1)}% правильних відповідей
+                  {totalScore.toFixed(1)} з {maxPossibleScore.toFixed(1)} можливих балів
                 </Typography>
               </Paper>
 
