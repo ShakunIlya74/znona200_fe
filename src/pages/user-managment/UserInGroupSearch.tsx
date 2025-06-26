@@ -28,7 +28,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CloseIcon from '@mui/icons-material/Close';
-import { searchUsersInGroup, UserInfo, removeUserFromGroup } from '../../services/UserService';
+import { searchUsersInGroup, UserInfo, removeUserFromGroup, getGroupUsersPaginated, GroupUsersPaginatedResponse } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import { debounce } from 'lodash';
 
@@ -303,48 +303,135 @@ interface UserInGroupSearchProps {
 const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId, onRemoveUser }) => {
     const theme = useTheme();
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const [users, setUsers] = useState<UserInfo[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [searchResults, setSearchResults] = useState<UserInfo[]>([]);
+    const [allUsers, setAllUsers] = useState<UserInfo[]>([]);
+    const [searchLoading, setSearchLoading] = useState<boolean>(false);
+    const [paginationLoading, setPaginationLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [hasNextPage, setHasNextPage] = useState<boolean>(false);
+    const [totalCount, setTotalCount] = useState<number>(0);
+      // Loading states
+    const [initialLoading, setInitialLoading] = useState<boolean>(false);
+      // Load initial paginated users
+    const loadInitialUsers = useCallback(async () => {
+        setInitialLoading(true);
+        setError(null);
+        
+        try {
+            const response = await getGroupUsersPaginated(groupId, 1);
+            console.log('Initial load response:', response);
+            if (response.success && response.users) {
+                setAllUsers(response.users);
+                setCurrentPage(1);
+                setHasNextPage(response.pagination?.has_next || false);
+                setTotalCount(response.pagination?.total_count || 0);
+                console.log('Initial load completed:', {
+                    usersCount: response.users.length,
+                    hasNextPage: response.pagination?.has_next,
+                    totalCount: response.pagination?.total_count
+                });
+            } else {
+                setError(response.message || 'Failed to load users');
+            }
+        } catch (err) {
+            console.error('Error loading initial users:', err);
+            setError('An error occurred while loading users');
+        } finally {
+            setInitialLoading(false);
+        }
+    }, [groupId]);    // Load more users for infinite scrolling
+    const loadMoreUsers = useCallback(async () => {
+        if (paginationLoading || !hasNextPage) return;
+        
+        console.log('Loading more users - page:', currentPage + 1);
+        setPaginationLoading(true);
+        const nextPage = currentPage + 1;
+        
+        try {
+            const response = await getGroupUsersPaginated(groupId, nextPage);
+            console.log('Load more response:', response);
+            if (response.success && response.users) {
+                setAllUsers(prev => [...prev, ...response.users!]);
+                setCurrentPage(nextPage);
+                setHasNextPage(response.pagination?.has_next || false);
+                console.log('More users loaded:', {
+                    newUsersCount: response.users.length,
+                    totalUsersNow: response.users.length + allUsers.length,
+                    hasNextPage: response.pagination?.has_next
+                });
+            }
+        } catch (err) {
+            console.error('Error loading more users:', err);
+        } finally {
+            setPaginationLoading(false);
+        }
+    }, [paginationLoading, hasNextPage, currentPage, groupId, allUsers.length]);
 
     // Debounced search function to prevent excessive API calls
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const debouncedSearch = useCallback(
         debounce(async (query: string) => {
             if (!query.trim()) {
-                setUsers([]);
+                setSearchResults([]);
                 return;
             }
 
-            setLoading(true);
+            setSearchLoading(true);
             setError(null);
             
             try {
                 const response = await searchUsersInGroup(groupId, query);
                 if (response.success && response.user_dicts) {
                     console.log('Search results:', response.user_dicts);
-                    setUsers(response.user_dicts);
+                    setSearchResults(response.user_dicts);
                 } else {
                     setError(response.message || 'Failed to search for users');
-                    setUsers([]);
+                    setSearchResults([]);
                 }
             } catch (err) {
                 console.error('Error searching for users:', err);
                 setError('An error occurred while searching for users');
-                setUsers([]);
+                setSearchResults([]);
             } finally {
-                setLoading(false);
+                setSearchLoading(false);
             }
         }, 500), // 500ms debounce time
         [groupId]
-    );
-
-    // Function to refresh search results after removing a user
+    );    // Function to refresh search results after removing a user
     const refreshSearch = useCallback(() => {
         if (searchQuery.trim()) {
             debouncedSearch(searchQuery);
+        } else {
+            // Reload all users if no search query
+            loadInitialUsers();
         }
-    }, [searchQuery, debouncedSearch]);
+    }, [searchQuery, debouncedSearch, loadInitialUsers]);    // Function to handle scroll event for infinite scrolling
+    const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+        const bottomReached = scrollHeight - scrollTop <= clientHeight + 100; // 100px threshold
+        
+        // Debug logging
+        console.log('Scroll event:', {
+            scrollTop,
+            scrollHeight,
+            clientHeight,
+            bottomReached,
+            hasNextPage,
+            paginationLoading,
+            searchQuery: searchQuery.trim()
+        });
+        
+        if (bottomReached && !searchQuery.trim() && hasNextPage && !paginationLoading) {
+            console.log('Triggering loadMoreUsers');
+            loadMoreUsers();
+        }
+    }, [searchQuery, loadMoreUsers, hasNextPage, paginationLoading]);// Load initial users on component mount
+    useEffect(() => {
+        loadInitialUsers();
+    }, [loadInitialUsers]);
 
     // Update search when query changes
     useEffect(() => {
@@ -382,15 +469,14 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId, onRemove
                             <SearchIcon color="action" sx={{ fontSize: '1.2rem' }} />
                         </InputAdornment>
                     ),
-                    endAdornment: loading && (
+                    endAdornment: (searchLoading || initialLoading) && (
                         <InputAdornment position="end">
                             <CircularProgress size={16} />
                         </InputAdornment>
                     )
                 }}
             />
-            
-            {/* Search Results Container */}
+              {/* Search Results Container */}
             <Box 
                 sx={{ 
                     maxHeight: '50vh', 
@@ -409,9 +495,17 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId, onRemove
                     },
                     scrollbarWidth: 'thin',
                 }}
+                onScroll={handleScroll}
             >
-                {/* Loading State */}
-                {loading && searchQuery && (
+                {/* Initial Loading State */}
+                {initialLoading && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                        <LoadingDots />
+                    </Box>
+                )}
+
+                {/* Search Loading State */}
+                {searchLoading && searchQuery && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                         <LoadingDots />
                     </Box>
@@ -433,8 +527,8 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId, onRemove
                     </Typography>
                 )}
                 
-                {/* Empty Results */}
-                {!loading && searchQuery && users.length === 0 && !error && (
+                {/* Empty Search Results */}
+                {!searchLoading && searchQuery && searchResults.length === 0 && !error && !initialLoading && (
                     <Typography 
                         sx={{ 
                             textAlign: 'center', 
@@ -450,19 +544,75 @@ const UserInGroupSearch: React.FC<UserInGroupSearchProps> = ({ groupId, onRemove
                         Учнів не знайдено за пошуком "{searchQuery}"
                     </Typography>
                 )}
+
+                {/* Empty All Users Results */}
+                {!initialLoading && !searchQuery && allUsers.length === 0 && !error && (
+                    <Typography 
+                        sx={{ 
+                            textAlign: 'center', 
+                            my: 4, 
+                            color: theme.palette.text.secondary,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 1
+                        }}
+                    >
+                        <PersonIcon />
+                        У групі немає учнів
+                    </Typography>
+                )}
                 
-                {/* User Cards */}
-                {users.map((user) => (
-                    <CompactUserCard 
-                        key={user.user_id} 
-                        user={user} 
-                        groupId={groupId}
-                        onUserRemoved={refreshSearch}
-                        onRemoveUser={onRemoveUser}
-                    />
-                ))}
+                {/* Display Search Results or All Users */}
+                {!initialLoading && !searchLoading && (
+                    <>
+                        {/* Show search results when searching */}
+                        {searchQuery.trim() && searchResults.map((user) => (
+                            <CompactUserCard 
+                                key={user.user_id} 
+                                user={user} 
+                                groupId={groupId}
+                                onUserRemoved={refreshSearch}
+                                onRemoveUser={onRemoveUser}
+                            />
+                        ))}
+                        
+                        {/* Show all users when not searching */}
+                        {!searchQuery.trim() && allUsers.map((user) => (
+                            <CompactUserCard 
+                                key={user.user_id} 
+                                user={user} 
+                                groupId={groupId}
+                                onUserRemoved={refreshSearch}
+                                onRemoveUser={onRemoveUser}
+                            />
+                        ))}
+                        
+                        {/* Pagination Loading at bottom */}
+                        {paginationLoading && !searchQuery.trim() && (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                                <CircularProgress size={24} />
+                            </Box>
+                        )}
+                        
+                        {/* Total count information */}
+                        {!searchQuery.trim() && totalCount > 0 && (
+                            <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                    textAlign: 'center', 
+                                    display: 'block',
+                                    mt: 2,
+                                    color: theme.palette.text.secondary 
+                                }}
+                            >
+                                Показано {allUsers.length} з {totalCount} учнів
+                            </Typography>
+                        )}
+                    </>
+                )}
                 
-                {/* Initial Empty State
+                {/* Initial Empty State - Commented out as requested
                 {!searchQuery && (
                     <Box 
                         sx={{ 

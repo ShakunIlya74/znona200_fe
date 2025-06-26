@@ -145,7 +145,7 @@ interface MainUserStatisticsResponse {
 }
 
 // Interface for paginated group users response
-interface GroupUsersPaginatedResponse {
+export interface GroupUsersPaginatedResponse {
   success: boolean;
   users?: UserInfo[];
   pagination?: {
