@@ -38,7 +38,7 @@ interface ToggleGroupActivationResponse {
 }
 
 // Interface for user search response
-interface UserSearchResponse {
+export interface UserSearchResponse {
   success: boolean;
   user_dicts?: UserInfo[];
   message?: string;
@@ -146,6 +146,22 @@ interface MainUserStatisticsResponse {
 
 // Interface for paginated group users response
 export interface GroupUsersPaginatedResponse {
+  success: boolean;
+  users?: UserInfo[];
+  pagination?: {
+    current_page: number;
+    total_pages: number;
+    total_count: number;
+    page_size: number;
+    has_next: boolean;
+    has_prev: boolean;
+  };
+  is_admin: boolean;
+  message?: string;
+}
+
+// Interface for paginated all users response
+export interface AllUsersPaginatedResponse {
   success: boolean;
   users?: UserInfo[];
   pagination?: {
@@ -544,6 +560,27 @@ export const getGroupUsersPaginated = async (
     return response.data;
   } catch (error) {
     console.error('Error fetching paginated group users:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches all users from the system with pagination
+ * @param page The page number to fetch (default: 1)
+ * @returns Promise with paginated users information, pagination metadata, and admin status
+ */
+export const getAllUsersPaginated = async (
+  page: number = 1
+): Promise<AllUsersPaginatedResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-control/users/', {
+      params: { 
+        page: page < 1 ? 1 : page
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching paginated users:', error);
     throw error;
   }
 };
