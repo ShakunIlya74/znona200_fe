@@ -1,16 +1,12 @@
 // src/components/WelcomePage/Team.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Card,
-  CardMedia,
-  CardContent,
-  Grid,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import ana from '../../source/about/ana_full.png'; 
 import nasty from '../../source/about/nasty_full.png';
@@ -28,6 +24,7 @@ interface TeamMember {
 const Team: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [expandedMemberId, setExpandedMemberId] = useState<number | null>(null);
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -38,51 +35,55 @@ const Team: React.FC = () => {
       id: 1,
       name: 'Анна',
       role: 'Засновниця проєкту, учителька української мови, яка готує до ЗНО вже 10 років, співавторка конспекту з мови.',
-      image: ana, // Replace with actual image
+      image: ana,
     },
     {
       id: 2,
       name: 'Анастасія',
       role: '200-бальниця з української мови та літератури, переможниця Всеукраїнського етапу ХХ Міжнародного конкурсу з української мови імені Петра Яцика, репетиторка з української мови, співавторка конспекту з мови.',
-      image: nasty, // Replace with actual image
+      image: nasty,
     },
     {
       id: 3,
       name: 'Лілія',
       role: 'Репетиторка з української мови',
-      image: lilia, // Replace with actual image
+      image: lilia,
     },
     {
       id: 4,
       name: 'Олена',
       role: 'Репетиторка з української мови',
-      image: olenka, // Replace with actual image
+      image: olenka,
     },
     {
       id: 5,
       name: 'Ярина',
       role: 'Менеджерка',
-      image: yarina, // Replace with actual image
+      image: yarina,
     },
   ];
+
+  const handleMemberClick = (memberId: number) => {
+    setExpandedMemberId(expandedMemberId === memberId ? null : memberId);
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
+        staggerChildren: 0.1,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { x: -50, opacity: 0 },
+    hidden: { x: -30, opacity: 0 },
     visible: {
       x: 0,
       opacity: 1,
       transition: {
-        duration: 0.5,
+        duration: 0.4,
       },
     },
   };
@@ -97,7 +98,7 @@ const Team: React.FC = () => {
         backgroundColor: '#fef3e2',
       }}
     >
-      <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+      <Box sx={{ maxWidth: '100%', mx: 'auto' }}>
         <Typography
           variant="h3"
           sx={{
@@ -115,40 +116,169 @@ const Team: React.FC = () => {
           initial="hidden"
           animate={inView ? 'visible' : 'hidden'}
         >
-          <Grid container spacing={4} justifyContent="center">
-            {teamMembers.map((member) => (
-              <Grid item xs={12} sm={6} md={3} key={member.id}>
-                <motion.div variants={itemVariants}>
-                  <Card
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              pb: 2,
+              height: { xs: '70vh', md: '80vh' },
+              minHeight: 500,
+              '&::-webkit-scrollbar': {
+                height: 8,
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: 'rgba(0,0,0,0.1)',
+                borderRadius: 4,
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: '#063231',
+                borderRadius: 4,
+                '&:hover': {
+                  backgroundColor: '#0a4a47',
+                },
+              },
+            }}
+          >
+            {teamMembers.map((member) => {
+              const isExpanded = expandedMemberId === member.id;
+              
+              return (
+                <motion.div
+                  key={member.id}
+                  variants={itemVariants}
+                  layout
+                  animate={{
+                    width: isExpanded 
+                      ? isMobile ? 400 : 600 
+                      : isMobile ? 120 : 150,
+                  }}
+                  transition={{
+                    duration: 0.6,
+                    ease: "easeInOut"
+                  }}
+                  whileHover={{ 
+                    scale: isExpanded ? 1 : 1.02,
+                    transition: { duration: 0.2 }
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    flexShrink: 0,
+                  }}
+                >
+                  <Box
+                    onClick={() => handleMemberClick(member.id)}
                     sx={{
+                      width: '100%',
                       height: '100%',
-                      backgroundColor: 'transparent',
-                      boxShadow: 'none',
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      backgroundImage: `url(${member.image})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                      },
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: isExpanded ? '50%' : '40%',
+                        background: isExpanded 
+                          ? 'linear-gradient(transparent, rgba(0,0,0,0.8))'
+                          : 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                        transition: 'all 0.3s ease',
+                      },
                     }}
                   >
-                    <CardMedia
-                      component="img"
-                      height="300"
-                      image={member.image}
-                      alt={member.name}
-                      sx={{
-                        borderRadius: 2,
-                        objectFit: 'cover',
-                      }}
-                    />
-                    <CardContent sx={{ px: 0, textAlign: 'center' }}>
-                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                        {member.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {member.role}
-                      </Typography>
-                    </CardContent>
-                  </Card>
+                    <AnimatePresence>
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ 
+                          opacity: 1, 
+                          y: 0,
+                        }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.3 }}
+                        style={{
+                          position: 'absolute',
+                          bottom: 16,
+                          left: 16,
+                          right: 16,
+                          zIndex: 2,
+                          color: 'white',
+                        }}
+                      >
+                        <Typography
+                          variant={isExpanded ? "h5" : "h6"}
+                          sx={{
+                            fontWeight: 'bold',
+                            mb: isExpanded ? 2 : 1,
+                            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                            fontSize: isExpanded 
+                              ? { xs: '1.5rem', md: '2rem' }
+                              : { xs: '1rem', md: '1.25rem' },
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          {member.name}
+                        </Typography>
+                        
+                        <motion.div
+                          animate={{
+                            opacity: isExpanded ? 1 : 0,
+                            height: isExpanded ? 'auto' : 0,
+                          }}
+                          transition={{ duration: 0.4, delay: isExpanded ? 0.2 : 0 }}
+                          style={{ overflow: 'hidden' }}
+                        >
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              lineHeight: 1.4,
+                              textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                              fontSize: { xs: '0.9rem', md: '1rem' },
+                            }}
+                          >
+                            {member.role}
+                          </Typography>
+                        </motion.div>
+
+                        {!isExpanded && (
+                          <motion.div
+                            initial={{ opacity: 1 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                          >
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontSize: '0.75rem',
+                                lineHeight: 1.2,
+                                textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {member.role}
+                            </Typography>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </Box>
                 </motion.div>
-              </Grid>
-            ))}
-          </Grid>
+              );
+            })}
+          </Box>
         </motion.div>
       </Box>
     </Box>
