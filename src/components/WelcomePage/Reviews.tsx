@@ -19,11 +19,20 @@ import { useInView } from 'react-intersection-observer';
 
 interface Review {
   id: number;
-  name: string;
+  name?: string;
   avatar: string;
-  rating: number;
-  text: string;
-  course: string;
+  rating?: number;
+  text?: string;
+  course?: string;
+  screenshotUrl: string;
+  position?: {
+    top?: string;
+    left?: string;
+    right?: string;
+    bottom?: string;
+    transform?: string;
+    zIndex?: number;
+  };
 }
 
 const Reviews: React.FC = () => {
@@ -38,28 +47,55 @@ const Reviews: React.FC = () => {
   const reviews: Review[] = [
     {
       id: 1,
-      name: 'Марія Іванова',
-      avatar: '/placeholder-avatar-1.jpg',
-      rating: 5,
-      text: 'Дуже задоволена курсом! Викладачі пояснюють матеріал доступно та цікаво. Результат НМТ - 198 балів!',
-      course: 'Українська мова',
+      avatar: '../../source/reviews/img1.png',
+      screenshotUrl: '../../source/reviews/rev1.png',
+      position: {
+        top: '10%',
+        left: '5%',
+        zIndex: 2,
+      }
     },
     {
       id: 2,
-      name: 'Олександр Петренко',
-      avatar: '/placeholder-avatar-2.jpg',
-      rating: 5,
-      text: 'Чудова підготовка! Особливо сподобалась модульна система навчання та підтримка репетиторів.',
-      course: 'Математика',
+      avatar: '../../source/reviews/img2.png',
+      screenshotUrl: '../../source/reviews/rev2.png',
+      position: {
+        bottom: '15%',
+        left: '8%',
+        zIndex: 1,
+      }
     },
     {
       id: 3,
-      name: 'Анна Коваленко',
-      avatar: '/placeholder-avatar-3.jpg',
-      rating: 5,
-      text: 'Рекомендую всім! Завдяки курсу я отримала 200 балів з української мови. Дякую команді!',
-      course: 'Українська мова',
+      avatar: '../../source/reviews/img3.png',
+      screenshotUrl: '../../source/reviews/rev3.png',
+      position: {
+        top: '25%',
+        right: '10%',
+        zIndex: 2,
+      }
     },
+    {
+      id: 4,
+      name: 'Юлія Перебийніс',
+      avatar: '../../source/reviews/img4.png',
+      screenshotUrl: '../../source/reviews/rev4.png',
+      position: {
+        bottom: '10%',
+        right: '5%',
+        zIndex: 1,
+      }
+    },
+    {
+      id: 5,
+      avatar: '../../source/reviews/img5.png',
+      screenshotUrl: '../../source/reviews/rev5.png',
+      position: {
+        top: '45%',
+        right: '25%',
+        zIndex: 3,
+      }
+    }
   ];
 
   const handleNext = () => {
@@ -70,6 +106,232 @@ const Reviews: React.FC = () => {
     setCurrentIndex((prev) => (prev - 1 + reviews.length) % reviews.length);
   };
 
+  // Desktop Dashboard Layout
+  const DesktopDashboard = () => (
+    <Box
+      sx={{
+        position: 'relative',
+        height: '80vh',
+        maxHeight: '800px',
+        minHeight: '600px',
+        mx: 'auto',
+        maxWidth: '1200px',
+        overflow: 'hidden',
+      }}
+    >
+      {reviews.map((review) => (
+        <motion.div
+          key={review.id}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={inView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ duration: 0.6, delay: review.id * 0.1 }}
+          style={{
+            position: 'absolute',
+            ...review.position,
+          }}
+        >
+          <Box sx={{ position: 'relative' }}>
+            {/* Chat Screenshot */}
+            <Box
+              component="img"
+              src={review.screenshotUrl}
+              alt={`${review.name} review`}
+              sx={{
+                width: { xs: '200px', lg: '250px' },
+                height: 'auto',
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                border: '2px solid rgba(255,255,255,0.8)',
+                transition: 'transform 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                  zIndex: 10,
+                },
+              }}
+            />
+            
+            {/* Author Avatar - positioned in corner */}
+            <Avatar
+              src={review.avatar}
+              alt={review.name}
+              sx={{
+                width: 60,
+                height: 60,
+                position: 'absolute',
+                bottom: -15,
+                right: -15,
+                border: '3px solid white',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+              }}
+            />
+            
+            {/* Rating Badge */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: -10,
+                left: -10,
+                backgroundColor: '#006A68',
+                color: 'white',
+                borderRadius: '50%',
+                width: 40,
+                height: 40,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+              }}
+            >
+              {review.rating}
+            </Box>
+          </Box>
+        </motion.div>
+      ))}
+      
+      {/* Central Logo or Main Element */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 0,
+        }}
+      >
+        <Typography
+          variant="h2"
+          sx={{
+            color: 'rgba(6, 50, 49, 0.1)',
+            fontWeight: 'bold',
+            fontSize: { xs: '4rem', lg: '6rem' },
+            userSelect: 'none',
+          }}
+        >
+          ВІДГУКИ
+        </Typography>
+      </Box>
+    </Box>
+  );
+
+  // Mobile Carousel Layout
+  const MobileCarousel = () => (
+    <Box
+      sx={{
+        position: 'relative',
+        maxWidth: 400,
+        mx: 'auto',
+        px: 4,
+      }}
+    >
+      <IconButton
+        onClick={handlePrev}
+        sx={{
+          position: 'absolute',
+          left: 0,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 2,
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          '&:hover': {
+            backgroundColor: 'rgba(255,255,255,1)',
+          },
+        }}
+      >
+        <ArrowBackIosIcon />
+      </IconButton>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentIndex}
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -100 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card
+            sx={{
+              borderRadius: 3,
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            }}
+          >
+            {/* Screenshot */}
+            <Box
+              component="img"
+              src={reviews[currentIndex].screenshotUrl}
+              alt={`${reviews[currentIndex].name} review`}
+              sx={{
+                width: '100%',
+                height: '300px',
+                objectFit: 'cover',
+              }}
+            />
+            
+            {/* Author Info */}
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar
+                  src={reviews[currentIndex].avatar}
+                  alt={reviews[currentIndex].name}
+                  sx={{ width: 50, height: 50, mr: 2 }}
+                />
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    {reviews[currentIndex].name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {reviews[currentIndex].course}
+                  </Typography>
+                </Box>
+                <Rating value={reviews[currentIndex].rating} readOnly size="small" />
+              </Box>
+              <Typography variant="body2">
+                {reviews[currentIndex].text}
+              </Typography>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </AnimatePresence>
+
+      <IconButton
+        onClick={handleNext}
+        sx={{
+          position: 'absolute',
+          right: 0,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 2,
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          '&:hover': {
+            backgroundColor: 'rgba(255,255,255,1)',
+          },
+        }}
+      >
+        <ArrowForwardIosIcon />
+      </IconButton>
+
+      {/* Pagination Dots */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, gap: 1 }}>
+        {reviews.map((_, index) => (
+          <Box
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            sx={{
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              backgroundColor: index === currentIndex ? '#006A68' : 'rgba(0,106,104,0.3)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+            }}
+          />
+        ))}
+      </Box>
+    </Box>
+  );
+
   return (
     <Box
       id="reviews"
@@ -78,9 +340,13 @@ const Reviews: React.FC = () => {
         py: 8,
         px: { xs: 2, md: 4 },
         backgroundColor: '#f2f1f2',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
       }}
     >
-      <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+      <Box sx={{ maxWidth: 1400, mx: 'auto', width: '100%' }}>
         <Typography
           variant="h3"
           sx={{
@@ -90,7 +356,7 @@ const Reviews: React.FC = () => {
             color: '#063231',
           }}
         >
-          Відгуки
+          Відгуки наших студентів
         </Typography>
 
         <motion.div
@@ -98,87 +364,18 @@ const Reviews: React.FC = () => {
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
         >
-          <Box
-            sx={{
-              position: 'relative',
-              maxWidth: 800,
-              mx: 'auto',
-              px: { xs: 2, md: 8 },
-            }}
-          >
-            <IconButton
-              onClick={handlePrev}
-              sx={{
-                position: 'absolute',
-                left: 0,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 2,
-              }}
-            >
-              <ArrowBackIosIcon />
-            </IconButton>
+          {isMobile ? <MobileCarousel /> : <DesktopDashboard />}
 
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card
-                  sx={{
-                    p: 4,
-                    borderRadius: 3,
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                  }}
-                >
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Avatar
-                        src={reviews[currentIndex].avatar}
-                        alt={reviews[currentIndex].name}
-                        sx={{ width: 60, height: 60, mr: 2 }}
-                      />
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                          {reviews[currentIndex].name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {reviews[currentIndex].course}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Rating value={reviews[currentIndex].rating} readOnly sx={{ mb: 2 }} />
-                    <Typography variant="body1">
-                      {reviews[currentIndex].text}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </AnimatePresence>
-
-            <IconButton
-              onClick={handleNext}
-              sx={{
-                position: 'absolute',
-                right: 0,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 2,
-              }}
-            >
-              <ArrowForwardIosIcon />
-            </IconButton>
-          </Box>
-
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
             <Button
               variant="outlined"
+              size="large"
               sx={{
                 borderColor: '#006A68',
                 color: '#006A68',
+                px: 4,
+                py: 1.5,
+                borderRadius: 2,
                 '&:hover': {
                   borderColor: '#004D40',
                   backgroundColor: 'rgba(0, 106, 104, 0.04)',
