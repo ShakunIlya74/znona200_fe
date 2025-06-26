@@ -228,22 +228,18 @@ const Team: React.FC = () => {
                           {member.name}
                         </Typography>
                         
-                        <Typography
-                          variant="body1"
-                          sx={{
-                            lineHeight: 1.4,
-                            textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                            fontSize: isExpanded 
-                              ? { xs: '0.9rem', md: '1rem' }
-                              : { xs: '0.75rem', md: '0.85rem' },
-                            display: isExpanded ? 'block' : '-webkit-box',
-                            WebkitLineClamp: isExpanded ? 'none' : 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {member.role}
-                        </Typography>
+                        {isExpanded && (
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              lineHeight: 1.4,
+                              textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                              fontSize: { xs: '0.9rem', md: '1rem' },
+                            }}
+                          >
+                            {member.role}
+                          </Typography>
+                        )}
                       </motion.div>
                     </AnimatePresence>
                   </Box>
