@@ -102,7 +102,7 @@ const Footer: React.FC = () => {
 
         <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid rgba(255,255,255,0.2)' }}>
           <Typography variant="body2" align="center">
-            ©2025 ЗНО/200 version 1.0.1
+            ©2025 ЗНО/200
           </Typography>
         </Box>
       </Box>

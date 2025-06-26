@@ -16,6 +16,18 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+ 
+import ava1 from '../../source/reviews/img1.jpg';
+import ava2 from '../../source/reviews/img2.jpg';
+import ava3 from '../../source/reviews/img3.jpg';
+import ava4 from '../../source/reviews/img4.jpg';
+import ava5 from '../../source/reviews/img5.jpg';
+
+import rev1 from '../../source/reviews/rev1.png';
+import rev2 from '../../source/reviews/rev2.png';
+import rev3 from '../../source/reviews/rev3.png';
+import rev4 from '../../source/reviews/rev4.png';
+import rev5 from '../../source/reviews/rev5.png';
 
 interface Review {
   id: number;
@@ -47,52 +59,52 @@ const Reviews: React.FC = () => {
   const reviews: Review[] = [
     {
       id: 1,
-      avatar: '../../source/reviews/img1.png',
-      screenshotUrl: '../../source/reviews/rev1.png',
+      avatar: ava1,
+      screenshotUrl: rev1,
       position: {
-        top: '10%',
-        left: '5%',
+        top: '6%',
+        left: '9%',
         zIndex: 2,
       }
     },
     {
       id: 2,
-      avatar: '../../source/reviews/img2.png',
-      screenshotUrl: '../../source/reviews/rev2.png',
+      avatar: ava2,
+      screenshotUrl: rev2,
       position: {
         bottom: '15%',
-        left: '8%',
+        left: '5%',
         zIndex: 1,
       }
     },
     {
       id: 3,
-      avatar: '../../source/reviews/img3.png',
-      screenshotUrl: '../../source/reviews/rev3.png',
+      avatar: ava3,
+      screenshotUrl: rev3,
       position: {
-        top: '25%',
-        right: '10%',
+        top: '2%',
+        left: '37%',
         zIndex: 2,
       }
     },
     {
       id: 4,
       name: 'Юлія Перебийніс',
-      avatar: '../../source/reviews/img4.png',
-      screenshotUrl: '../../source/reviews/rev4.png',
+      avatar: ava4,
+      screenshotUrl: rev4,
       position: {
-        bottom: '10%',
-        right: '5%',
+        bottom: '25%',
+        right: '10%',
         zIndex: 1,
       }
     },
     {
       id: 5,
-      avatar: '../../source/reviews/img5.png',
-      screenshotUrl: '../../source/reviews/rev5.png',
+      avatar: ava5,
+      screenshotUrl: rev5,
       position: {
-        top: '45%',
-        right: '25%',
+        top: '38%',
+        right: '40%',
         zIndex: 3,
       }
     }
@@ -137,7 +149,7 @@ const Reviews: React.FC = () => {
               src={review.screenshotUrl}
               alt={`${review.name} review`}
               sx={{
-                width: { xs: '200px', lg: '250px' },
+                width: { xs: '250px', lg: '300px' },
                 height: 'auto',
                 borderRadius: 3,
                 boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
@@ -155,8 +167,8 @@ const Reviews: React.FC = () => {
               src={review.avatar}
               alt={review.name}
               sx={{
-                width: 60,
-                height: 60,
+                width: 130,
+                height: 130,
                 position: 'absolute',
                 bottom: -15,
                 right: -15,
@@ -166,7 +178,7 @@ const Reviews: React.FC = () => {
             />
             
             {/* Rating Badge */}
-            <Box
+            {/* <Box
               sx={{
                 position: 'absolute',
                 top: -10,
@@ -185,7 +197,7 @@ const Reviews: React.FC = () => {
               }}
             >
               {review.rating}
-            </Box>
+            </Box> */}
           </Box>
         </motion.div>
       ))}
@@ -200,7 +212,7 @@ const Reviews: React.FC = () => {
           zIndex: 0,
         }}
       >
-        <Typography
+        {/* <Typography
           variant="h2"
           sx={{
             color: 'rgba(6, 50, 49, 0.1)',
@@ -210,7 +222,7 @@ const Reviews: React.FC = () => {
           }}
         >
           ВІДГУКИ
-        </Typography>
+        </Typography> */}
       </Box>
     </Box>
   );
@@ -362,11 +374,11 @@ const Reviews: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 1 }}
         >
           {isMobile ? <MobileCarousel /> : <DesktopDashboard />}
 
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+          {/* <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
             <Button
               variant="outlined"
               size="large"
@@ -384,7 +396,7 @@ const Reviews: React.FC = () => {
             >
               Переглянути всі відгуки
             </Button>
-          </Box>
+          </Box> */}
         </motion.div>
       </Box>
     </Box>
