@@ -882,7 +882,7 @@ const UserGroupContent: React.FC<UserGroupContentProps> = ({ groupId }) => {
                                 onClick={toggleShowEmptyFolders}
                                 sx={{ borderRadius: '8px' }}
                             >
-                                Додати матеріали з інших модулей
+                                Додати матеріали з інших модулів
                             </Button>
                         )}
                     </Box>

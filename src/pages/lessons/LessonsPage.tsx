@@ -344,7 +344,7 @@ const LessonsPage: React.FC = () => {
           <InputBase
             inputRef={folderSearchInputRef}
             fullWidth
-            placeholder="Пошук модулей..."
+            placeholder="Пошук модулів..."
             value={folderSearchQuery}
             onChange={handleFolderSearchChange}
             sx={{
