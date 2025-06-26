@@ -24,6 +24,7 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useNavigate } from 'react-router-dom';
 import { getMainUserStatistics, FolderStatistics } from '../services/UserService';
 import LoadingDots from '../components/tools/LoadingDots';
 import { getHeaderOffset } from '../components/Header';
@@ -38,6 +39,7 @@ const StatisticsPage: React.FC = () => {  const [loading, setLoading] = useState
   const [openFolderId, setOpenFolderId] = useState<number | string | null>(null);
   
   const theme = useTheme();
+  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const HEADER_OFFSET = getHeaderOffset(isMobile, isMedium);
@@ -66,9 +68,12 @@ const StatisticsPage: React.FC = () => {  const [loading, setLoading] = useState
 
     loadUserStatistics();
   }, []);
-
   const handleFolderClick = (folderId: number | string) => {
     setOpenFolderId(openFolderId === folderId ? null : folderId);
+  };
+
+  const handleTestClick = (tfp_sha: string) => {
+    navigate(`/tests/review/${tfp_sha}`);
   };
 
   const renderStars = (stars: number) => {
@@ -375,14 +380,19 @@ const StatisticsPage: React.FC = () => {  const [loading, setLoading] = useState
                     {folder.tests.length > 0 ? (
                       <List disablePadding>
                         {folder.tests.map((test, index) => (
-                          <React.Fragment key={test.test_id}>
-                            <ListItem
+                          <React.Fragment key={test.test_id}>                            <ListItem
+                              onClick={() => handleTestClick(test.tfp_sha)}
                               sx={{
                                 py: 2,
                                 px: 3,
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: 2
+                                gap: 2,
+                                cursor: 'pointer',
+                                '&:hover': {
+                                  backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                                },
+                                transition: 'background-color 0.2s ease-in-out'
                               }}
                             >
                               <Typography
@@ -395,10 +405,15 @@ const StatisticsPage: React.FC = () => {  const [loading, setLoading] = useState
                               >
                                 {index + 1}
                               </Typography>
-                              
-                              <ListItemText
+                                <ListItemText
                                 primary={
-                                  <Typography sx={{ fontWeight: 500 }}>
+                                  <Typography sx={{ 
+                                    fontWeight: 500,
+                                    '&:hover': {
+                                      color: theme.palette.primary.main
+                                    },
+                                    transition: 'color 0.2s ease-in-out'
+                                  }}>
                                     {test.test_name}
                                   </Typography>
                                 }

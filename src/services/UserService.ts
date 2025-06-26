@@ -119,6 +119,7 @@ interface GroupContentManagementResponse {
 export interface FolderTestStatistics {
   test_id: number | string;
   test_name: string;
+  tfp_sha: string;
   correct_percentage: number;
   stars: number;
 }
