@@ -36,11 +36,11 @@ const InfoBlock: React.FC<InfoBlockProps> = ({ number, title, text, index, isVis
                 opacity: isVisible ? 1 : 0,
                 transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                 transitionDelay: `${index * 0.1}s`,
-                '&:hover': {
-                    transform: isVisible ? 'translateY(-8px) scale(1.02)' : undefined,
-                    boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
-                    transition: 'all 0.3s ease-out',
-                },
+                // '&:hover': {
+                //     transform: isVisible ? 'translateY(-8px) scale(1.02)' : undefined,
+                //     boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                //     transition: 'all 0.3s ease-out',
+                // },
             }}
         >
             <Typography 
@@ -364,13 +364,12 @@ const About: React.FC = () => {
                         justifyContent: 'center',
                         gap: 4,
                     }}
-                >
-                    <Box
+                >                    <Box
                         sx={{
                             flex: '1 1 auto',
                             maxWidth: { xs: '100%', md: '40%' },
                             width: '100%',
-                            display: 'flex',
+                            display: { xs: 'none', md: 'flex' },
                             justifyContent: 'center',
                             alignItems: 'center',
                         }}
