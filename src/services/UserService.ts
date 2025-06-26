@@ -136,8 +136,27 @@ interface MainUserStatisticsResponse {
   success: boolean;
   folder_dicts?: FolderStatistics[];
   stars_number?: number;
+  total_available_tests?: number;
+  total_solved_tests?: number;
+  avg_solved_correct_percentage?: number;
   is_admin: boolean;
   error?: string;
+}
+
+// Interface for paginated group users response
+interface GroupUsersPaginatedResponse {
+  success: boolean;
+  users?: UserInfo[];
+  pagination?: {
+    current_page: number;
+    total_pages: number;
+    total_count: number;
+    page_size: number;
+    has_next: boolean;
+    has_prev: boolean;
+  };
+  is_admin: boolean;
+  message?: string;
 }
 
 /**
@@ -500,6 +519,30 @@ export const removeLessonFromGroup = async (
     return response.data;
   } catch (error) {
     console.error('Error removing lesson from group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches users from a specific user group with pagination
+ * @param userGroupId The ID of the user group to get users from
+ * @param page The page number to fetch (default: 1)
+ * @returns Promise with paginated users information, pagination metadata, and admin status
+ */
+export const getGroupUsersPaginated = async (
+  userGroupId: string | number,
+  page: number = 1
+): Promise<GroupUsersPaginatedResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-groups/users/', {
+      params: { 
+        userGroupId,
+        page: page < 1 ? 1 : page
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching paginated group users:', error);
     throw error;
   }
 };

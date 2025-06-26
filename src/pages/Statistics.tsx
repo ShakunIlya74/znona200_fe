@@ -28,11 +28,13 @@ import { getMainUserStatistics, FolderStatistics } from '../services/UserService
 import LoadingDots from '../components/tools/LoadingDots';
 import { getHeaderOffset } from '../components/Header';
 
-const StatisticsPage: React.FC = () => {
-  const [loading, setLoading] = useState<boolean>(true);
+const StatisticsPage: React.FC = () => {  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [folderStats, setFolderStats] = useState<FolderStatistics[]>([]);
   const [totalStars, setTotalStars] = useState<number>(0);
+  const [totalAvailableTests, setTotalAvailableTests] = useState<number>(0);
+  const [totalSolvedTests, setTotalSolvedTests] = useState<number>(0);
+  const [avgSolvedCorrectPercentage, setAvgSolvedCorrectPercentage] = useState<number>(0);
   const [openFolderId, setOpenFolderId] = useState<number | string | null>(null);
   
   const theme = useTheme();
@@ -45,10 +47,12 @@ const StatisticsPage: React.FC = () => {
       setLoading(true);
       try {
         const response = await getMainUserStatistics();
-        
-        if (response.success && response.folder_dicts) {
+          if (response.success && response.folder_dicts) {
           setFolderStats(response.folder_dicts);
           setTotalStars(response.stars_number || 0);
+          setTotalAvailableTests(response.total_available_tests || 0);
+          setTotalSolvedTests(response.total_solved_tests || 0);
+          setAvgSolvedCorrectPercentage(response.avg_solved_correct_percentage || 0);
         } else {
           setError(response.error || 'Failed to load user statistics');
         }
@@ -69,12 +73,11 @@ const StatisticsPage: React.FC = () => {
 
   const renderStars = (stars: number) => {
     const starIcons = [];
-    for (let i = 1; i <= 3; i++) {
-      starIcons.push(
+    for (let i = 1; i <= 3; i++) {      starIcons.push(
         <StarIcon
           key={i}
           sx={{
-            fontSize: '1rem',
+            fontSize: '1.5rem',
             color: i <= stars ? '#FFD700' : theme.palette.grey[300]
           }}
         />
@@ -84,8 +87,8 @@ const StatisticsPage: React.FC = () => {
   };
 
   const getScoreColor = (percentage: number) => {
-    if (percentage >= 80) return theme.palette.success.main;
-    if (percentage >= 60) return theme.palette.warning.main;
+    if (percentage >= 90) return theme.palette.success.main;
+    if (percentage >= 30) return theme.palette.warning.main;
     return theme.palette.error.main;
   };
 
@@ -137,8 +140,7 @@ const StatisticsPage: React.FC = () => {
         >
           Моя статистика
         </Typography>
-        
-        {/* Total Stars Display */}
+          {/* Total Stars Display */}
         <Paper
           elevation={0}
           sx={{
@@ -167,6 +169,70 @@ const StatisticsPage: React.FC = () => {
             </Typography>
           </Box>
         </Paper>
+
+        {/* Statistics Overview */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 2, mb: 3 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: '16px',
+              border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
+              backgroundColor: alpha(theme.palette.success.main, 0.05),
+              textAlign: 'center'
+            }}
+          >
+            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.success.main, mb: 1 }}>
+              {totalSolvedTests}
+            </Typography>
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+              Пройдено тестів
+            </Typography>
+          </Paper>
+
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: '16px',
+              border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+              backgroundColor: alpha(theme.palette.info.main, 0.05),
+              textAlign: 'center'
+            }}
+          >
+            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.info.main, mb: 1 }}>
+              {totalAvailableTests}
+            </Typography>
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+              Доступно тестів
+            </Typography>
+          </Paper>
+
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: '16px',
+              border: `1px solid ${alpha(getScoreColor(avgSolvedCorrectPercentage), 0.2)}`,
+              backgroundColor: alpha(getScoreColor(avgSolvedCorrectPercentage), 0.05),
+              textAlign: 'center'
+            }}
+          >
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                fontWeight: 700, 
+                color: getScoreColor(avgSolvedCorrectPercentage), 
+                mb: 1 
+              }}
+            >
+              {Math.round(avgSolvedCorrectPercentage * 10) / 10}%
+            </Typography>
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+              Середній результат
+            </Typography>
+          </Paper>
+        </Box>
 
         <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
           Перегляньте свій прогрес по папках і тестах
