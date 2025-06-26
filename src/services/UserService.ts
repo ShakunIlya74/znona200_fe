@@ -176,6 +176,55 @@ export interface AllUsersPaginatedResponse {
   message?: string;
 }
 
+// Interface for user request information
+export interface UserRequest {
+  request_id: number;
+  status: string;
+  comment?: string;
+  phone?: string;
+  telegram_username?: string;
+  instagram_username?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Interface for paginated user requests response
+export interface UserRequestsPaginatedResponse {
+  success: boolean;
+  requests?: UserRequest[];
+  pagination?: {
+    current_page: number;
+    total_pages: number;
+    total_count: number;
+    page_size: number;
+    has_next: boolean;
+    has_prev: boolean;
+  };
+  is_admin: boolean;
+  message?: string;
+}
+
+// Interface for create user request payload
+export interface CreateUserRequestPayload {
+  comment?: string;
+  phone?: string;
+  telegram_username?: string;
+  instagram_username?: string;
+}
+
+// Interface for create user request response
+export interface CreateUserRequestResponse {
+  success: boolean;
+  message?: string;
+  request_id?: number;
+}
+
+// Interface for delete user request response
+export interface DeleteUserRequestResponse {
+  success: boolean;
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -596,6 +645,61 @@ export const getMainUserStatistics = async (): Promise<MainUserStatisticsRespons
     return response.data;
   } catch (error) {
     console.error('Error fetching main user statistics:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches all user requests from the system with pagination
+ * @param page The page number to fetch (default: 1)
+ * @returns Promise with paginated user requests information, pagination metadata, and admin status
+ */
+export const getAllUserRequestsPaginated = async (
+  page: number = 1
+): Promise<UserRequestsPaginatedResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-control/user-requests/', {
+      params: { 
+        page: page < 1 ? 1 : page
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching paginated user requests:', error);
+    throw error;
+  }
+};
+
+/**
+ * Creates a new user request
+ * @param requestData The data for the new user request
+ * @returns Promise with success status, message, and optional request ID
+ */
+export const createUserRequest = async (
+  requestData: CreateUserRequestPayload
+): Promise<CreateUserRequestResponse> => {
+  try {
+    const response = await axiosInstance.post('/create-user-requests/', requestData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating user request:', error);
+    throw error;
+  }
+};
+
+/**
+ * Deletes a specific user request
+ * @param requestId The ID of the user request to delete
+ * @returns Promise with success status and optional message
+ */
+export const deleteUserRequest = async (
+  requestId: number
+): Promise<DeleteUserRequestResponse> => {
+  try {
+    const response = await axiosInstance.delete(`/user-control/delete-user-request/${requestId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting user request:', error);
     throw error;
   }
 };
