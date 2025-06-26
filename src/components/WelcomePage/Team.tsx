@@ -19,6 +19,7 @@ interface TeamMember {
   name: string;
   role: string;
   image: string;
+  horizontalShift?: string;
 }
 
 const Team: React.FC = () => {
@@ -29,37 +30,41 @@ const Team: React.FC = () => {
     triggerOnce: true,
     threshold: 0.1,
   });
-
   const teamMembers: TeamMember[] = [
     {
       id: 1,
       name: 'Анна',
       role: 'Засновниця проєкту, учителька української мови, яка готує до ЗНО вже 10 років, співавторка конспекту з мови.',
       image: ana,
+      horizontalShift: '70%',
     },
     {
       id: 2,
       name: 'Анастасія',
       role: '200-бальниця з української мови та літератури, переможниця Всеукраїнського етапу ХХ Міжнародного конкурсу з української мови імені Петра Яцика, репетиторка з української мови, співавторка конспекту з мови.',
       image: nasty,
+      horizontalShift: '30%',
     },
     {
       id: 3,
       name: 'Лілія',
       role: 'Репетиторка з української мови',
       image: lilia,
+      horizontalShift: '40%',
     },
     {
       id: 4,
       name: 'Олена',
       role: 'Репетиторка з української мови',
       image: olenka,
+      horizontalShift: '70%',
     },
     {
       id: 5,
       name: 'Ярина',
       role: 'Менеджерка',
       image: yarina,
+      horizontalShift: '80%',
     },
   ];
 
@@ -148,11 +153,10 @@ const Team: React.FC = () => {
                 <motion.div
                   key={member.id}
                   variants={itemVariants}
-                  layout
-                  animate={{
+                  layout                  animate={{
                     width: isExpanded 
                       ? isMobile ? 400 : 600 
-                      : isMobile ? 120 : 150,
+                      : isMobile ? 180 : 280,
                   }}
                   transition={{
                     duration: 0.6,
@@ -175,10 +179,9 @@ const Team: React.FC = () => {
                       borderRadius: 3,
                       overflow: 'hidden',
                       cursor: 'pointer',
-                      position: 'relative',
-                      backgroundImage: `url(${member.image})`,
+                      position: 'relative',                      backgroundImage: `url(${member.image})`,
                       backgroundSize: 'cover',
-                      backgroundPosition: 'center',
+                      backgroundPosition: member.horizontalShift || 'center',
                       transition: 'all 0.3s ease',
                       '&:hover': {
                         boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
@@ -196,16 +199,13 @@ const Team: React.FC = () => {
                         transition: 'all 0.3s ease',
                       },
                     }}
-                  >
-                    <AnimatePresence>
+                  >                    <AnimatePresence mode="wait">
                       <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ 
-                          opacity: 1, 
-                          y: 0,
-                        }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{ duration: 0.3 }}
+                        key={isExpanded ? 'expanded' : 'collapsed'}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
                         style={{
                           position: 'absolute',
                           bottom: 16,
@@ -214,64 +214,36 @@ const Team: React.FC = () => {
                           zIndex: 2,
                           color: 'white',
                         }}
-                      >
-                        <Typography
+                      >                        <Typography
                           variant={isExpanded ? "h5" : "h6"}
                           sx={{
                             fontWeight: 'bold',
-                            mb: isExpanded ? 2 : 1,
+                            mb: 1,
                             textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
                             fontSize: isExpanded 
                               ? { xs: '1.5rem', md: '2rem' }
                               : { xs: '1rem', md: '1.25rem' },
-                            transition: 'all 0.3s ease',
                           }}
                         >
                           {member.name}
                         </Typography>
                         
-                        <motion.div
-                          animate={{
-                            opacity: isExpanded ? 1 : 0,
-                            height: isExpanded ? 'auto' : 0,
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            lineHeight: 1.4,
+                            textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                            fontSize: isExpanded 
+                              ? { xs: '0.9rem', md: '1rem' }
+                              : { xs: '0.75rem', md: '0.85rem' },
+                            display: isExpanded ? 'block' : '-webkit-box',
+                            WebkitLineClamp: isExpanded ? 'none' : 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
                           }}
-                          transition={{ duration: 0.4, delay: isExpanded ? 0.2 : 0 }}
-                          style={{ overflow: 'hidden' }}
                         >
-                          <Typography
-                            variant="body1"
-                            sx={{
-                              lineHeight: 1.4,
-                              textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                              fontSize: { xs: '0.9rem', md: '1rem' },
-                            }}
-                          >
-                            {member.role}
-                          </Typography>
-                        </motion.div>
-
-                        {!isExpanded && (
-                          <motion.div
-                            initial={{ opacity: 1 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                          >
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontSize: '0.75rem',
-                                lineHeight: 1.2,
-                                textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              {member.role}
-                            </Typography>
-                          </motion.div>
-                        )}
+                          {member.role}
+                        </Typography>
                       </motion.div>
                     </AnimatePresence>
                   </Box>
