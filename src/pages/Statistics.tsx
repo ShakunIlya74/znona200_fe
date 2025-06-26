@@ -231,11 +231,10 @@ const StatisticsPage: React.FC = () => {
                       >
                         {folder.folder_name}
                       </Typography>
-                      
-                      {/* Average Score Chip */}
+                        {/* Average Score Chip */}
                       <Chip
                         icon={<BarChartIcon />}
-                        label={`${folder.avg_correct_percentage.toFixed(1)}%`}
+                        label={`${Math.round((folder.avg_correct_percentage || 0) * 10) / 10}%`}
                         size="small"
                         sx={{
                           backgroundColor: alpha(getScoreColor(folder.avg_correct_percentage), 0.1),
@@ -245,15 +244,14 @@ const StatisticsPage: React.FC = () => {
                         }}
                       />
                     </Box>
-                    
-                    <Typography
+                      <Typography
                       variant="body2"
                       sx={{
                         color: theme.palette.text.secondary,
                         fontSize: '0.9rem'
                       }}
                     >
-                      Пройдено тестів: {folder.tests.length} • Середній бал: {folder.avg_correct_percentage.toFixed(1)}%
+                      Пройдено тестів: {folder.tests.length} • Середній бал: {Math.round((folder.avg_correct_percentage || 0) * 10) / 10}%
                     </Typography>
                   </CardContent>
                   
@@ -338,8 +336,7 @@ const StatisticsPage: React.FC = () => {
                                     {test.test_name}
                                   </Typography>
                                 }
-                                secondary={
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                                secondary={                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                                     <Typography 
                                       variant="body2" 
                                       sx={{ 
@@ -347,14 +344,13 @@ const StatisticsPage: React.FC = () => {
                                         fontWeight: 600
                                       }}
                                     >
-                                      {test.correct_percentage.toFixed(1)}%
+                                      {Math.round((test.correct_percentage || 0) * 10) / 10}%
                                     </Typography>
                                   </Box>
                                 }
                               />
-                              
-                              {/* Stars Display */}
-                              <Tooltip title={`${test.correct_percentage.toFixed(1)}% правильних відповідей`}>
+                                {/* Stars Display */}
+                              <Tooltip title={`${Math.round((test.correct_percentage || 0) * 10) / 10}% правильних відповідей`}>
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                   {renderStars(test.stars)}
                                 </Box>
