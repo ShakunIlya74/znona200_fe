@@ -12,6 +12,11 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import ana from '../../source/about/ana_full.png'; 
+import nasty from '../../source/about/nasty_full.png';
+import lilia from '../../source/about/lilia_full.png';
+import olenka from '../../source/about/olenka_full.png';
+import yarina from '../../source/about/yarina_full.png';
 
 interface TeamMember {
   id: number;
@@ -31,27 +36,33 @@ const Team: React.FC = () => {
   const teamMembers: TeamMember[] = [
     {
       id: 1,
-      name: 'Ім\'я Прізвище',
-      role: 'Викладач',
-      image: '/placeholder-team-1.jpg', // Replace with actual image
+      name: 'Анна',
+      role: 'Засновниця проєкту, учителька української мови, яка готує до ЗНО вже 10 років, співавторка конспекту з мови.',
+      image: ana, // Replace with actual image
     },
     {
       id: 2,
-      name: 'Ім\'я Прізвище',
-      role: 'Викладач',
-      image: '/placeholder-team-2.jpg', // Replace with actual image
+      name: 'Анастасія',
+      role: '200-бальниця з української мови та літератури, переможниця Всеукраїнського етапу ХХ Міжнародного конкурсу з української мови імені Петра Яцика, репетиторка з української мови, співавторка конспекту з мови.',
+      image: nasty, // Replace with actual image
     },
     {
       id: 3,
-      name: 'Ім\'я Прізвище',
-      role: 'Викладач',
-      image: '/placeholder-team-3.jpg', // Replace with actual image
+      name: 'Лілія',
+      role: 'Репетиторка з української мови',
+      image: lilia, // Replace with actual image
     },
     {
       id: 4,
-      name: 'Ім\'я Прізвище',
-      role: 'Викладач',
-      image: '/placeholder-team-4.jpg', // Replace with actual image
+      name: 'Олена',
+      role: 'Репетиторка з української мови',
+      image: olenka, // Replace with actual image
+    },
+    {
+      id: 5,
+      name: 'Ярина',
+      role: 'Менеджерка',
+      image: yarina, // Replace with actual image
     },
   ];
 
