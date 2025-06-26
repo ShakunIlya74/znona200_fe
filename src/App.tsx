@@ -25,6 +25,7 @@ import NoteViewPage from './pages/NoteViewPage';
 import EditTestPage from './pages/tests/EditTestPage';
 import EditLessonPage from './pages/lessons/EditLessonPage';
 import UserGroupsPage from './pages/user-managment/UserGroupsPage';
+import StatisticsPage from './pages/Statistics';
 
 const withLayout = (Component: React.ComponentType, isViewComponent=false) => () => (
   <>
@@ -151,6 +152,10 @@ const App: React.FC = () => {
         {
           path: 'user-groups',
           element: withLayout(UserGroupsPage)(),
+        },
+        {
+          path: 'statistics',
+          element: withLayout(StatisticsPage)(),
         },
       ],
     },

@@ -115,6 +115,31 @@ interface GroupContentManagementResponse {
   message?: string;
 }
 
+// Interface for test information within folder statistics
+export interface FolderTestStatistics {
+  test_id: number | string;
+  test_name: string;
+  correct_percentage: number;
+  stars: number;
+}
+
+// Interface for folder statistics
+export interface FolderStatistics {
+  folder_id: number | string;
+  folder_name: string;
+  tests: FolderTestStatistics[];
+  avg_correct_percentage: number;
+}
+
+// Interface for main user statistics response
+interface MainUserStatisticsResponse {
+  success: boolean;
+  folder_dicts?: FolderStatistics[];
+  stars_number?: number;
+  is_admin: boolean;
+  error?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -475,6 +500,21 @@ export const removeLessonFromGroup = async (
     return response.data;
   } catch (error) {
     console.error('Error removing lesson from group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches main user statistics including folder progress, test statistics, and total stars
+ * @returns Promise with main user statistics including folders, tests, average scores, and total stars
+ */
+export const getMainUserStatistics = async (): Promise<MainUserStatisticsResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-statistics/main');
+    console.log('Main user statistics response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching main user statistics:', error);
     throw error;
   }
 };
