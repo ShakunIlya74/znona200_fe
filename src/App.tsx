@@ -26,6 +26,7 @@ import EditTestPage from './pages/tests/EditTestPage';
 import EditLessonPage from './pages/lessons/EditLessonPage';
 import UserGroupsPage from './pages/user-managment/UserGroupsPage';
 import StatisticsPage from './pages/Statistics';
+import UserControlPage from './pages/user-managment/UserControlPage';
 
 const withLayout = (Component: React.ComponentType, isViewComponent=false) => () => (
   <>
@@ -156,6 +157,10 @@ const App: React.FC = () => {
         {
           path: 'statistics',
           element: withLayout(StatisticsPage)(),
+        },
+        {
+          path: 'user-control',
+          element: withLayout(UserControlPage)(),
         },
       ],
     },

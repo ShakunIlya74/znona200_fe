@@ -64,7 +64,8 @@ const pathToMenuMap: Record<string, string> = {
   'statistics': 'statistics',
   'queries': 'queries',
   // 'groups': 'groups',
-  'user-groups': 'user-groups' // Added mapping for user-groups
+  'user-groups': 'user-groups', // Added mapping for user-groups
+  'user-control': 'user-control' // Added mapping for user-control
 };
 
 const BUTTON_FONT_SIZE = '18px';
@@ -289,13 +290,13 @@ function Header() {
         <ListItem component="div" disablePadding>
           <ListItemButton
             component={Link}
-            to="/queries"
+            to="/user-control"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "queries" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "user-control" ? "#FFFFFF" : "inherit" }}
           >
             <ContactPhoneOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
-              primary="Запити"
+              primary="Користувачі"
               primaryTypographyProps={{ sx: { fontSize: BUTTON_FONT_SIZE } }}
             />
           </ListItemButton>
