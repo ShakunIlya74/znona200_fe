@@ -79,11 +79,10 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
             }
         } catch (err) {
             console.error('Error loading initial users:', err);
-            setError('An error occurred while loading users');
-        } finally {
+            setError('An error occurred while loading users');        } finally {
             setInitialLoading(false);
         }
-    }, [retrieveUsersPaginated, onUserChange]);
+    }, [retrieveUsersPaginated]);
     
     // Load more users for infinite scrolling
     const loadMoreUsers = useCallback(async () => {
@@ -114,11 +113,10 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                 });
             }
         } catch (err) {
-            console.error('Error loading more users:', err);
-        } finally {
+            console.error('Error loading more users:', err);        } finally {
             setPaginationLoading(false);
         }
-    }, [paginationLoading, hasNextPage, currentPage, allUsers, retrieveUsersPaginated, onUserChange]);
+    }, [paginationLoading, hasNextPage, currentPage, allUsers, retrieveUsersPaginated]);
 
     // Debounced search function to prevent excessive API calls
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -152,9 +150,8 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                 setSearchResults([]);
             } finally {
                 setSearchLoading(false);
-            }
-        }, 500), // 500ms debounce time
-        [onSearch, onUserChange]
+            }        }, 500), // 500ms debounce time
+        [onSearch]
     );
     
     // Function to handle scroll event for infinite scrolling

@@ -240,10 +240,9 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
         if (onClick) {
             // External handler provided - use it
             onClick(currentUser);
-        } else {
-            // No external handler - toggle internal state
-            setIsInternallyCollapsed(!isInternallyCollapsed);
         }
+        // No external handler - toggle internal state
+        setIsInternallyCollapsed(!isInternallyCollapsed);
     };
 
     // Field save handlers
