@@ -50,6 +50,12 @@ interface UserGroupManagementResponse {
   message?: string;
 }
 
+// Interface for user activation/deactivation response
+interface UserActivationResponse {
+  success: boolean;
+  message?: string;
+}
+
 // Interface for folder information
 export interface FolderInfo {
   folder_name: string;
@@ -700,6 +706,40 @@ export const deleteUserRequest = async (
     return response.data;
   } catch (error) {
     console.error('Error deleting user request:', error);
+    throw error;
+  }
+};
+
+/**
+ * Activates a specific user
+ * @param userId The ID of the user to activate
+ * @returns Promise with success status and optional message
+ */
+export const activateUser = async (
+  userId: number | string
+): Promise<UserActivationResponse> => {
+  try {
+    const response = await axiosInstance.put(`/user-control/activate-user/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error activating user:', error);
+    throw error;
+  }
+};
+
+/**
+ * Deactivates a specific user and removes them from all active groups
+ * @param userId The ID of the user to deactivate
+ * @returns Promise with success status and optional message
+ */
+export const deactivateUser = async (
+  userId: number | string
+): Promise<UserActivationResponse> => {
+  try {
+    const response = await axiosInstance.put(`/user-control/deactivate-user/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deactivating user:', error);
     throw error;
   }
 };
