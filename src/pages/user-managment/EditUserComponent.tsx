@@ -691,7 +691,8 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                         sx={{ flex: 1 }}
                     />
                     
-                    <Button
+                    {/* TODO: implement complete user deletion later */}
+                    {/* <Button
                         variant="outlined"
                         color="error"
                         size="small"
@@ -700,13 +701,13 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                         sx={{ minWidth: 120 }}
                     >
                         Видалити
-                    </Button>
+                    </Button> */}
                 </Box>
 
                 <Divider sx={{ my: 2 }} />
 
-                {/* Group Management */}
-                <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                {/* TODO: implement Group Management later */}
+                {/* <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
                     <GroupIcon />
                     Групи користувача
                 </Typography>
@@ -748,7 +749,7 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                     sx={{ mb: 1 }}
                 >
                     Оновити групи
-                </Button>
+                </Button> */}
                 </Paper>
             )}
 
