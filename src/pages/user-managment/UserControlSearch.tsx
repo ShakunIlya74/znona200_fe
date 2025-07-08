@@ -197,6 +197,21 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
 
     return (
         <Box sx={{ width: '100%' }}>
+            {/* User Count Display */}
+            {totalCount > 0 && !initialLoading && (
+                <Typography 
+                    variant="caption" 
+                    sx={{ 
+                        color: theme.palette.text.secondary,
+                        fontSize: '0.75rem',
+                        mb: 1,
+                        display: 'block'
+                    }}
+                >
+                    Всього користувачів: {totalCount}
+                </Typography>
+            )}
+            
             {/* Search Field */}
             <TextField
                 fullWidth
