@@ -188,10 +188,13 @@ export interface UserRequest {
   status: string;
   comment?: string;
   phone?: string;
+  email?: string;
+  name?: string;
+  surname?: string;
   telegram_username?: string;
   instagram_username?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Interface for paginated user requests response

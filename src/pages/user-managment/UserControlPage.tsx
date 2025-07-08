@@ -13,7 +13,8 @@ import {
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import UserControlSearch from './UserControlSearch';
-import { getAllUsersPaginated, searchUsersControlPage, UserInfo } from '../../services/UserService';
+import { getAllUsersPaginated, searchUsersControlPage, UserInfo, getAllUserRequestsPaginated, UserRequest } from '../../services/UserService';
+import { ExtendedUserRequest } from './UserRequestComponent';
 
 const UserControlPage: React.FC = () => {
     const theme = useTheme();
@@ -40,7 +41,7 @@ const UserControlPage: React.FC = () => {
     const handleCloseNotification = () => {
         setNotification(prev => ({ ...prev, open: false }));
     };    // Common user click handler - memoized to prevent unnecessary re-renders
-    const handleUserClick = useCallback((user: UserInfo) => {
+    const handleUserClick = useCallback((user: UserInfo | ExtendedUserRequest) => {
         console.log('User clicked:', user);
         // Don't show notification to prevent re-renders that cause card reloads
         // setNotification({
@@ -51,9 +52,11 @@ const UserControlPage: React.FC = () => {
     }, []);
 
     // Common user change handler - memoized to prevent unnecessary re-renders
-    const handleUserChange = useCallback((users: UserInfo[]) => {
+    const handleUserChange = useCallback((users: (UserInfo | ExtendedUserRequest)[]) => {
         console.log('Users changed:', users.length);
-    }, []);    // Wrapper functions for UserControlSearch - memoized to prevent unnecessary re-renders
+    }, []);// Wrapper functions for UserControlSearch - memoized to prevent unnecessary re-renders
+    const getUserRequestsPaginated = useCallback((page: number) => getAllUserRequestsPaginated(page), []);
+    
     const getUsersPaginatedWithoutGroups = useCallback((page: number) => getAllUsersPaginated(page, 'without group'), []);
     const searchUsersWithoutGroups = useCallback((searchQuery: string) => searchUsersControlPage(searchQuery, 'without group'), []);
     
@@ -110,16 +113,14 @@ const UserControlPage: React.FC = () => {
                 </Typography>
             )}            {/* User Requests Tab */}
             <Box sx={{ display: tabValue === 0 ? 'block' : 'none' }}>
-                <Typography 
-                    sx={{ 
-                        textAlign: 'center', 
-                        py: 4, 
-                        color: theme.palette.text.secondary 
-                    }}
-                >
-                    User Requests functionality will be implemented here.
-                </Typography>
-            </Box>            {/* Users Without Groups Tab */}
+                <UserControlSearch
+                    onClick={handleUserClick}
+                    onUserChange={handleUserChange}
+                    retrieveUsersPaginated={getUserRequestsPaginated}
+                    searchPlaceholder="Пошук запитів..."
+                    mode="requests"
+                />
+            </Box>{/* Users Without Groups Tab */}
             <Box sx={{ display: tabValue === 1 ? 'block' : 'none' }}>
                 <UserControlSearch
                     onClick={handleUserClick}

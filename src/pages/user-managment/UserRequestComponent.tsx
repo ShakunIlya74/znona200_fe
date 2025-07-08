@@ -38,6 +38,7 @@ import CommentIcon from '@mui/icons-material/Comment';
 import ExpandLessOutlinedIcon from '@mui/icons-material/ExpandLessOutlined';
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { UserRequest } from '../../services/UserService';
 
 // Request status enum
 export enum RequestStatus {
@@ -47,29 +48,25 @@ export enum RequestStatus {
     WRONG_CONTACTS = 'WRONG_CONTACTS'
 }
 
-// User request interface
-export interface UserRequest {
-    id: number | string;
-    phone: string;
-    comment: string;
+// Extended UserRequest interface to include additional fields for the component
+export interface ExtendedUserRequest extends UserRequest {
+    id: number | string; // Make id required
     name?: string;
     surname?: string;
-    telegram_username?: string;
-    instagram_username?: string;
     email?: string;
+    phone: string; // Override to make it required
+    comment: string; // Override to make it required
     status: RequestStatus;
-    created_at?: string;
-    updated_at?: string;
 }
 
 // Props interface for the UserRequestComponent
 interface UserRequestComponentProps {
-    request: UserRequest;
+    request: ExtendedUserRequest;
     onStatusChange?: (requestId: number | string, newStatus: RequestStatus) => Promise<boolean>;
-    onUpdate?: (updatedRequest: UserRequest) => Promise<boolean>;
+    onUpdate?: (updatedRequest: ExtendedUserRequest) => Promise<boolean>;
     collapsed?: boolean;
     index?: number;
-    onClick?: (request: UserRequest) => void;
+    onClick?: (request: ExtendedUserRequest) => void;
 }
 
 // Helper function to get status color and label
@@ -260,9 +257,8 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
 }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    
-    // State management
-    const [currentRequest, setCurrentRequest] = useState<UserRequest>(request);
+      // State management
+    const [currentRequest, setCurrentRequest] = useState<ExtendedUserRequest>(request);
     const [isInternallyCollapsed, setIsInternallyCollapsed] = useState(collapsed);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
