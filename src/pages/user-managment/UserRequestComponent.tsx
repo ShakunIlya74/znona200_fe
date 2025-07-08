@@ -78,6 +78,21 @@ const getStatusConfig = (status: string | undefined) => {
     }
 };
 
+// Helper function to construct Telegram URL from phone number
+const constructTelegramUrl = (phone: string): string => {
+    // Remove all spaces and brackets from phone number
+    const cleanPhone = phone.replace(/[\s\(\)\-]/g, '');
+    // Concatenate with Telegram URL prefix
+    return `https://t.me/+38${cleanPhone}`;
+};
+
+// Helper function to open Telegram link in new window
+const openTelegramLink = (phone: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const telegramUrl = constructTelegramUrl(phone);
+    window.open(telegramUrl, '_blank');
+};
+
 // Individual editable field component
 interface EditableFieldProps {
     label: string;
@@ -421,8 +436,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                 >
                                     {[currentRequest.name, currentRequest.surname].filter(Boolean).join(' ')}
                                 </Typography>
-                            )}                            {/* Phone or fallback */}
-                            {currentRequest.phone ? (
+                            )}                            {/* Phone or fallback */}                            {currentRequest.phone ? (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
                                     <PhoneIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
                                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -437,6 +451,18 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                             <ContentCopyIcon 
                                                 fontSize="small" 
                                                 color={copySuccess === 'phone' ? "success" : "inherit"}
+                                            />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Відкрити в Telegram">
+                                        <IconButton 
+                                            size="small" 
+                                            onClick={(e) => openTelegramLink(currentRequest.phone || '', e)}
+                                            sx={{ ml: 0.5 }}
+                                        >
+                                            <TelegramIcon 
+                                                fontSize="small" 
+                                                color="primary"
                                             />
                                         </IconButton>
                                     </Tooltip>
