@@ -485,6 +485,11 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                             />
                                         </IconButton>
                                     </Tooltip>
+                                    <Tooltip title="Відкрити Telegram">
+                                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(`https://t.me/${currentRequest.telegram_username?.replace(/^@/, '')}`, '_blank'); }} sx={{ ml: 0.5 }}>
+                                            <TelegramIcon fontSize="small" color="primary" />
+                                        </IconButton>
+                                    </Tooltip>
                                 </Box>
                             ) : currentRequest.instagram_username ? (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
@@ -502,6 +507,11 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                                 fontSize="small" 
                                                 color={copySuccess === 'instagram' ? "success" : "inherit"}
                                             />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Відкрити Instagram">
+                                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(`https://instagram.com/${currentRequest.instagram_username}`, '_blank'); }} sx={{ ml: 0.5 }}>
+                                            <InstagramIcon fontSize="small" color="primary" />
                                         </IconButton>
                                     </Tooltip>
                                 </Box>
