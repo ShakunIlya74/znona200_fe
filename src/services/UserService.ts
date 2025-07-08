@@ -219,6 +219,9 @@ export interface CreateUserRequestPayload {
   phone?: string;
   telegram_username?: string;
   instagram_username?: string;
+  name?: string;
+  surname?: string;
+  email?: string;
 }
 
 // Interface for create user request response

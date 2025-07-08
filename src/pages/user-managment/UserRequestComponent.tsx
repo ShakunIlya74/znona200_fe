@@ -454,7 +454,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                             />
                                         </IconButton>
                                     </Tooltip>
-                                    <Tooltip title="Відкрити в Telegram">
+                                    <Tooltip title="Шукати в Telegram">
                                         <IconButton 
                                             size="small" 
                                             onClick={(e) => openTelegramLink(currentRequest.phone || '', e)}
