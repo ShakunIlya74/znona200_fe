@@ -467,6 +467,44 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                         </IconButton>
                                     </Tooltip>
                                 </Box>
+                            ) : currentRequest.telegram_username ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                    <TelegramIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                        {currentRequest.telegram_username}
+                                    </Typography>
+                                    <Tooltip title={copySuccess === 'telegram' ? "Скопійовано!" : "Копіювати Telegram"}>
+                                        <IconButton 
+                                            size="small" 
+                                            onClick={(e) => copyToClipboard(currentRequest.telegram_username || '', 'telegram', e)} 
+                                            sx={{ ml: 0.5 }}
+                                        >
+                                            <ContentCopyIcon 
+                                                fontSize="small" 
+                                                color={copySuccess === 'telegram' ? "success" : "inherit"}
+                                            />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Box>
+                            ) : currentRequest.instagram_username ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                    <InstagramIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                        {currentRequest.instagram_username}
+                                    </Typography>
+                                    <Tooltip title={copySuccess === 'instagram' ? "Скопійовано!" : "Копіювати Instagram"}>
+                                        <IconButton 
+                                            size="small" 
+                                            onClick={(e) => copyToClipboard(currentRequest.instagram_username || '', 'instagram', e)} 
+                                            sx={{ ml: 0.5 }}
+                                        >
+                                            <ContentCopyIcon 
+                                                fontSize="small" 
+                                                color={copySuccess === 'instagram' ? "success" : "inherit"}
+                                            />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Box>
                             ) : (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
                                     <PhoneIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
