@@ -34,6 +34,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import GroupIcon from '@mui/icons-material/Group';
+import ExpandLessOutlinedIcon from '@mui/icons-material/ExpandLessOutlined';
 import { UserInfo } from '../../services/UserService';
 
 // Extended UserInfo interface to include Instagram username
@@ -110,13 +111,11 @@ const EditableField: React.FC<EditableFieldProps> = ({
     const handleCancel = () => {
         setEditValue(value);
         setIsEditing(false);
-    };
-
-    return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+    };    return (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
             {icon}
             <Box sx={{ flex: 1 }}>
-                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: '0.7rem' }}>
+                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: '0.65rem' }}>
                     {label}
                 </Typography>
                 {isEditing ? (
@@ -506,31 +505,33 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                             )}
                         </Box>
                     </Box>
-                </Paper>
-            ) : (                // Expanded mode - full edit capabilities
-                <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto', p: isMobile ? 1 : 2 }}>
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: isMobile ? 2 : 3,
-                            borderRadius: '16px',
-                            border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
-                            minHeight: '600px', // Increased height
-                        }}
-                    >
-                {/* Header with Avatar and Basic Info */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                </Paper>            ) : (                // Expanded mode - full edit capabilities
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: isMobile ? 1.5 : 2,
+                        borderRadius: '12px',
+                        border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                        mb: 1,
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                            borderColor: alpha(theme.palette.primary.main, 0.3),
+                            boxShadow: theme.shadows[1]
+                        }
+                    }}
+                >                {/* Header with Avatar and Basic Info */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                     <Avatar 
                         sx={{ 
                             bgcolor: getAvatarColor(currentUser.user_id),
-                            width: 60, 
-                            height: 60,
-                            fontSize: '1.5rem'
+                            width: 40, 
+                            height: 40,
+                            fontSize: '1.1rem'
                         }}
                     >
                         {getInitials(currentUser.name, currentUser.surname)}
                     </Avatar>                    <Box sx={{ flex: 1 }}>
-                        <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
                             {currentUser.name} {currentUser.surname}
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -538,32 +539,32 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                                 size="small"
                                 label={currentUser.is_active ? "Активний" : "Неактивний"}
                                 color={currentUser.is_active ? "success" : "default"}
-                                sx={{ height: 24 }}
+                                sx={{ height: 20, fontSize: '0.7rem' }}
                             />
-                            <Switch
-                                checked={currentUser.is_active}
-                                onChange={() => {
-                                    // TODO: Implement toggle functionality
-                                    console.log('Toggle user activation state');
-                                }}
-                                size="small"
-                                color="primary"
-                            />
-                            <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                                ID: {currentUser.user_id}
-                            </Typography>
                         </Box>
                     </Box>
+                    
+                    {/* Close/Collapse button in header */}
+                    <IconButton
+                        onClick={handleCardClick}
+                        size="small"
+                        sx={{
+                            bgcolor: alpha(theme.palette.grey[500], 0.1),
+                            '&:hover': {
+                                bgcolor: alpha(theme.palette.grey[500], 0.2),
+                            }
+                        }}
+                    >
+                        <ExpandLessOutlinedIcon fontSize="small" />
+                    </IconButton>
                 </Box>
 
-                <Divider sx={{ mb: 3 }} />
-
-                {/* Editable Fields */}
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                <Divider sx={{ mb: 2 }} />                {/* Editable Fields */}
+                <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
                     Особиста інформація
                 </Typography>
 
-                <Grid container spacing={isMobile ? 1 : 2}>
+                <Grid container spacing={isMobile ? 1 : 1.5}>
                     <Grid item xs={12} md={6}>
                         <EditableField
                             label="Ім'я"
@@ -616,22 +617,21 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                     icon={<InstagramIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
                     onSave={(value) => handleSaveField('insta_username', value)}
                     placeholder="Введіть username Instagram"
-                />
-
-                <Divider sx={{ my: 3 }} />
+                />                <Divider sx={{ my: 2 }} />
 
                 {/* User Status and Actions */}
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
                     Статус і дії
                 </Typography>
 
-                <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 2, alignItems: 'center', mb: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 2, alignItems: 'center', mb: 2 }}>
                     <FormControlLabel
                         control={
                             <Switch
                                 checked={currentUser.is_active}
                                 onChange={handleToggleActivation}
                                 color="primary"
+                                size="small"
                             />
                         }
                         label={currentUser.is_active ? "Користувач активний" : "Користувач неактивний"}
@@ -641,39 +641,40 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                     <Button
                         variant="outlined"
                         color="error"
+                        size="small"
                         startIcon={<DeleteIcon />}
                         onClick={() => setDeleteDialogOpen(true)}
-                        sx={{ minWidth: 140 }}
+                        sx={{ minWidth: 120 }}
                     >
                         Видалити
                     </Button>
                 </Box>
 
-                <Divider sx={{ my: 3 }} />
+                <Divider sx={{ my: 2 }} />
 
                 {/* Group Management */}
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
                     <GroupIcon />
                     Групи користувача
                 </Typography>
 
-                <Box sx={{ mb: 2 }}>
+                <Box sx={{ mb: 1.5 }}>
                     <Autocomplete
                         multiple
                         options={availableGroups}
                         getOptionLabel={(option) => option.group_name}
                         value={selectedGroups}
                         onChange={(_, newValue) => setSelectedGroups(newValue)}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                placeholder="Оберіть групи для користувача"
-                                sx={{
-                                    '& .MuiOutlinedInput-root': {
-                                        borderRadius: '12px',
-                                    }
-                                }}
-                            />
+                        renderInput={(params) => (                        <TextField
+                            {...params}
+                            placeholder="Оберіть групи для користувача"
+                            size="small"
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: '8px',
+                                }
+                            }}
+                        />
                         )}
                         renderTags={(value, getTagProps) =>
                             value.map((option, index) => (
@@ -689,13 +690,13 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                     />
                 </Box>                <Button
                     variant="contained"
+                    size="small"
                     onClick={handleGroupsUpdate}
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 1 }}
                 >
                     Оновити групи
                 </Button>
-                    </Paper>
-                </Box>
+                </Paper>
             )}
 
             {/* Confirmation Dialogs - shown in both modes */}

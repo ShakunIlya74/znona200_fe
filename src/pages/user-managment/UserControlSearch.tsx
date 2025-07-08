@@ -232,7 +232,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
             {/* Search Results Container */}
             <Box 
                 sx={{ 
-                    maxHeight: '50vh', 
+                    maxHeight: '60vh', 
                     overflowY: 'auto',
                     pr: 1,
                     '&::-webkit-scrollbar': {
