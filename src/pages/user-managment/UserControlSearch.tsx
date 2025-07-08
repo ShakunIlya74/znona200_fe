@@ -14,15 +14,15 @@ import PersonIcon from '@mui/icons-material/Person';
 import { UserInfo, UserSearchResponse, AllUsersPaginatedResponse, UserRequest, UserRequestsPaginatedResponse } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import EditUserComponent from './EditUserComponent';
-import UserRequestComponent, { ExtendedUserRequest, RequestStatus } from './UserRequestComponent';
+import UserRequestComponent, { RequestStatus } from './UserRequestComponent';
 import { debounce } from 'lodash';
 
 /**
  * UserControlSearch component provides a generic search interface for users and user requests
  */
 interface UserControlSearchProps {
-    onClick: (user: UserInfo | ExtendedUserRequest) => void;
-    onUserChange?: (users: (UserInfo | ExtendedUserRequest)[]) => void;
+    onClick: (user: UserInfo | UserRequest) => void;
+    onUserChange?: (users: (UserInfo | UserRequest)[]) => void;
     retrieveUsersPaginated: (page: number, mode?: string) => Promise<AllUsersPaginatedResponse | UserRequestsPaginatedResponse>;
     onSearch?: (searchQuery: string, searchMode: string) => Promise<UserSearchResponse>;
     searchPlaceholder?: string;
@@ -39,8 +39,8 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
 }) => {
     const theme = useTheme();
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const [searchResults, setSearchResults] = useState<(UserInfo | ExtendedUserRequest)[]>([]);
-    const [allUsers, setAllUsers] = useState<(UserInfo | ExtendedUserRequest)[]>([]);
+    const [searchResults, setSearchResults] = useState<(UserInfo | UserRequest)[]>([]);
+    const [allUsers, setAllUsers] = useState<(UserInfo | UserRequest)[]>([]);
     const [searchLoading, setSearchLoading] = useState<boolean>(false);
     const [paginationLoading, setPaginationLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -53,19 +53,6 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
     // Loading states
     const [initialLoading, setInitialLoading] = useState<boolean>(false);
 
-    // Helper function to convert UserRequest to ExtendedUserRequest
-    const convertToExtendedUserRequest = (request: UserRequest): ExtendedUserRequest => {
-        return {
-            ...request,
-            id: request.request_id,
-            phone: request.phone || '',
-            comment: request.comment || '',
-            status: request.status as RequestStatus || RequestStatus.NEW,
-            name: undefined,
-            surname: undefined,
-            email: undefined,
-        };
-    };// Load initial paginated users
     const loadInitialUsers = useCallback(async () => {
         setInitialLoading(true);
         setError(null);
@@ -78,7 +65,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                     : (response as AllUsersPaginatedResponse).users || [];
                 
                 const users = mode === 'requests' 
-                    ? (rawUsers as UserRequest[]).map(convertToExtendedUserRequest)
+                    ? (rawUsers as UserRequest[])
                     : rawUsers as UserInfo[];
                 
                 setAllUsers(users);
@@ -121,7 +108,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                     : (response as AllUsersPaginatedResponse).users || [];
                 
                 const newUsers = mode === 'requests' 
-                    ? (rawNewUsers as UserRequest[]).map(convertToExtendedUserRequest)
+                    ? (rawNewUsers as UserRequest[])
                     : rawNewUsers as UserInfo[];
                 
                 const newAllUsers = [...allUsers, ...newUsers];
@@ -220,7 +207,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
         return () => {
             debouncedSearch.cancel();
         };
-    }, [searchQuery, debouncedSearch]);    const handleUserClick = (user: UserInfo | ExtendedUserRequest) => {
+    }, [searchQuery, debouncedSearch]);    const handleUserClick = (user: UserInfo | UserRequest) => {
         onClick(user);
     };
 
@@ -363,8 +350,8 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                         {searchQuery.trim() && searchResults.map((item, index) => (
                             mode === 'requests' ? (
                                 <UserRequestComponent
-                                    key={`search-${(item as ExtendedUserRequest).id}`}
-                                    request={item as ExtendedUserRequest}
+                                    key={`search-${(item as UserRequest).request_id}`}
+                                    request={item as UserRequest}
                                     collapsed={true}
                                     index={index + 1}
                                     onClick={handleUserClick}
@@ -384,8 +371,8 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                         {!searchQuery.trim() && allUsers.map((item, index) => (
                             mode === 'requests' ? (
                                 <UserRequestComponent
-                                    key={`all-${(item as ExtendedUserRequest).id}`}
-                                    request={item as ExtendedUserRequest}
+                                    key={`all-${(item as UserRequest).request_id}`}
+                                    request={item as UserRequest}
                                     collapsed={true}
                                     index={index + 1}
                                     onClick={handleUserClick}

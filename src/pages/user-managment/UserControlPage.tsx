@@ -14,7 +14,7 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import UserControlSearch from './UserControlSearch';
 import { getAllUsersPaginated, searchUsersControlPage, UserInfo, getAllUserRequestsPaginated, UserRequest } from '../../services/UserService';
-import { ExtendedUserRequest } from './UserRequestComponent';
+
 
 const UserControlPage: React.FC = () => {
     const theme = useTheme();
@@ -41,7 +41,7 @@ const UserControlPage: React.FC = () => {
     const handleCloseNotification = () => {
         setNotification(prev => ({ ...prev, open: false }));
     };    // Common user click handler - memoized to prevent unnecessary re-renders
-    const handleUserClick = useCallback((user: UserInfo | ExtendedUserRequest) => {
+    const handleUserClick = useCallback((user: UserInfo | UserRequest) => {
         console.log('User clicked:', user);
         // Don't show notification to prevent re-renders that cause card reloads
         // setNotification({
@@ -52,7 +52,7 @@ const UserControlPage: React.FC = () => {
     }, []);
 
     // Common user change handler - memoized to prevent unnecessary re-renders
-    const handleUserChange = useCallback((users: (UserInfo | ExtendedUserRequest)[]) => {
+    const handleUserChange = useCallback((users: (UserInfo | UserRequest)[]) => {
         console.log('Users changed:', users.length);
     }, []);// Wrapper functions for UserControlSearch - memoized to prevent unnecessary re-renders
     const getUserRequestsPaginated = useCallback((page: number) => getAllUserRequestsPaginated(page), []);

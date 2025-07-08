@@ -185,7 +185,7 @@ export interface AllUsersPaginatedResponse {
 // Interface for user request information
 export interface UserRequest {
   request_id: number;
-  status: string;
+  status?: string;
   comment?: string;
   phone?: string;
   email?: string;

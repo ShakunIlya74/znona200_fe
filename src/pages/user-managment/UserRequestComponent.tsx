@@ -38,9 +38,12 @@ import CommentIcon from '@mui/icons-material/Comment';
 import ExpandLessOutlinedIcon from '@mui/icons-material/ExpandLessOutlined';
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import EventIcon from '@mui/icons-material/Event';
+import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import { UserRequest } from '../../services/UserService';
 
-// Request status enum
+// Request status enum - matching backend values
 export enum RequestStatus {
     NEW = 'NEW',
     APPROVED = 'APPROVED',
@@ -48,29 +51,19 @@ export enum RequestStatus {
     WRONG_CONTACTS = 'WRONG_CONTACTS'
 }
 
-// Extended UserRequest interface to include additional fields for the component
-export interface ExtendedUserRequest extends UserRequest {
-    id: number | string; // Make id required
-    name?: string;
-    surname?: string;
-    email?: string;
-    phone: string; // Override to make it required
-    comment: string; // Override to make it required
-    status: RequestStatus;
-}
 
 // Props interface for the UserRequestComponent
 interface UserRequestComponentProps {
-    request: ExtendedUserRequest;
+    request: UserRequest;
     onStatusChange?: (requestId: number | string, newStatus: RequestStatus) => Promise<boolean>;
-    onUpdate?: (updatedRequest: ExtendedUserRequest) => Promise<boolean>;
+    onUpdate?: (updatedRequest: UserRequest) => Promise<boolean>;
     collapsed?: boolean;
     index?: number;
-    onClick?: (request: ExtendedUserRequest) => void;
+    onClick?: (request: UserRequest) => void;
 }
 
 // Helper function to get status color and label
-const getStatusConfig = (status: RequestStatus) => {
+const getStatusConfig = (status: string | undefined) => {
     switch (status) {
         case RequestStatus.NEW:
             return { color: 'info' as const, label: 'Новий' };
@@ -81,7 +74,7 @@ const getStatusConfig = (status: RequestStatus) => {
         case RequestStatus.WRONG_CONTACTS:
             return { color: 'warning' as const, label: 'Неправильні контакти' };
         default:
-            return { color: 'default' as const, label: 'Невідомий' };
+            return { color: 'default' as const, label: 'Неправильні контакти' };
     }
 };
 
@@ -198,7 +191,7 @@ const EditableField: React.FC<EditableFieldProps> = ({
 // Read-only field component
 interface ReadOnlyFieldProps {
     label: string;
-    value: string;
+    value: string | undefined;
     icon: React.ReactNode;
     copyable?: boolean;
 }
@@ -210,10 +203,9 @@ const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({
     copyable = false
 }) => {
     const theme = useTheme();
-    const [copySuccess, setCopySuccess] = useState(false);
-
-    const handleCopy = async (event: React.MouseEvent) => {
+    const [copySuccess, setCopySuccess] = useState(false);    const handleCopy = async (event: React.MouseEvent) => {
         event.stopPropagation();
+        if (!value) return;
         try {
             await navigator.clipboard.writeText(value);
             setCopySuccess(true);
@@ -258,7 +250,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
       // State management
-    const [currentRequest, setCurrentRequest] = useState<ExtendedUserRequest>(request);
+    const [currentRequest, setCurrentRequest] = useState<UserRequest>(request);
     const [isInternallyCollapsed, setIsInternallyCollapsed] = useState(collapsed);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -285,10 +277,8 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
         
         const hue = Math.abs(hash) % 360;
         return `hsl(${hue}, 70%, 80%)`;
-    };
-
-    const trimComment = (comment: string, maxLength: number = 80) => {
-        if (comment.length <= maxLength) return comment;
+    };    const trimComment = (comment: string | undefined, maxLength: number = 80) => {
+        if (!comment || comment.length <= maxLength) return comment || '';
         return comment.substring(0, maxLength) + '...';
     };
 
@@ -325,7 +315,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
         
         try {
             if (onStatusChange) {
-                const success = await onStatusChange(currentRequest.id, newStatus);
+                const success = await onStatusChange(currentRequest.request_id, newStatus);
                 if (success) {
                     setCurrentRequest(prev => ({ ...prev, status: newStatus }));
                     showSnackbar('Статус запиту оновлено');
@@ -414,7 +404,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                         {/* Avatar */}
                         <Avatar 
                             sx={{ 
-                                bgcolor: getAvatarColor(currentRequest.id),
+                                bgcolor: getAvatarColor(currentRequest.request_id),
                                 width: 32, 
                                 height: 32,
                                 fontSize: '0.8rem'
@@ -439,27 +429,34 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                 >
                                     {[currentRequest.name, currentRequest.surname].filter(Boolean).join(' ')}
                                 </Typography>
+                            )}                            {/* Phone or fallback */}
+                            {currentRequest.phone ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                    <PhoneIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                        {currentRequest.phone}
+                                    </Typography>
+                                    <Tooltip title={copySuccess === 'phone' ? "Скопійовано!" : "Копіювати телефон"}>
+                                        <IconButton 
+                                            size="small" 
+                                            onClick={(e) => copyToClipboard(currentRequest.phone || '', 'phone', e)}
+                                            sx={{ ml: 0.5 }}
+                                        >
+                                            <ContentCopyIcon 
+                                                fontSize="small" 
+                                                color={copySuccess === 'phone' ? "success" : "inherit"}
+                                            />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Box>
+                            ) : (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                    <PhoneIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
+                                    <Typography variant="body2" sx={{ fontStyle: 'italic', color: theme.palette.text.secondary }}>
+                                        Телефон не вказано
+                                    </Typography>
+                                </Box>
                             )}
-
-                            {/* Phone */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
-                                <PhoneIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
-                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                    {currentRequest.phone}
-                                </Typography>
-                                <Tooltip title={copySuccess === 'phone' ? "Скопійовано!" : "Копіювати телефон"}>
-                                    <IconButton 
-                                        size="small" 
-                                        onClick={(e) => copyToClipboard(currentRequest.phone, 'phone', e)}
-                                        sx={{ ml: 0.5 }}
-                                    >
-                                        <ContentCopyIcon 
-                                            fontSize="small" 
-                                            color={copySuccess === 'phone' ? "success" : "inherit"}
-                                        />
-                                    </IconButton>
-                                </Tooltip>
-                            </Box>
 
                             {/* Trimmed Comment */}
                             {currentRequest.comment && (
@@ -479,9 +476,8 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
 
                         {/* Status Selector */}
                         <Box sx={{ ml: 1 }}>
-                            <FormControl size="small" sx={{ minWidth: 120 }}>
-                                <Select
-                                    value={currentRequest.status}
+                            <FormControl size="small" sx={{ minWidth: 120 }}>                                <Select
+                                    value={currentRequest.status || RequestStatus.NEW}
                                     onChange={handleStatusChange}
                                     onClick={(e) => e.stopPropagation()}
                                     sx={{
@@ -547,7 +543,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                     >
                         <Avatar 
                             sx={{ 
-                                bgcolor: getAvatarColor(currentRequest.id),
+                                bgcolor: getAvatarColor(currentRequest.request_id),
                                 width: 40, 
                                 height: 40,
                                 fontSize: '1.1rem'
@@ -566,9 +562,11 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                     label={statusConfig.label}
                                     color={statusConfig.color}
                                     sx={{ height: 20, fontSize: '0.7rem' }}
-                                />
-                                <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                                    ID: {currentRequest.id}
+                                />                                <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                    ID: {currentRequest.request_id}
+                                    {currentRequest.created_at && (
+                                        <> • {new Date(currentRequest.created_at).toLocaleDateString('uk-UA')}</>
+                                    )}
                                 </Typography>
                             </Box>
                         </Box>
@@ -597,9 +595,8 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
 
                     <Box sx={{ mb: 2 }}>
                         <FormControl fullWidth size="small">
-                            <InputLabel>Статус</InputLabel>
-                            <Select
-                                value={currentRequest.status}
+                            <InputLabel>Статус</InputLabel>                            <Select
+                                value={currentRequest.status || RequestStatus.NEW}
                                 onChange={handleStatusChange}
                                 label="Статус"
                             >
@@ -637,13 +634,13 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                 placeholder="Введіть прізвище"
                             />
                         </Grid>
-                    </Grid>
-
-                    <ReadOnlyField
+                    </Grid>                    <EditableField
                         label="Телефон"
-                        value={currentRequest.phone}
+                        value={currentRequest.phone || ''}
                         icon={<PhoneIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
-                        copyable={true}
+                        onSave={(value) => handleSaveField('phone', value)}
+                        placeholder="Введіть телефон"
+                        type="tel"
                     />
 
                     <ReadOnlyField
@@ -672,16 +669,46 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                     {/* Comment Section */}
                     <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
                         Коментар
-                    </Typography>
-
-                    <EditableField
+                    </Typography>                    <EditableField
                         label="Коментар до заявки"
-                        value={currentRequest.comment}
+                        value={currentRequest.comment || ''}
                         icon={<CommentIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
                         onSave={(value) => handleSaveField('comment', value)}
                         placeholder="Введіть коментар"
                         multiline={true}
                     />
+
+                    {/* Date Information */}
+                    {(currentRequest.created_at || currentRequest.updated_at) && (
+                        <>
+                            <Divider sx={{ my: 2 }} />
+                            
+                            <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
+                                Дати
+                            </Typography>
+
+                            <Grid container spacing={isMobile ? 1 : 1.5}>
+                                {currentRequest.created_at && (
+                                    <Grid item xs={12} md={6}>
+                                        <ReadOnlyField
+                                            label="Дата створення"
+                                            value={new Date(currentRequest.created_at).toLocaleString('uk-UA')}
+                                            icon={<EventIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
+                                        />
+                                    </Grid>
+                                )}
+                                {currentRequest.updated_at && (
+                                    <Grid item xs={12} md={6}>
+                                        <ReadOnlyField
+                                            label="Дата оновлення"
+                                            value={new Date(currentRequest.updated_at).toLocaleString('uk-UA')}
+                                            icon={<AccessTimeIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
+                                        />
+                                    </Grid>
+                                )}
+                            </Grid>
+                        </>
+                    )}
                 </Paper>
             )}
 
