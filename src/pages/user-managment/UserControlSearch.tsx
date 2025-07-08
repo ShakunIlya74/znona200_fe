@@ -22,9 +22,10 @@ import { debounce } from 'lodash';
 interface UserControlSearchProps {
     onClick: (user: UserInfo) => void;
     onUserChange?: (users: UserInfo[]) => void;
-    retrieveUsersPaginated: (page: number) => Promise<AllUsersPaginatedResponse>;
+    retrieveUsersPaginated: (page: number, mode?: string) => Promise<AllUsersPaginatedResponse>;
     onSearch: (searchQuery: string, searchMode: string) => Promise<UserSearchResponse>;
     searchPlaceholder?: string;
+    mode?: string;
 }
 
 const UserControlSearch: React.FC<UserControlSearchProps> = ({ 
@@ -32,7 +33,8 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
     onUserChange, 
     retrieveUsersPaginated, 
     onSearch, 
-    searchPlaceholder = "Пошук користувачів..." 
+    searchPlaceholder = "Пошук користувачів...",
+    mode = "active"
 }) => {
     const theme = useTheme();
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -49,14 +51,13 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
     
     // Loading states
     const [initialLoading, setInitialLoading] = useState<boolean>(false);
-    
-    // Load initial paginated users
+      // Load initial paginated users
     const loadInitialUsers = useCallback(async () => {
         setInitialLoading(true);
         setError(null);
         
         try {
-            const response = await retrieveUsersPaginated(1);
+            const response = await retrieveUsersPaginated(1, mode);
             console.log('Initial load response:', response);
             if (response.success && response.users) {
                 setAllUsers(response.users);
@@ -82,7 +83,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
             setError('An error occurred while loading users');        } finally {
             setInitialLoading(false);
         }
-    }, [retrieveUsersPaginated]);
+    }, [retrieveUsersPaginated, mode, onUserChange]);
     
     // Load more users for infinite scrolling
     const loadMoreUsers = useCallback(async () => {
@@ -93,7 +94,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
         const nextPage = currentPage + 1;
         
         try {
-            const response = await retrieveUsersPaginated(nextPage);
+            const response = await retrieveUsersPaginated(nextPage, mode);
             console.log('Load more response:', response);
             if (response.success && response.users) {
                 const newAllUsers = [...allUsers, ...response.users];
@@ -116,7 +117,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
             console.error('Error loading more users:', err);        } finally {
             setPaginationLoading(false);
         }
-    }, [paginationLoading, hasNextPage, currentPage, allUsers, retrieveUsersPaginated]);
+    }, [paginationLoading, hasNextPage, currentPage, allUsers, retrieveUsersPaginated, mode, onUserChange]);
 
     // Debounced search function to prevent excessive API calls
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -129,9 +130,8 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
 
             setSearchLoading(true);
             setError(null);
-            
-            try {
-                const response = await onSearch(query, 'active');
+              try {
+                const response = await onSearch(query, mode);
                 if (response.success && response.user_dicts) {
                     console.log('Search results:', response.user_dicts);
                     setSearchResults(response.user_dicts);
@@ -151,7 +151,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
             } finally {
                 setSearchLoading(false);
             }        }, 500), // 500ms debounce time
-        [onSearch]
+        [onSearch, mode]
     );
     
     // Function to handle scroll event for infinite scrolling

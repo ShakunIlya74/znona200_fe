@@ -652,15 +652,18 @@ export const getGroupUsersPaginated = async (
 /**
  * Fetches all users from the system with pagination
  * @param page The page number to fetch (default: 1)
+ * @param mode The mode to filter users by (e.g., 'active', 'inactive', 'without group')
  * @returns Promise with paginated users information, pagination metadata, and admin status
  */
 export const getAllUsersPaginated = async (
-  page: number = 1
+  page: number = 1,
+  mode?: string
 ): Promise<AllUsersPaginatedResponse> => {
   try {
     const response = await axiosInstance.get('/user-control/users/', {
       params: { 
-        page: page < 1 ? 1 : page
+        page: page < 1 ? 1 : page,
+        mode: mode
       }
     });
     return response.data;
