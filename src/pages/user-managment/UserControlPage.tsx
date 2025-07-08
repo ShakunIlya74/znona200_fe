@@ -13,7 +13,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import UserControlSearch from './UserControlSearch';
-import { getAllUsersPaginated, searchUsersControlPage, UserInfo, getAllUserRequestsPaginated, UserRequest } from '../../services/UserService';
+import { getAllUsersPaginated, searchUsersControlPage, UserInfo, getAllUserRequestsPaginated, UserRequest, searchUserRequests } from '../../services/UserService';
 
 
 const UserControlPage: React.FC = () => {
@@ -117,6 +117,7 @@ const UserControlPage: React.FC = () => {
                     onClick={handleUserClick}
                     onUserChange={handleUserChange}
                     retrieveUsersPaginated={getUserRequestsPaginated}
+                    onSearch={searchUserRequests}
                     searchPlaceholder="Пошук запитів..."
                     mode="requests"
                 />

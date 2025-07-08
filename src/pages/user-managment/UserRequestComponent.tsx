@@ -41,7 +41,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EventIcon from '@mui/icons-material/Event';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
-import { UserRequest } from '../../services/UserService';
+import { UserRequest, updateRequestStatus } from '../../services/UserService';
 
 // Request status enum - matching backend values
 export enum RequestStatus {
@@ -171,17 +171,16 @@ const EditableField: React.FC<EditableFieldProps> = ({
                             <CloseIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>
-                </Box>
-            ) : (
+                </Box>            ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="body2" sx={{ flex: 1, wordBreak: 'break-word' }}>
                         {value || <em style={{ color: theme.palette.text.disabled }}>Не вказано</em>}
                     </Typography>
-                    <Tooltip title="Редагувати">
+                    {/* <Tooltip title="Редагувати">
                         <IconButton size="small" onClick={handleEdit}>
                             <EditIcon fontSize="small" />
                         </IconButton>
-                    </Tooltip>
+                    </Tooltip> */}
                 </Box>
             )}
         </Box>
@@ -307,25 +306,18 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
             onClick(currentRequest);
         }
         setIsInternallyCollapsed(!isInternallyCollapsed);
-    };
-
-    // Handle status change
+    };    // Handle status change
     const handleStatusChange = async (event: SelectChangeEvent<string>) => {
         const newStatus = event.target.value as RequestStatus;
         
         try {
-            if (onStatusChange) {
-                const success = await onStatusChange(currentRequest.request_id, newStatus);
-                if (success) {
-                    setCurrentRequest(prev => ({ ...prev, status: newStatus }));
-                    showSnackbar('Статус запиту оновлено');
-                } else {
-                    showSnackbar('Помилка при оновленні статусу', 'error');
-                }
-            } else {
-                // Mock success
+            // Use the new service function
+            const result = await updateRequestStatus(currentRequest.request_id, newStatus);
+            if (result.success) {
                 setCurrentRequest(prev => ({ ...prev, status: newStatus }));
-                showSnackbar('Статус оновлено (mock)');
+                showSnackbar('Статус запиту оновлено');
+            } else {
+                showSnackbar(result.message || 'Помилка при оновленні статусу', 'error');
             }
         } catch (error) {
             console.error('Error updating status:', error);
@@ -456,9 +448,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                         Телефон не вказано
                                     </Typography>
                                 </Box>
-                            )}
-
-                            {/* Trimmed Comment */}
+                            )}                            {/* Trimmed Comment */}
                             {currentRequest.comment && (
                                 <Typography 
                                     variant="caption" 
@@ -470,6 +460,22 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                     }}
                                 >
                                     {trimComment(currentRequest.comment, 60)}
+                                </Typography>
+                            )}
+
+                            {/* Created Date */}
+                            {currentRequest.created_at && (
+                                <Typography 
+                                    variant="caption" 
+                                    sx={{ 
+                                        display: 'block',
+                                        color: theme.palette.text.secondary,
+                                        fontSize: '0.65rem',
+                                        lineHeight: 1.2,
+                                        mt: 0.5
+                                    }}
+                                >
+                                    Створено: {new Date(currentRequest.created_at).toLocaleDateString('uk-UA')}
                                 </Typography>
                             )}
                         </Box>

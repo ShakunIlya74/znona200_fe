@@ -421,6 +421,23 @@ export const searchUsersControlPage = async (searchQuery: string, searchMode: st
 };
 
 /**
+ * Searches for user request across the entire system
+ * @param searchQuery The search query to filter users by
+ * @returns Promise with matching users information
+ */
+export const searchUserRequests = async (searchQuery: string): Promise<UserSearchResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-control/user-requests-search', {
+      params: { searchQuery }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching for user requests:', error);
+    throw error;
+  }
+};
+
+/**
  * Adds a user to a specific user group
  * @param userId The ID of the user to add to the group
  * @param groupId The ID of the group to add the user to
@@ -818,6 +835,27 @@ export const updateUserSurname = async (
     return response.data;
   } catch (error) {
     console.error('Error updating user surname:', error);
+    throw error;
+  }
+};
+
+/**
+ * Updates the status of a specific user request
+ * @param requestId The ID of the request to update
+ * @param status The new status for the request
+ * @returns Promise with success status and optional message
+ */
+export const updateRequestStatus = async (
+  requestId: number | string,
+  status: string
+): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const response = await axiosInstance.put(`/user-control/update-request-status/${requestId}`, {
+      status
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating request status:', error);
     throw error;
   }
 };
