@@ -231,6 +231,18 @@ export interface DeleteUserRequestResponse {
   message?: string;
 }
 
+// Interface for update user name response
+interface UpdateUserNameResponse {
+  success: boolean;
+  message?: string;
+}
+
+// Interface for update user surname response
+interface UpdateUserSurnameResponse {
+  success: boolean;
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -740,6 +752,48 @@ export const deactivateUser = async (
     return response.data;
   } catch (error) {
     console.error('Error deactivating user:', error);
+    throw error;
+  }
+};
+
+/**
+ * Updates the name of a specific user
+ * @param userId The ID of the user to update
+ * @param name The new name for the user
+ * @returns Promise with success status and optional message
+ */
+export const updateUserName = async (
+  userId: number | string,
+  name: string
+): Promise<UpdateUserNameResponse> => {
+  try {
+    const response = await axiosInstance.put(`/user-control/update-user-name/${userId}`, {
+      name
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating user name:', error);
+    throw error;
+  }
+};
+
+/**
+ * Updates the surname of a specific user
+ * @param userId The ID of the user to update
+ * @param surname The new surname for the user
+ * @returns Promise with success status and optional message
+ */
+export const updateUserSurname = async (
+  userId: number | string,
+  surname: string
+): Promise<UpdateUserSurnameResponse> => {
+  try {
+    const response = await axiosInstance.put(`/user-control/update-user-surname/${userId}`, {
+      surname
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating user surname:', error);
     throw error;
   }
 };
