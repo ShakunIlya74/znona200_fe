@@ -16,6 +16,7 @@ import CallIcon from '@mui/icons-material/Call';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import CloseIcon from '@mui/icons-material/Close';
+import { createUserRequest, CreateUserRequestPayload } from '../../services/UserService';
 
 interface PhoneInputProps {
   onMobile?: boolean;
@@ -24,24 +25,111 @@ interface PhoneInputProps {
 type ContactType = 'phone' | 'telegram' | 'instagram';
 
 const PhoneInput: React.FC<PhoneInputProps> = ({ onMobile = false }) => {
-  const [isFocused, setIsFocused] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);  const [isLoading, setIsLoading] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
   const [phoneErrorText, setPhoneErrorText] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [phone, setPhone] = useState('');
   const [telegram, setTelegram] = useState('');
   const [instagram, setInstagram] = useState('');
   const [selectedContact, setSelectedContact] = useState<ContactType>('phone');
+  const handleRegisterClick = async () => {
+    // Get the current contact value
+    const contactValue = getContactValue();    // Check if input is not empty
+    if (!contactValue || contactValue.trim() === '') {
+      setPhoneError(true);
+      const errorMessages = {
+        phone: 'Будь ласка, введіть номер телефону',
+        telegram: 'Будь ласка, введіть Telegram username',
+        instagram: 'Будь ласка, введіть Instagram username'
+      };
+      setPhoneErrorText(errorMessages[selectedContact]);
+      return;
+    }
 
-  const handleRegisterClick = () => {
-    // Placeholder for register button click logic
-    // You can integrate your logic here
+    // Basic validation for each contact type
+    if (selectedContact === 'phone') {
+      // Check if phone has at least 10 digits
+      const phoneDigits = contactValue.replace(/\D/g, '');
+      if (phoneDigits.length < 10) {
+        setPhoneError(true);
+        setPhoneErrorText('Номер телефону повинен містити принаймні 10 цифр');
+        return;
+      }
+    } else if (selectedContact === 'telegram') {
+      // Check if telegram username starts with @ and has at least 5 characters
+      if (!contactValue.startsWith('@') || contactValue.length < 5) {
+        setPhoneError(true);
+        setPhoneErrorText('Telegram username повинен починатися з @ і містити принаймні 5 символів');
+        return;
+      }
+    } else if (selectedContact === 'instagram') {
+      // Check if instagram username has at least 3 characters
+      if (contactValue.length < 3) {
+        setPhoneError(true);
+        setPhoneErrorText('Instagram username повинен містити принаймні 3 символи');
+        return;
+      }
+    }
+
+    setIsLoading(true);
+    setPhoneError(false);
+    setPhoneErrorText('');
+
+    try {
+      // Prepare the request data based on selected contact type
+      const requestData: CreateUserRequestPayload = {};
+      
+      switch (selectedContact) {
+        case 'phone':
+          requestData.phone = contactValue;
+          break;
+        case 'telegram':
+          requestData.telegram_username = contactValue;
+          break;
+        case 'instagram':
+          requestData.instagram_username = contactValue;
+          break;
+      }
+
+      // Send the request to the backend
+      const response = await createUserRequest(requestData);
+      
+      if (response.success) {        // Success - clear form and show success message
+        setPhone('');
+        setTelegram('');
+        setInstagram('');
+        setIsFocused(false);        setSuccessMessage('Заявка успішно надіслана! Ми зв\'яжемося з вами найближчим часом.');
+        
+        // Clear success message after 5 seconds
+        setTimeout(() => {
+          setSuccessMessage('');
+        }, 5000);
+        
+        // You can add a success notification here
+        // For example: show a success snackbar or modal
+        console.log('User request created successfully:', response.message);
+        
+        // Optional: You can add a success callback here
+        // onSuccess?.(response);
+      } else {
+        // Handle error from backend
+        setPhoneError(true);
+        setPhoneErrorText(response.message || 'Помилка при створенні запиту');
+      }
+    } catch (error) {
+      console.error('Error creating user request:', error);
+      setPhoneError(true);
+      setPhoneErrorText('Помилка при відправці запиту. Спробуйте пізніше.');
+    } finally {
+      setIsLoading(false);
+    }
   };
-
   const handleContactTypeChange = (type: ContactType) => {
     setSelectedContact(type);
     setPhoneError(false);
     setPhoneErrorText('');
+    setSuccessMessage('');
   };
 
   const getContactValue = () => {
@@ -69,19 +157,22 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ onMobile = false }) => {
           formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 5)}-${cleaned.slice(5, 9)}`;
         }
         setPhone(formatted);
-        break;
-      case 'telegram':
+        break;      case 'telegram':
         // Allow @ symbol and alphanumeric characters
-        const telegramValue = value.replace(/[^@\w]/g, '');
+        let telegramValue = value.replace(/[^@\w]/g, '');
+        // Ensure it starts with @ if user types something
+        if (telegramValue.length > 0 && !telegramValue.startsWith('@')) {
+          telegramValue = '@' + telegramValue;
+        }
         setTelegram(telegramValue);
         break;
       case 'instagram':
         // Allow alphanumeric, dots, and underscores
         const instagramValue = value.replace(/[^a-zA-Z0-9._]/g, '');
         setInstagram(instagramValue);
-        break;
-    }
+        break;    }
     setPhoneError(false);
+    setSuccessMessage('');
   };
 
   const getPlaceholder = () => {
@@ -151,17 +242,17 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ onMobile = false }) => {
               width: onMobile ? '100%' : '65%',
               gap: 1,
             }}
-          >
-            {/* Phone Icon - Always visible but changes size */}
+          >            {/* Phone Icon - Always visible but changes size */}
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                border: selectedContact === 'phone' 
-                  ? (isFocused ? '2px solid #006A68' : '1px solid #757877')
-                  : '1px solid #757877',
+                border: '2px solid transparent',
+                borderColor: selectedContact === 'phone' 
+                  ? (isFocused ? '#006A68' : '#757877')
+                  : '#757877',
                 borderRadius: 2,
-                padding: selectedContact === 'phone' ? (onMobile ? '8px 12px' : '8px 10px') : '8px',
+                padding: selectedContact === 'phone' ? (onMobile ? '6px 10px' : '6px 8px') : '6px',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 backgroundColor: '#FFFFFF',
                 width: selectedContact === 'phone' ? '100%' : '44px',
@@ -204,18 +295,17 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ onMobile = false }) => {
                   }}
                 />
               </Collapse>
-            </Box>
-
-            {/* Telegram Input/Icon */}
+            </Box>            {/* Telegram Input/Icon */}
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                border: selectedContact === 'telegram' 
-                  ? (isFocused ? '2px solid #006A68' : '1px solid #757877')
-                  : '1px solid #757877',
+                border: '2px solid transparent',
+                borderColor: selectedContact === 'telegram' 
+                  ? (isFocused ? '#006A68' : '#757877')
+                  : '#757877',
                 borderRadius: 2,
-                padding: selectedContact === 'telegram' ? (onMobile ? '8px 12px' : 1) : '8px',
+                padding: selectedContact === 'telegram' ? (onMobile ? '6px 10px' : '6px 8px') : '6px',
                 transition: 'all 0.3s ease',
                 backgroundColor: '#FFFFFF',
                 width: selectedContact === 'telegram' ? '100%' : 'auto',
@@ -255,18 +345,17 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ onMobile = false }) => {
                   }}
                 />
               </Collapse>
-            </Box>
-
-            {/* Instagram Input/Icon */}
+            </Box>            {/* Instagram Input/Icon */}
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                border: selectedContact === 'instagram' 
-                  ? (isFocused ? '2px solid #006A68' : '1px solid #757877')
-                  : '1px solid #757877',
+                border: '2px solid transparent',
+                borderColor: selectedContact === 'instagram' 
+                  ? (isFocused ? '#006A68' : '#757877')
+                  : '#757877',
                 borderRadius: 2,
-                padding: selectedContact === 'instagram' ? (onMobile ? '8px 12px' : 1) : '8px',
+                padding: selectedContact === 'instagram' ? (onMobile ? '6px 10px' : '6px 8px') : '6px',
                 transition: 'all 0.3s ease',
                 backgroundColor: '#FFFFFF',
                 width: selectedContact === 'instagram' ? '100%' : 'auto',
@@ -337,8 +426,23 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ onMobile = false }) => {
                 'Запис на курс'
               )}
             </Button>
-          </Box>
-        </Box>
+          </Box>        </Box>
+        
+        {/* Success Message */}
+        {successMessage && (
+          <Typography
+            variant="body2"
+            sx={{ 
+              color: 'green', 
+              marginTop: 1, 
+              fontSize: onMobile ? '12px' : '13px',
+              textAlign: 'left',
+            }}
+          >
+            {successMessage}
+          </Typography>
+        )}
+        
         {/* Error Message */}
         {phoneError && (
           <Typography
@@ -367,7 +471,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ onMobile = false }) => {
           lineHeight: onMobile ? 1.3 : 1.4,
         }}
       >
-        * Для зручного способу зв'язку рекомендуємо вказувати номер, прив'язаний до Telegram.
+        * Для зручного способу зв'язку рекомендуємо вказувати номер, прив'язаний до Telegram, Telegram никнейм або Instagram.
       </Typography>
 
       {/* PopUp Component */}
