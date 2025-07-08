@@ -197,12 +197,11 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-    const [copySuccess, setCopySuccess] = useState<string | null>(null);
-    // Internal state for collapsed/expanded when used in standalone mode
+    const [copySuccess, setCopySuccess] = useState<string | null>(null);    // Internal state for collapsed/expanded when used in standalone mode
     const [isInternallyCollapsed, setIsInternallyCollapsed] = useState(collapsed);
 
-    // Use internal collapsed state if no external onClick handler is provided
-    const isCollapsed = onClick ? collapsed : isInternallyCollapsed;
+    // Always use internal collapsed state to allow toggling
+    const isCollapsed = isInternallyCollapsed;
 
     // Helper functions
     const getInitials = (name: string, surname: string) => {
@@ -238,10 +237,10 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
     };    // Handle card click for collapsed mode
     const handleCardClick = () => {
         if (onClick) {
-            // External handler provided - use it
+            // External handler provided - execute it
             onClick(currentUser);
         }
-        // No external handler - toggle internal state
+        // Always toggle internal state to expand/collapse the card
         setIsInternallyCollapsed(!isInternallyCollapsed);
     };
 
@@ -508,8 +507,7 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                         </Box>
                     </Box>
                 </Paper>
-            ) : (
-                // Expanded mode - full edit capabilities
+            ) : (                // Expanded mode - full edit capabilities
                 <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto', p: isMobile ? 1 : 2 }}>
                     <Paper
                         elevation={0}
@@ -517,6 +515,7 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                             p: isMobile ? 2 : 3,
                             borderRadius: '16px',
                             border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                            minHeight: '600px', // Increased height
                         }}
                     >
                 {/* Header with Avatar and Basic Info */}
@@ -530,8 +529,7 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                         }}
                     >
                         {getInitials(currentUser.name, currentUser.surname)}
-                    </Avatar>
-                    <Box sx={{ flex: 1 }}>
+                    </Avatar>                    <Box sx={{ flex: 1 }}>
                         <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
                             {currentUser.name} {currentUser.surname}
                         </Typography>
@@ -541,6 +539,15 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                                 label={currentUser.is_active ? "Активний" : "Неактивний"}
                                 color={currentUser.is_active ? "success" : "default"}
                                 sx={{ height: 24 }}
+                            />
+                            <Switch
+                                checked={currentUser.is_active}
+                                onChange={() => {
+                                    // TODO: Implement toggle functionality
+                                    console.log('Toggle user activation state');
+                                }}
+                                size="small"
+                                color="primary"
                             />
                             <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
                                 ID: {currentUser.user_id}
