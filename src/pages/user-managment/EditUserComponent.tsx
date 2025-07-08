@@ -35,7 +35,7 @@ import TelegramIcon from '@mui/icons-material/Telegram';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import GroupIcon from '@mui/icons-material/Group';
 import ExpandLessOutlinedIcon from '@mui/icons-material/ExpandLessOutlined';
-import { UserInfo } from '../../services/UserService';
+import { UserInfo, activateUser, deactivateUser } from '../../services/UserService';
 
 // Extended UserInfo interface to include Instagram username
 interface ExtendedUserInfo extends UserInfo {
@@ -112,62 +112,62 @@ const EditableField: React.FC<EditableFieldProps> = ({
         setEditValue(value);
         setIsEditing(false);
     };    return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-            {icon}
-            <Box sx={{ flex: 1 }}>
+        <Box sx={{ mb: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                {icon}
                 <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: '0.65rem' }}>
                     {label}
                 </Typography>
-                {isEditing ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <TextField
-                            fullWidth
-                            size="small"
-                            type={type}
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            placeholder={placeholder}
-                            multiline={multiline}
-                            rows={multiline ? 2 : 1}
-                            sx={{
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: '8px',
-                                }
-                            }}
-                        />
-                        <Tooltip title="Зберегти">
-                            <IconButton 
-                                size="small" 
-                                color="primary" 
-                                onClick={handleSave}
-                                disabled={isSaving}
-                            >
-                                <CheckIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Скасувати">
-                            <IconButton 
-                                size="small" 
-                                onClick={handleCancel}
-                                disabled={isSaving}
-                            >
-                                <CloseIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </Box>
-                ) : (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body2" sx={{ flex: 1 }}>
-                            {value || <em style={{ color: theme.palette.text.disabled }}>Не вказано</em>}
-                        </Typography>
-                        <Tooltip title="Редагувати">
-                            <IconButton size="small" onClick={handleEdit}>
-                                <EditIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </Box>
-                )}
             </Box>
+            {isEditing ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <TextField
+                        fullWidth
+                        size="small"
+                        type={type}
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        placeholder={placeholder}
+                        multiline={multiline}
+                        rows={multiline ? 2 : 1}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: '8px',
+                            }
+                        }}
+                    />
+                    <Tooltip title="Зберегти">
+                        <IconButton 
+                            size="small" 
+                            color="primary" 
+                            onClick={handleSave}
+                            disabled={isSaving}
+                        >
+                            <CheckIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Скасувати">
+                        <IconButton 
+                            size="small" 
+                            onClick={handleCancel}
+                            disabled={isSaving}
+                        >
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" sx={{ flex: 1 }}>
+                        {value || <em style={{ color: theme.palette.text.disabled }}>Не вказано</em>}
+                    </Typography>
+                    <Tooltip title="Редагувати">
+                        <IconButton size="small" onClick={handleEdit}>
+                            <EditIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            )}
         </Box>
     );
 };
@@ -275,13 +275,12 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
         const newStatus = !currentUser.is_active;
         setPendingActivation(newStatus);
         setActivationConfirmOpen(true);
-    };
-
-    const confirmActivationToggle = async () => {
+    };    const confirmActivationToggle = async () => {
         if (pendingActivation === null) return;
         
         try {
             if (onToggleActive) {
+                // Use the provided toggle function first
                 const success = await onToggleActive(currentUser.user_id, pendingActivation);
                 if (success) {
                     setCurrentUser(prev => ({ ...prev, is_active: pendingActivation }));
@@ -290,9 +289,20 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                     showSnackbar('Помилка при зміні статусу користувача', 'error');
                 }
             } else {
-                // Mock success
-                setCurrentUser(prev => ({ ...prev, is_active: pendingActivation }));
-                showSnackbar(`Користувач ${pendingActivation ? 'активований' : 'деактивований'} (mock)`);
+                // Use UserService API functions directly
+                let response;
+                if (pendingActivation) {
+                    response = await activateUser(currentUser.user_id);
+                } else {
+                    response = await deactivateUser(currentUser.user_id);
+                }
+                
+                if (response.success) {
+                    setCurrentUser(prev => ({ ...prev, is_active: pendingActivation }));
+                    showSnackbar(`Користувач ${pendingActivation ? 'активований' : 'деактивований'}`);
+                } else {
+                    showSnackbar(response.message || 'Помилка при зміні статусу користувача', 'error');
+                }
             }
         } catch (error) {
             console.error('Error toggling activation:', error);
