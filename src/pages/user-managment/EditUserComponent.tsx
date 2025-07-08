@@ -520,7 +520,21 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                         }
                     }}
                 >                {/* Header with Avatar and Basic Info */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Box 
+                    sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 2, 
+                        mb: 2,
+                        cursor: 'pointer', // Indicate it's clickable
+                        '&:hover': {
+                            backgroundColor: alpha(theme.palette.primary.main, 0.04), // Optional: subtle highlight on hover
+                        },
+                        padding: 1, // Add some padding to the clickable area
+                        borderRadius: '8px', // Match the card's border radius
+                    }}
+                    onClick={handleCardClick}
+                >
                     <Avatar 
                         sx={{ 
                             bgcolor: getAvatarColor(currentUser.user_id),
