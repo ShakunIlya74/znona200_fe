@@ -23,7 +23,7 @@ interface UserControlSearchProps {
     onClick: (user: UserInfo) => void;
     onUserChange?: (users: UserInfo[]) => void;
     retrieveUsersPaginated: (page: number) => Promise<AllUsersPaginatedResponse>;
-    onSearch: (searchQuery: string) => Promise<UserSearchResponse>;
+    onSearch: (searchQuery: string, searchMode: string) => Promise<UserSearchResponse>;
     searchPlaceholder?: string;
 }
 
@@ -131,7 +131,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
             setError(null);
             
             try {
-                const response = await onSearch(query);
+                const response = await onSearch(query, 'active');
                 if (response.success && response.user_dicts) {
                     console.log('Search results:', response.user_dicts);
                     setSearchResults(response.user_dicts);

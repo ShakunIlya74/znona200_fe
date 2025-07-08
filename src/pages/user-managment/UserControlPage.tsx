@@ -24,7 +24,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BlockIcon from '@mui/icons-material/Block';
 import LoadingDots from '../../components/tools/LoadingDots';
 import UserControlSearch from './UserControlSearch';
-import { getAllUsersPaginated, searchUsers, UserInfo } from '../../services/UserService';
+import { getAllUsersPaginated, searchUsersControlPage, UserInfo } from '../../services/UserService';
 
 interface User {
     user_id: number;
@@ -445,7 +445,7 @@ const UserControlPage: React.FC = () => {
                         // Optional: Update any local state if needed
                     }}
                     retrieveUsersPaginated={getAllUsersPaginated}
-                    onSearch={searchUsers}
+                    onSearch={searchUsersControlPage}
                     searchPlaceholder="Пошук активних користувачів..."
                 />
             </Box>

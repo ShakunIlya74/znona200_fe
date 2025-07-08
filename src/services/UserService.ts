@@ -400,6 +400,24 @@ export const searchUsersInGroup = async (userGroupId: string | number, searchQue
 };
 
 /**
+ * Searches for users across the entire system
+ * @param searchQuery The search query to filter users by
+ * @param searchMode The search mode to filter users by
+ * @returns Promise with matching users information
+ */
+export const searchUsersControlPage = async (searchQuery: string, searchMode: string): Promise<UserSearchResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-control/users-search', {
+      params: { searchQuery, searchMode }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching for users:', error);
+    throw error;
+  }
+};
+
+/**
  * Adds a user to a specific user group
  * @param userId The ID of the user to add to the group
  * @param groupId The ID of the group to add the user to
