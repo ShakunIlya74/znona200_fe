@@ -35,7 +35,7 @@ import TelegramIcon from '@mui/icons-material/Telegram';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import GroupIcon from '@mui/icons-material/Group';
 import ExpandLessOutlinedIcon from '@mui/icons-material/ExpandLessOutlined';
-import { UserInfo, activateUser, deactivateUser } from '../../services/UserService';
+import { UserInfo, activateUser, deactivateUser, updateUserName, updateUserSurname } from '../../services/UserService';
 
 // Extended UserInfo interface to include Instagram username
 interface ExtendedUserInfo extends UserInfo {
@@ -167,7 +167,38 @@ const EditableField: React.FC<EditableFieldProps> = ({
                         </IconButton>
                     </Tooltip>
                 </Box>
-            )}
+            )}        </Box>
+    );
+};
+
+// Read-only field component for non-editable information
+interface ReadOnlyFieldProps {
+    label: string;
+    value: string;
+    icon: React.ReactNode;
+    type?: 'text' | 'email' | 'tel';
+}
+
+const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({
+    label,
+    value,
+    icon,
+}) => {
+    const theme = useTheme();
+
+    return (
+        <Box sx={{ mb: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                {icon}
+                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: '0.65rem' }}>
+                    {label}
+                </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="body2" sx={{ flex: 1 }}>
+                    {value || <em style={{ color: theme.palette.text.disabled }}>Не вказано</em>}
+                </Typography>
+            </Box>
         </Box>
     );
 };
@@ -241,34 +272,42 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
         }
         // Always toggle internal state to expand/collapse the card
         setIsInternallyCollapsed(!isInternallyCollapsed);
-    };
-
-    // Field save handlers
-    const handleSaveField = useCallback(async (field: keyof ExtendedUserInfo, value: string) => {
+    };    // Field save handlers
+    const handleSaveName = useCallback(async (value: string) => {
         try {
-            const updatedUser = { ...currentUser, [field]: value };
-            if (onSave) {
-                const success = await onSave(updatedUser);
-                if (success) {
-                    setCurrentUser(updatedUser);
-                    showSnackbar(`${field} успішно оновлено`);
-                    return true;
-                } else {
-                    showSnackbar(`Помилка при оновленні ${field}`, 'error');
-                    return false;
-                }
-            } else {
-                // Mock success for UI testing
-                setCurrentUser(updatedUser);
-                showSnackbar(`${field} оновлено (mock)`);
+            const response = await updateUserName(currentUser.user_id, value);
+            if (response.success) {
+                setCurrentUser(prev => ({ ...prev, name: value }));
+                showSnackbar('Ім\'я успішно оновлено');
                 return true;
+            } else {
+                showSnackbar(response.message || 'Помилка при оновленні імені', 'error');
+                return false;
             }
         } catch (error) {
-            console.error('Error saving field:', error);
-            showSnackbar(`Помилка при збереженні ${field}`, 'error');
+            console.error('Error saving name:', error);
+            showSnackbar('Помилка при збереженні імені', 'error');
             return false;
         }
-    }, [currentUser, onSave]);
+    }, [currentUser.user_id]);
+
+    const handleSaveSurname = useCallback(async (value: string) => {
+        try {
+            const response = await updateUserSurname(currentUser.user_id, value);
+            if (response.success) {
+                setCurrentUser(prev => ({ ...prev, surname: value }));
+                showSnackbar('Прізвище успішно оновлено');
+                return true;
+            } else {
+                showSnackbar(response.message || 'Помилка при оновленні прізвища', 'error');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error saving surname:', error);
+            showSnackbar('Помилка при збереженні прізвища', 'error');
+            return false;
+        }
+    }, [currentUser.user_id]);
 
     // Toggle user activation
     const handleToggleActivation = () => {
@@ -586,15 +625,13 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                 <Divider sx={{ mb: 2 }} />                {/* Editable Fields */}
                 <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
                     Особиста інформація
-                </Typography>
-
-                <Grid container spacing={isMobile ? 1 : 1.5}>
+                </Typography>                <Grid container spacing={isMobile ? 1 : 1.5}>
                     <Grid item xs={12} md={6}>
                         <EditableField
                             label="Ім'я"
                             value={currentUser.name}
                             icon={<PersonIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
-                            onSave={(value) => handleSaveField('name', value)}
+                            onSave={handleSaveName}
                             placeholder="Введіть ім'я"
                         />
                     </Grid>
@@ -603,45 +640,37 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                             label="Прізвище"
                             value={currentUser.surname}
                             icon={<PersonIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
-                            onSave={(value) => handleSaveField('surname', value)}
+                            onSave={handleSaveSurname}
                             placeholder="Введіть прізвище"
                         />
                     </Grid>
                 </Grid>
 
-                <EditableField
+                <ReadOnlyField
                     label="Email"
                     value={currentUser.email}
                     icon={<EmailIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
-                    onSave={(value) => handleSaveField('email', value)}
-                    placeholder="Введіть email"
                     type="email"
                 />
 
-                <EditableField
+                <ReadOnlyField
                     label="Телефон"
                     value={currentUser.phone || ''}
                     icon={<PhoneIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
-                    onSave={(value) => handleSaveField('phone', value)}
-                    placeholder="Введіть номер телефону"
                     type="tel"
                 />
 
-                <EditableField
+                <ReadOnlyField
                     label="Telegram"
                     value={currentUser.telegram_username || ''}
                     icon={<TelegramIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
-                    onSave={(value) => handleSaveField('telegram_username', value)}
-                    placeholder="Введіть username Telegram"
-                />
-
-                <EditableField
+                />                <ReadOnlyField
                     label="Instagram"
                     value={currentUser.insta_username || ''}
                     icon={<InstagramIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
-                    onSave={(value) => handleSaveField('insta_username', value)}
-                    placeholder="Введіть username Instagram"
-                />                <Divider sx={{ my: 2 }} />
+                />
+
+                <Divider sx={{ my: 2 }} />
 
                 {/* User Status and Actions */}
                 <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
