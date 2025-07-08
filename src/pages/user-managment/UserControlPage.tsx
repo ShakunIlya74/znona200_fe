@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     Box,
     Typography,
@@ -39,24 +39,29 @@ const UserControlPage: React.FC = () => {
     // Handle closing notification
     const handleCloseNotification = () => {
         setNotification(prev => ({ ...prev, open: false }));
-    };
-
-    // Common user click handler
-    const handleUserClick = (user: UserInfo) => {
+    };    // Common user click handler - memoized to prevent unnecessary re-renders
+    const handleUserClick = useCallback((user: UserInfo) => {
         console.log('User clicked:', user);
-        setNotification({
-            open: true,
-            message: `User ${user.name} ${user.surname} clicked`,
-            severity: 'info'
-        });
-    };    // Common user change handler
-    const handleUserChange = (users: UserInfo[]) => {
-        console.log('Users changed:', users.length);
-    };
+        // Don't show notification to prevent re-renders that cause card reloads
+        // setNotification({
+        //     open: true,
+        //     message: `User ${user.name} ${user.surname} clicked`,
+        //     severity: 'info'
+        // });
+    }, []);
 
-    // Wrapper functions for UserControlSearch
-    const getUsersPaginatedWithMode = (mode: string) => (page: number) => getAllUsersPaginated(page, mode);
-    const searchUsersWithMode = (mode: string) => (searchQuery: string) => searchUsersControlPage(searchQuery, mode);return (
+    // Common user change handler - memoized to prevent unnecessary re-renders
+    const handleUserChange = useCallback((users: UserInfo[]) => {
+        console.log('Users changed:', users.length);
+    }, []);    // Wrapper functions for UserControlSearch - memoized to prevent unnecessary re-renders
+    const getUsersPaginatedWithoutGroups = useCallback((page: number) => getAllUsersPaginated(page, 'without group'), []);
+    const searchUsersWithoutGroups = useCallback((searchQuery: string) => searchUsersControlPage(searchQuery, 'without group'), []);
+    
+    const getUsersPaginatedActive = useCallback((page: number) => getAllUsersPaginated(page, 'active'), []);
+    const searchUsersActive = useCallback((searchQuery: string) => searchUsersControlPage(searchQuery, 'active'), []);
+    
+    const getUsersPaginatedInactive = useCallback((page: number) => getAllUsersPaginated(page, 'inactive'), []);
+    const searchUsersInactive = useCallback((searchQuery: string) => searchUsersControlPage(searchQuery, 'inactive'), []);return (
         <Container maxWidth="lg" sx={{ py: 3 }}>
             <Paper
                 elevation={0}
@@ -119,8 +124,8 @@ const UserControlPage: React.FC = () => {
                 <UserControlSearch
                     onClick={handleUserClick}
                     onUserChange={handleUserChange}
-                    retrieveUsersPaginated={getUsersPaginatedWithMode('without group')}
-                    onSearch={searchUsersWithMode('without group')}
+                    retrieveUsersPaginated={getUsersPaginatedWithoutGroups}
+                    onSearch={searchUsersWithoutGroups}
                     searchPlaceholder="Пошук користувачів без груп..."
                     mode="without group"
                 />
@@ -131,8 +136,8 @@ const UserControlPage: React.FC = () => {
                 <UserControlSearch
                     onClick={handleUserClick}
                     onUserChange={handleUserChange}
-                    retrieveUsersPaginated={getUsersPaginatedWithMode('active')}
-                    onSearch={searchUsersWithMode('active')}
+                    retrieveUsersPaginated={getUsersPaginatedActive}
+                    onSearch={searchUsersActive}
                     searchPlaceholder="Пошук активних користувачів..."
                     mode="active"
                 />
@@ -143,8 +148,8 @@ const UserControlPage: React.FC = () => {
                 <UserControlSearch
                     onClick={handleUserClick}
                     onUserChange={handleUserChange}
-                    retrieveUsersPaginated={getUsersPaginatedWithMode('inactive')}
-                    onSearch={searchUsersWithMode('inactive')}
+                    retrieveUsersPaginated={getUsersPaginatedInactive}
+                    onSearch={searchUsersInactive}
                     searchPlaceholder="Пошук деактивованих користувачів..."
                     mode="inactive"
                 />
