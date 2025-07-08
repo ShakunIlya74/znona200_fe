@@ -1,0 +1,70 @@
+/* Custom styles for react-image-gallery to integrate with Material-UI theme */
+
+.custom-image-gallery {
+  background-color: transparent !important;
+}
+
+.custom-image-gallery .image-gallery-content {
+  background-color: transparent !important;
+}
+
+.custom-image-gallery .image-gallery-slide {
+  background-color: transparent !important;
+}
+
+.custom-image-gallery .image-gallery-image {
+  max-height: 70vh !important;
+  object-fit: contain !important;
+}
+
+.custom-image-gallery .image-gallery-thumbnails-wrapper {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.custom-image-gallery .image-gallery-thumbnail {
+  border: 2px solid transparent !important;
+  border-radius: 4px !important;
+}
+
+.custom-image-gallery .image-gallery-thumbnail.active {
+  border-color: #1976d2 !important;
+}
+
+.custom-image-gallery .image-gallery-thumbnail:hover {
+  border-color: rgba(25, 118, 210, 0.5) !important;
+}
+
+.custom-image-gallery .image-gallery-left-nav,
+.custom-image-gallery .image-gallery-right-nav {
+  color: white !important;
+  font-size: 3em !important;
+  padding: 20px !important;
+}
+
+.custom-image-gallery .image-gallery-left-nav:hover,
+.custom-image-gallery .image-gallery-right-nav:hover {
+  color: #1976d2 !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .custom-image-gallery .image-gallery-image {
+    max-height: 60vh !important;
+  }
+  
+  .custom-image-gallery .image-gallery-left-nav,
+  .custom-image-gallery .image-gallery-right-nav {
+    font-size: 2em !important;
+    padding: 10px !important;
+  }
+  
+  .custom-image-gallery .image-gallery-thumbnails {
+    height: 60px !important;
+  }
+  
+  .custom-image-gallery .image-gallery-thumbnail {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}

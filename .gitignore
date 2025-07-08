@@ -21,3 +21,6 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+public/slide.pdf
+public/video.mp4
+public/notes.pdf
