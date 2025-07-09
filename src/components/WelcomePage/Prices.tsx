@@ -28,6 +28,74 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { motion, Variants } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { alpha } from '@mui/material/styles';
+import ReactMarkdown from 'react-markdown';
+
+// Custom component for discount badges
+const DiscountBadge = ({ children }: { children: React.ReactNode }) => (
+  <Box
+    component="span"
+    sx={{
+      ml: 1,
+      px: 0.8,
+      py: 0.2,
+      backgroundColor: '#FFB800',
+      color: '#063231',
+      borderRadius: 1,
+      fontSize: '0.6rem',
+      fontWeight: 'bold',
+      verticalAlign: 'middle',
+      display: 'inline-block',
+    }}
+  >
+    {children}
+  </Box>
+);
+
+// Custom component to render description with markdown
+const DescriptionRenderer = ({ description, theme }: { description: string; theme: any }) => {
+  const parts = description.split('🏷️ **-10%**');
+  
+  return (
+    <Box sx={{ textAlign: 'left' }}>
+      {parts.map((part, index) => (
+        <React.Fragment key={index}>
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => (
+                <Typography
+                  sx={{
+                    fontSize: '0.7rem',
+                    color: '#757877',
+                    mb: 0.5,
+                    lineHeight: 1.4,
+                    textAlign: 'left',
+                  }}
+                >
+                  {children}
+                </Typography>
+              ),
+              strong: ({ children }) => (
+                <Box
+                  component="span"
+                  sx={{
+                    fontWeight: 'bold',
+                    color: theme.palette.primary.main,
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  {children}
+                </Box>
+              ),
+            }}
+          >
+            {part}
+          </ReactMarkdown>
+          {/* {index < parts.length - 1 && <DiscountBadge>-10%</DiscountBadge>} */}
+        </React.Fragment>
+      ))}
+    </Box>
+  );
+};
 
 interface PricingFeature {
   text: string;
@@ -38,7 +106,7 @@ interface PricingFeature {
 
 interface PricingPlan {
   name: string;
-  description?: React.ReactNode;
+  description?: string;
   highlighted?: boolean;
 }
 
@@ -49,244 +117,32 @@ const Prices: React.FC = () => {
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
-  });
-
-  const plans: PricingPlan[] = [
+  });  const plans: PricingPlan[] = [
     {
       name: 'Пакет «КОМПЛЕКСНИЙ»',
       highlighted: false,
-      description: (
-        <Box sx={{ mb: 0.5 }}>
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-              mb: 0.5,
-            }}
-          >
-            🌿Початок навчання з 1 серпня <br />
-            <Box component="span" sx={{
-              fontWeight: 'bold',
-              color: theme.palette.primary.main,
-              fontSize: '0.8rem',
-            }}>
-              820 грн
-            </Box>
-            {' '}- щомісячна оплата
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-              mb: 0.5,
-            }}
-          ></Typography>
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-            }}
-          >
-            <Box component="span" sx={{
-              fontWeight: 'bold',
-              color: theme.palette.primary.main,
-              fontSize: '0.8rem',
-            }}>
-              3690 грн
-            </Box>
-            {' '}- семестрова{' '} (2 семестри)
-            <Box
-              component="span"
-              sx={{
-                ml: 1,
-                px: 0.8,
-                py: 0.2,
-                backgroundColor: '#FFB800',
-                color: '#063231',
-                borderRadius: 1,
-                fontSize: '0.6rem',
-                fontWeight: 'bold',
-                verticalAlign: 'middle',
-              }}
-            >
-              - 10%
-            </Box>
-          </Typography>
+      description: `🌿 **Початок навчання з 1 серпня**
 
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-              mb: 0.5,
-            }}
-          >
-            🍁Початок навчання з 4 вересня <br />
-            <Box component="span" sx={{
-              fontWeight: 'bold',
-              color: theme.palette.primary.main,
-              fontSize: '0.8rem',
-            }}>
-              820 грн
-            </Box>
-            {' '}- щомісячна оплата
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-              mb: 0.5,
-            }}
-          ></Typography>
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-            }}
-          >
-            <Box component="span" sx={{
-              fontWeight: 'bold',
-              color: theme.palette.primary.main,
-              fontSize: '0.8rem',
-            }}>
-              2200 грн
-            </Box>
-            {' '}- семестрова{' '} (3 семестри)
-            <Box
-              component="span"
-              sx={{
-                ml: 1,
-                px: 0.8,
-                py: 0.2,
-                backgroundColor: '#FFB800',
-                color: '#063231',
-                borderRadius: 1,
-                fontSize: '0.6rem',
-                fontWeight: 'bold',
-                verticalAlign: 'middle',
-              }}
-            >
-              - 10%
-            </Box>
-          </Typography>
-        </Box>)
+**820 грн** - щомісячна оплата  
+**3690 грн** - семестрова (2 семестри, знижка 10%)
+
+🍁 **Початок навчання з 4 вересня**
+
+**820 грн** - щомісячна оплата  
+**2200 грн** - семестрова (3 семестри, знижка 10%)`
     },
     {
       name: 'Пакет «КОМПЛЕКСНИЙ + КОНТРОЛЬ»',
       highlighted: true,
-      description: (
-        <Box sx={{ mb: 0.5 }}>
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-              mb: 0.5,
-            }}
-          >
-            🌿Початок навчання з 1 серпня <br />
-            <Box component="span" sx={{
-              fontWeight: 'bold',
-              color: theme.palette.primary.main,
-              fontSize: '0.8rem',
-            }}>
-              1150 грн
-            </Box>
-            {' '}- щомісячна оплата
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-              mb: 0.5,
-            }}
-          ></Typography>
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-            }}
-          >
-            <Box component="span" sx={{
-              fontWeight: 'bold',
-              color: theme.palette.primary.main,
-              fontSize: '0.8rem',
-            }}>
-              5170 грн
-            </Box>
-            {' '}- семестрова{' '} (2 семестри)
-            <Box
-              component="span"
-              sx={{
-                ml: 1,
-                px: 0.8,
-                py: 0.2,
-                backgroundColor: '#FFB800',
-                color: '#063231',
-                borderRadius: 1,
-                fontSize: '0.6rem',
-                fontWeight: 'bold',
-                verticalAlign: 'middle',
-              }}
-            >
-              - 10%
-            </Box>
-          </Typography>
+      description: `🌿 **Початок навчання з 1 серпня**
 
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-              mb: 0.5,
-            }}
-          >
-            🍁Початок навчання з 4 вересня <br />
-            <Box component="span" sx={{
-              fontWeight: 'bold',
-              color: theme.palette.primary.main,
-              fontSize: '0.8rem',
-            }}>
-              1150 грн
-            </Box>
-            {' '}- щомісячна оплата
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-              mb: 0.5,
-            }}
-          ></Typography>
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              color: '#757877',
-            }}
-          >
-            <Box component="span" sx={{
-              fontWeight: 'bold',
-              color: theme.palette.primary.main,
-              fontSize: '0.8rem',
-            }}>
-              3100 грн
-            </Box>
-            {' '}- семестрова{' '} (3 семестри)
-            <Box
-              component="span"
-              sx={{
-                ml: 1,
-                px: 0.8,
-                py: 0.2,
-                backgroundColor: '#FFB800',
-                color: '#063231',
-                borderRadius: 1,
-                fontSize: '0.6rem',
-                fontWeight: 'bold',
-                verticalAlign: 'middle',
-              }}
-            >
-              - 10%
-            </Box>
-          </Typography>
-        </Box>)
+**1150 грн** - щомісячна оплата  
+**5170 грн** - семестрова (2 семестри, знижка 10%)
+
+🍁 **Початок навчання з 4 вересня**
+
+**1150 грн** - щомісячна оплата  
+**3100 грн** - семестрова (3 семестри, знижка 10%)`
     },
   ];
 
@@ -409,9 +265,11 @@ const Prices: React.FC = () => {
             }}
           >
             {currentPlan.name}
-          </Typography>
-
-          {currentPlan.description}
+          </Typography>          {currentPlan.description && (
+            <Box sx={{ mb: 1 }}>
+              <DescriptionRenderer description={currentPlan.description} theme={theme} />
+            </Box>
+          )}
 
 
 
@@ -580,7 +438,7 @@ const Prices: React.FC = () => {
                         fontSize: '0.9rem',
                         fontWeight: 'bold',
                         '&:hover': {
-                          backgroundColor: theme.palette.primary.dark,
+                          backgroundColor: alpha(theme.palette.primary.main, 0.85),
                         },
                       }}
                     >
@@ -650,8 +508,11 @@ const Prices: React.FC = () => {
                       }}
                     >
                       {plan.name}
-                    </Typography>
-                    {plan.description}
+                    </Typography>                    {plan.description && (
+                      <Box sx={{ mb: 1 }}>
+                        <DescriptionRenderer description={plan.description} theme={theme} />
+                      </Box>
+                    )}
 
 
 
@@ -797,7 +658,7 @@ const Prices: React.FC = () => {
                         fontSize: '0.8rem',
                         fontWeight: 'bold',
                         '&:hover': {
-                          backgroundColor: theme.palette.primary.dark,
+                          backgroundColor: alpha(theme.palette.primary.main, 0.85),
                         },
                       }}
                     >
