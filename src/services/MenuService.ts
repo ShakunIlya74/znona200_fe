@@ -10,6 +10,7 @@ export interface Quote {
 // Wrapper for the quote endpoint response
 export interface QuoteResponse {
   quote: Quote;
+  is_admin?: boolean; // Optional field to indicate if the user is an admin
 }
 
 // Fetch the quote of the day
