@@ -3,6 +3,7 @@ import { Box, Typography, Paper, Button, CircularProgress } from '@mui/material'
 import { alpha, styled } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { GetQuote, PickNewQuote, Quote } from '../../services/MenuService';
+import LoadingDots from './LoadingDots';
 
 interface QuoteData {
   text: string;
@@ -130,9 +131,7 @@ const QuoteOfTheDay: React.FC = () => {
   if (loading) {
     return (
       <QuoteContainer>
-        <Typography variant="body1" color="text.secondary">
-          Loading quote of the day...
-        </Typography>
+        <LoadingDots />
       </QuoteContainer>
     );
   }

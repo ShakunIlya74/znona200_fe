@@ -28,6 +28,7 @@ import ContactPhoneOutlinedIcon from '@mui/icons-material/ContactPhoneOutlined';
 import Diversity1OutlinedIcon from '@mui/icons-material/Diversity1Outlined';
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
 import ExpandLessOutlinedIcon from '@mui/icons-material/ExpandLessOutlined';
+import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
@@ -206,6 +207,20 @@ function Header() {
         <ListItem component="div" disablePadding>
           <ListItemButton
             component={Link}
+            to="/menu"
+            onClick={() => setDrawerOpen(false)}
+            sx={{ backgroundColor: selectedMenu === "menu" ? "#FFFFFF" : "inherit" }}
+          >
+            <WidgetsOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
+            <ListItemText
+              primary="Меню"
+              primaryTypographyProps={{ sx: { fontSize: BUTTON_FONT_SIZE } }}
+            />
+          </ListItemButton>
+        </ListItem>
+        {/* <ListItem component="div" disablePadding>
+          <ListItemButton
+            component={Link}
             to="/library"
             onClick={() => setDrawerOpen(false)}
             sx={{ backgroundColor: selectedMenu === "library" ? "#FFFFFF" : "inherit" }}
@@ -216,7 +231,7 @@ function Header() {
               primaryTypographyProps={{ sx: { fontSize: BUTTON_FONT_SIZE } }}
             />
           </ListItemButton>
-        </ListItem>
+        </ListItem> */}
         <ListItem component="div" disablePadding>
           <ListItemButton
             component={Link}
