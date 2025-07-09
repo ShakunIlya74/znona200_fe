@@ -1,5 +1,5 @@
 // src/components/WelcomePage/Prices.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -15,14 +15,18 @@ import {
   Paper,
   Fade,
   Zoom,
+  IconButton,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import CircleIcon from '@mui/icons-material/Circle';
 import StarIcon from '@mui/icons-material/Star';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { motion, Variants } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { useTheme, useMediaQuery } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 
 interface PricingFeature {
@@ -34,15 +38,14 @@ interface PricingFeature {
 
 interface PricingPlan {
   name: string;
-  monthlyPrice: string;
-  halfYearPrice: string;
-  yearlyPrice: string;
+  description?: React.ReactNode;
   highlighted?: boolean;
 }
 
 const Prices: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -50,17 +53,240 @@ const Prices: React.FC = () => {
 
   const plans: PricingPlan[] = [
     {
-      name: 'КУРС «КОМПЛЕКСНИЙ»',
-      monthlyPrice: '750 грн',
-      halfYearPrice: '2700 грн',
-      yearlyPrice: '4800 грн',
+      name: 'Пакет «КОМПЛЕКСНИЙ»',
+      highlighted: false,
+      description: (
+        <Box sx={{ mb: 0.5 }}>
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+              mb: 0.5,
+            }}
+          >
+            🌿Початок навчання з 1 серпня <br />
+            <Box component="span" sx={{
+              fontWeight: 'bold',
+              color: theme.palette.primary.main,
+              fontSize: '0.8rem',
+            }}>
+              820 грн
+            </Box>
+            {' '}- щомісячна оплата
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+              mb: 0.5,
+            }}
+          ></Typography>
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+            }}
+          >
+            <Box component="span" sx={{
+              fontWeight: 'bold',
+              color: theme.palette.primary.main,
+              fontSize: '0.8rem',
+            }}>
+              3690 грн
+            </Box>
+            {' '}- семестрова{' '} (2 семестри)
+            <Box
+              component="span"
+              sx={{
+                ml: 1,
+                px: 0.8,
+                py: 0.2,
+                backgroundColor: '#FFB800',
+                color: '#063231',
+                borderRadius: 1,
+                fontSize: '0.6rem',
+                fontWeight: 'bold',
+                verticalAlign: 'middle',
+              }}
+            >
+              - 10%
+            </Box>
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+              mb: 0.5,
+            }}
+          >
+            🍁Початок навчання з 4 вересня <br />
+            <Box component="span" sx={{
+              fontWeight: 'bold',
+              color: theme.palette.primary.main,
+              fontSize: '0.8rem',
+            }}>
+              820 грн
+            </Box>
+            {' '}- щомісячна оплата
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+              mb: 0.5,
+            }}
+          ></Typography>
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+            }}
+          >
+            <Box component="span" sx={{
+              fontWeight: 'bold',
+              color: theme.palette.primary.main,
+              fontSize: '0.8rem',
+            }}>
+              2200 грн
+            </Box>
+            {' '}- семестрова{' '} (3 семестри)
+            <Box
+              component="span"
+              sx={{
+                ml: 1,
+                px: 0.8,
+                py: 0.2,
+                backgroundColor: '#FFB800',
+                color: '#063231',
+                borderRadius: 1,
+                fontSize: '0.6rem',
+                fontWeight: 'bold',
+                verticalAlign: 'middle',
+              }}
+            >
+              - 10%
+            </Box>
+          </Typography>
+        </Box>)
     },
     {
-      name: 'КОМПЛЕКСНИЙ + КОНТРОЛЬ',
-      monthlyPrice: '1150 грн',
-      halfYearPrice: '4100 грн',
-      yearlyPrice: '7350 грн',
+      name: 'Пакет «КОМПЛЕКСНИЙ + КОНТРОЛЬ»',
       highlighted: true,
+      description: (
+        <Box sx={{ mb: 0.5 }}>
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+              mb: 0.5,
+            }}
+          >
+            🌿Початок навчання з 1 серпня <br />
+            <Box component="span" sx={{
+              fontWeight: 'bold',
+              color: theme.palette.primary.main,
+              fontSize: '0.8rem',
+            }}>
+              1150 грн
+            </Box>
+            {' '}- щомісячна оплата
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+              mb: 0.5,
+            }}
+          ></Typography>
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+            }}
+          >
+            <Box component="span" sx={{
+              fontWeight: 'bold',
+              color: theme.palette.primary.main,
+              fontSize: '0.8rem',
+            }}>
+              5170 грн
+            </Box>
+            {' '}- семестрова{' '} (2 семестри)
+            <Box
+              component="span"
+              sx={{
+                ml: 1,
+                px: 0.8,
+                py: 0.2,
+                backgroundColor: '#FFB800',
+                color: '#063231',
+                borderRadius: 1,
+                fontSize: '0.6rem',
+                fontWeight: 'bold',
+                verticalAlign: 'middle',
+              }}
+            >
+              - 10%
+            </Box>
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+              mb: 0.5,
+            }}
+          >
+            🍁Початок навчання з 4 вересня <br />
+            <Box component="span" sx={{
+              fontWeight: 'bold',
+              color: theme.palette.primary.main,
+              fontSize: '0.8rem',
+            }}>
+              1150 грн
+            </Box>
+            {' '}- щомісячна оплата
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+              mb: 0.5,
+            }}
+          ></Typography>
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              color: '#757877',
+            }}
+          >
+            <Box component="span" sx={{
+              fontWeight: 'bold',
+              color: theme.palette.primary.main,
+              fontSize: '0.8rem',
+            }}>
+              3100 грн
+            </Box>
+            {' '}- семестрова{' '} (3 семестри)
+            <Box
+              component="span"
+              sx={{
+                ml: 1,
+                px: 0.8,
+                py: 0.2,
+                backgroundColor: '#FFB800',
+                color: '#063231',
+                borderRadius: 1,
+                fontSize: '0.6rem',
+                fontWeight: 'bold',
+                verticalAlign: 'middle',
+              }}
+            >
+              - 10%
+            </Box>
+          </Typography>
+        </Box>)
     },
   ];
 
@@ -82,9 +308,9 @@ const Prices: React.FC = () => {
   ];
 
   const tableVariants: Variants = {
-    hidden: { 
-      opacity: 0, 
-      y: 30 
+    hidden: {
+      opacity: 0,
+      y: 30
     },
     visible: {
       opacity: 1,
@@ -97,9 +323,9 @@ const Prices: React.FC = () => {
   };
 
   const rowVariants: Variants = {
-    hidden: { 
-      opacity: 0, 
-      x: -30 
+    hidden: {
+      opacity: 0,
+      x: -30
     },
     visible: (i: number) => ({
       opacity: 1,
@@ -114,7 +340,7 @@ const Prices: React.FC = () => {
 
   const textHoverVariants: Variants = {
     rest: { scale: 1 },
-    hover: { 
+    hover: {
       scale: 1.05,
       transition: {
         duration: 0.2,
@@ -122,6 +348,470 @@ const Prices: React.FC = () => {
       }
     }
   };
+
+  const handlePrevPlan = () => {
+    setCurrentPlanIndex((prev) => (prev === 0 ? plans.length - 1 : prev - 1));
+  };
+
+  const handleNextPlan = () => {
+    setCurrentPlanIndex((prev) => (prev === plans.length - 1 ? 0 : prev + 1));
+  };
+
+  const currentPlan = plans[currentPlanIndex];
+  const isBasicPlan = currentPlan.name.includes('КОМПЛЕКСНИЙ') && !currentPlan.name.includes('КОНТРОЛЬ');
+
+  const renderMobileTable = () => (
+    <Card
+      sx={{
+        borderRadius: 4,
+        boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 10px 30px rgba(0,106,104,0.1)',
+        overflow: 'visible',
+        background: 'white',
+      }}
+    >
+      {/* Plan Navigation Header */}
+      <Box
+        sx={{
+          background: currentPlan.highlighted
+            ? 'linear-gradient(135deg, #e8f5f3 0%, #d4ebe8 100%)'
+            : 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
+          py: 2,
+          px: 2,
+          borderBottom: '3px solid #006A68',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          position: 'sticky',
+          top: '50px',
+          zIndex: 10,
+          borderRadius: '16px 16px 0 0',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        }}
+      >
+        <IconButton
+          onClick={handlePrevPlan}
+          sx={{
+            color: '#006A68',
+            '&:hover': { backgroundColor: alpha('#006A68', 0.1) },
+          }}
+        >
+          <ArrowBackIosIcon />
+        </IconButton>
+
+        <Box sx={{ textAlign: 'center', flex: 1 }}>
+          <Typography
+            variant="subtitle1"
+            sx={{
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              mb: 1,
+              color: '#063231',
+            }}
+          >
+            {currentPlan.name}
+          </Typography>
+
+          {currentPlan.description}
+
+
+
+          <Typography
+            variant="caption"
+            sx={{
+              display: 'block',
+              opacity: 0.7,
+              fontSize: '0.7rem',
+              color: '#757877',
+            }}
+          >
+            Ціни актуальні до 11 липня
+          </Typography>
+
+          <Typography
+            variant="caption"
+            sx={{
+              display: 'block',
+              mt: 1,
+              fontSize: '0.75rem',
+              color: '#006A68',
+              fontWeight: 'bold',
+            }}
+          >
+            {currentPlanIndex + 1} з {plans.length}
+          </Typography>
+        </Box>
+
+        <IconButton
+          onClick={handleNextPlan}
+          sx={{
+            color: '#006A68',
+            '&:hover': { backgroundColor: alpha('#006A68', 0.1) },
+          }}
+        >
+          <ArrowForwardIosIcon />
+        </IconButton>
+      </Box>
+
+      {/* Features Table */}
+      <TableContainer component={Paper} elevation={0}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell
+                sx={{
+                  background: 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
+                  fontWeight: 'bold',
+                  color: '#063231',
+                  borderBottom: '2px solid #006A68',
+                  py: 1.5,
+                  fontSize: '0.9rem',
+                }}
+              >
+                Особливості
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{
+                  background: 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
+                  fontWeight: 'bold',
+                  color: '#063231',
+                  borderBottom: '2px solid #006A68',
+                  py: 1.5,
+                  fontSize: '0.9rem',
+                }}
+              >
+                Включено
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {features.map((feature, index) => (
+              <TableRow
+                key={index}
+                component={motion.tr}
+                custom={index}
+                variants={rowVariants}
+                initial="hidden"
+                animate={inView ? 'visible' : 'hidden'}
+                sx={{
+                  cursor: 'default',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.02),
+                  },
+                  '&:hover .feature-text': {
+                    color: theme.palette.primary.main,
+                  }
+                }}
+              >
+                <TableCell
+                  scope="row"
+                  sx={{
+                    fontSize: '0.8rem',
+                    py: 1,
+                    borderBottom: '1px solid #f0f0f0',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <CircleIcon
+                      sx={{
+                        fontSize: 6,
+                        color: '#006A68',
+                        flexShrink: 0,
+                        filter: 'drop-shadow(0 0 2px rgba(0,106,104,0.4))',
+                      }}
+                    />
+                    <Typography
+                      className="feature-text"
+                      sx={{
+                        fontSize: '0.8rem',
+                        lineHeight: 1.4,
+                        transition: 'color 0.3s ease',
+                        fontWeight: feature.isNew ? 500 : 400,
+                      }}
+                    >
+                      {feature.text}
+                    </Typography>
+                  </Box>
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{
+                    borderBottom: '1px solid #f0f0f0',
+                    py: 1,
+                  }}
+                >
+                  <Fade in={inView} timeout={1200 + index * 50}>
+                    <Box>
+                      {(isBasicPlan ? feature.basic : feature.premium) ? (
+                        <CheckIcon
+                          sx={{
+                            color: theme.palette.primary.main,
+                            filter: `drop-shadow(0 0 4px ${alpha(theme.palette.primary.main, 0.4)})`,
+                          }}
+                        />
+                      ) : (
+                        <CloseIcon
+                          sx={{
+                            color: '#e0e0e0',
+                            fontSize: 18,
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </Fade>
+                </TableCell>
+              </TableRow>
+            ))}
+            <TableRow>
+              <TableCell colSpan={2} sx={{ border: 'none', py: 1.5 }}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      variant="contained"
+                      onClick={() => window.open('https://t.me/yaryna_yaromii', '_self')}
+                      sx={{
+                        backgroundColor: theme.palette.primary.main,
+                        color: 'white',
+                        px: 4,
+                        py: 1,
+                        fontSize: '0.9rem',
+                        fontWeight: 'bold',
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                    >
+                      Навчатись
+                    </Button>
+                  </motion.div>
+                </Box>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Card>
+  );
+
+  const renderDesktopTable = () => (
+    <Card
+      sx={{
+        borderRadius: 4,
+        boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 10px 30px rgba(0,106,104,0.1)',
+        overflow: 'hidden',
+        background: 'white',
+      }}
+    >
+      <TableContainer component={Paper} elevation={0}>
+        <Table sx={{ minWidth: 650 }} size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell
+                sx={{
+                  background: 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
+                  fontWeight: 'bold',
+                  color: '#063231',
+                  borderBottom: '3px solid #006A68',
+                  borderRight: '1px solid #e0e0e0',
+                  py: 1.5,
+                  fontSize: '0.9rem',
+                }}
+              >
+                Особливості
+              </TableCell>
+              {plans.map((plan, index) => (
+                <TableCell
+                  key={index}
+                  align="center"
+                  sx={{
+                    background: plan.highlighted
+                      ? 'linear-gradient(135deg, #e8f5f3 0%, #d4ebe8 100%)'
+                      : 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
+                    color: '#063231',
+                    borderBottom: '3px solid #006A68',
+                    borderRight: index < plans.length - 1 ? '1px solid #e0e0e0' : 'none',
+                    position: 'relative',
+                    minWidth: 180,
+                    py: 2,
+                    px: 2,
+                  }}
+                >
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 'bold',
+                        fontSize: '0.9rem',
+                        mb: 1,
+                        color: '#063231',
+                      }}
+                    >
+                      {plan.name}
+                    </Typography>
+                    {plan.description}
+
+
+
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        display: 'block',
+                        opacity: 0.7,
+                        fontSize: '0.65rem',
+                        mt: 0.5,
+                        color: '#757877',
+                      }}
+                    >
+                      Ціни актуальні до 11 липня
+                    </Typography>
+                  </Box>
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {features.map((feature, index) => (
+              <TableRow
+                key={index}
+                component={motion.tr}
+                custom={index}
+                variants={rowVariants}
+                initial="hidden"
+                animate={inView ? 'visible' : 'hidden'}
+                sx={{
+                  cursor: 'default',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.02),
+                  },
+                  '&:hover .feature-text': {
+                    color: theme.palette.primary.main,
+                  }
+                }}
+              >
+                <TableCell
+                  scope="row"
+                  sx={{
+                    fontSize: '0.8rem',
+                    py: 0.75,
+                    borderBottom: '1px solid #f0f0f0',
+                    borderRight: '1px solid #f0f0f0',
+                  }}
+                >
+                  <motion.div
+                    initial="rest"
+                    whileHover="hover"
+                    animate="rest"
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <CircleIcon
+                        sx={{
+                          fontSize: 6,
+                          color: '#006A68',
+                          flexShrink: 0,
+                          filter: 'drop-shadow(0 0 2px rgba(0,106,104,0.4))',
+                        }}
+                      />
+                      <motion.div variants={textHoverVariants}>
+                        <Typography
+                          className="feature-text"
+                          sx={{
+                            fontSize: '0.8rem',
+                            lineHeight: 1.4,
+                            transition: 'color 0.3s ease',
+                            fontWeight: feature.isNew ? 500 : 400,
+                          }}
+                        >
+                          {feature.text}
+                        </Typography>
+                      </motion.div>
+                    </Box>
+                  </motion.div>
+                </TableCell>
+                {plans.map((plan, planIndex) => {
+                  const isBasicPlan = plan.name.includes('КОМПЛЕКСНИЙ') && !plan.name.includes('КОНТРОЛЬ');
+                  const hasFeature = isBasicPlan ? feature.basic : feature.premium;
+
+                  return (
+                    <TableCell
+                      key={planIndex}
+                      align="center"
+                      sx={{
+                        borderBottom: '1px solid #f0f0f0',
+                        borderRight: planIndex < plans.length - 1 ? '1px solid #f0f0f0' : 'none',
+                        py: 0.75,
+                        backgroundColor: plan.highlighted ? alpha(theme.palette.primary.main, 0.02) : 'transparent',
+                      }}
+                    >
+                      <Fade in={inView} timeout={1200 + index * 50}>
+                        <Box>
+                          {hasFeature ? (
+                            <CheckIcon
+                              sx={{
+                                color: theme.palette.primary.main,
+                                filter: `drop-shadow(0 0 4px ${alpha(theme.palette.primary.main, 0.4)})`,
+                              }}
+                            />
+                          ) : (
+                            <CloseIcon
+                              sx={{
+                                color: '#e0e0e0',
+                                fontSize: 18,
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </Fade>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+            <TableRow>
+              <TableCell sx={{ border: 'none', py: 1.5, borderRight: '1px solid #f0f0f0' }} />
+              {plans.map((plan, index) => (
+                <TableCell
+                  key={index}
+                  align="center"
+                  sx={{
+                    border: 'none',
+                    py: 1.5,
+                    borderRight: index < plans.length - 1 ? '1px solid #f0f0f0' : 'none',
+                    backgroundColor: plan.highlighted ? 'rgba(0, 106, 104, 0.02)' : 'transparent',
+                  }}
+                >
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      variant="contained"
+                      onClick={() => window.open('https://t.me/yaryna_yaromii', '_self')}
+                      sx={{
+                        backgroundColor: theme.palette.primary.main,
+                        color: 'white',
+                        px: 3,
+                        py: 0.75,
+                        fontSize: '0.8rem',
+                        fontWeight: 'bold',
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                    >
+                      Навчатись
+                    </Button>
+                  </motion.div>
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Card>
+  );
 
   return (
     <Box
@@ -161,323 +851,7 @@ const Prices: React.FC = () => {
           initial="hidden"
           animate={inView ? 'visible' : 'hidden'}
         >
-          <Card
-            sx={{
-              borderRadius: 4,
-              boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 10px 30px rgba(0,106,104,0.1)',
-              overflow: 'hidden',
-              background: 'white',
-            }}
-          >
-            <TableContainer component={Paper} elevation={0}>
-              <Table sx={{ minWidth: isMobile ? 350 : 650 }} size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell
-                      sx={{
-                        background: 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
-                        fontWeight: 'bold',
-                        color: '#063231',
-                        borderBottom: '3px solid #006A68',
-                        borderRight: '1px solid #e0e0e0',
-                        py: 1.5,
-                        fontSize: '0.9rem',
-                      }}
-                    >
-                      Особливості
-                    </TableCell>
-                    {plans.map((plan, index) => (
-                      <TableCell
-                        key={index}
-                        align="center"
-                        sx={{
-                          background: plan.highlighted 
-                            ? 'linear-gradient(135deg, #e8f5f3 0%, #d4ebe8 100%)' 
-                            : 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
-                          color: '#063231',
-                          borderBottom: '3px solid #006A68',
-                          borderRight: index === 0 ? '1px solid #e0e0e0' : 'none',
-                          position: 'relative',
-                          minWidth: { xs: 150, md: 200 },
-                          py: 2,
-                          px: { xs: 1, md: 2 },
-                        }}
-                      >
-                        <Box>
-                          <Typography
-                            variant="subtitle1"
-                            sx={{
-                              fontWeight: 'bold',
-                              fontSize: { xs: '0.85rem', md: '1rem' },
-                              mb: 1,
-                              color: '#063231',
-                            }}
-                          >
-                            {plan.name}
-                          </Typography>
-                          
-                          <Box sx={{ mb: 0.5 }}>
-                            <Typography
-                              sx={{
-                                fontSize: { xs: '0.7rem', md: '0.75rem' },
-                                color: '#757877',
-                                mb: 0.5,
-                              }}
-                            >
-                              <Box component="span" sx={{ 
-                                fontWeight: 'bold', 
-                                color: theme.palette.primary.main, 
-                                fontSize: { xs: '0.85rem', md: '0.9rem' },
-                                // filter: plan.highlighted ? 'drop-shadow(0 0 3px rgba(0,106,104,0.5))' : 'none',
-                              }}>
-                                {plan.monthlyPrice}
-                              </Box>
-                              {' '}- помісячна оплата
-                            </Typography>
-                            <Typography
-                              sx={{
-                                fontSize: { xs: '0.7rem', md: '0.75rem' },
-                                color: '#757877',
-                                mb: 0.5,
-                              }}
-                            >
-                              <Box component="span" sx={{ 
-                                fontWeight: 'bold', 
-                                color: theme.palette.primary.main, 
-                                fontSize: { xs: '0.85rem', md: '0.9rem' },
-                                // filter: plan.highlighted ? 'drop-shadow(0 0 3px rgba(0,106,104,0.5))' : 'none',
-                              }}>
-                                {plan.halfYearPrice}
-                              </Box>
-                              {' '}- оплата 50/50  <Box
-                                    component="span"
-                                    sx={{
-                                      ml: 1,
-                                      px: 0.8,
-                                      py: 0.2,
-                                      backgroundColor: '#FFB800',
-                                      color: '#063231',
-                                      borderRadius: 1,
-                                      fontSize: '0.6rem',
-                                      fontWeight: 'bold',
-                                      verticalAlign: 'middle',
-                                    }}
-                                  > - 10% </Box>
-                            </Typography>
-                            <Typography
-                              sx={{
-                                fontSize: { xs: '0.7rem', md: '0.75rem' },
-                                color: '#757877',
-                              }}
-                            >
-                              <Box component="span" sx={{ 
-                                fontWeight: 'bold', 
-                                color: theme.palette.primary.main, 
-                                fontSize: { xs: '0.85rem', md: '0.9rem' },
-                                // filter: plan.highlighted ? 'drop-shadow(0 0 3px rgba(0,106,104,0.5))' : 'none',
-                              }}>
-                                {plan.yearlyPrice}
-                              </Box>
-                              {' '}- оплата за рік <Box
-                                    component="span"
-                                    sx={{
-                                      ml: 1,
-                                      px: 0.8,
-                                      py: 0.2,
-                                      backgroundColor: '#FFB800',
-                                      color: '#063231',
-                                      borderRadius: 1,
-                                      fontSize: '0.6rem',
-                                      fontWeight: 'bold',
-                                      verticalAlign: 'middle',
-                                    }}
-                                  >
-                                    - 20%
-                                  </Box>
-                            </Typography>
-                          </Box>
-                          
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              display: 'block',
-                              opacity: 0.7,
-                              fontSize: { xs: '0.65rem', md: '0.7rem' },
-                              mt: 0.5,
-                              color: '#757877',
-                            }}
-                          >
-                            Ціни актуальні до 15 вересня
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {features.map((feature, index) => (
-                    <TableRow
-                      key={index}
-                      component={motion.tr}
-                      custom={index}
-                      variants={rowVariants}
-                      initial="hidden"
-                      animate={inView ? 'visible' : 'hidden'}
-                      sx={{
-                        cursor: 'default',
-                        '&:hover': {
-                          backgroundColor: alpha(theme.palette.primary.main, 0.02),
-                        },
-                        '&:hover .feature-text': {
-                          color: theme.palette.primary.main,
-                        }
-                      }}
-                    >
-                      <TableCell
-                        scope="row"
-                        sx={{
-                          fontSize: { xs: '0.75rem', md: '0.8rem' },
-                          py: 0.75,
-                          borderBottom: '1px solid #f0f0f0',
-                          borderRight: '1px solid #f0f0f0',
-                        }}
-                      >
-                        <motion.div
-                          initial="rest"
-                          whileHover="hover"
-                          animate="rest"
-                        >
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <CircleIcon 
-                              sx={{ 
-                                fontSize: 6, 
-                                color: '#006A68',
-                                flexShrink: 0,
-                                filter: 'drop-shadow(0 0 2px rgba(0,106,104,0.4))',
-                              }} 
-                            />
-                            <motion.div variants={textHoverVariants}>
-                              <Typography
-                                className="feature-text"
-                                sx={{
-                                  fontSize: { xs: '0.75rem', md: '0.8rem' },
-                                  lineHeight: 1.4,
-                                  transition: 'color 0.3s ease',
-                                  fontWeight: feature.isNew ? 500 : 400,
-                                }}
-                              >
-                                {feature.text}
-                              </Typography>
-                            </motion.div>
-                          </Box>
-                        </motion.div>
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        sx={{
-                          borderBottom: '1px solid #f0f0f0',
-                          borderRight: '1px solid #f0f0f0',
-                          py: 0.75,
-                        }}
-                      >
-                        <Fade in={inView} timeout={1200 + index * 50}>
-                          <Box>
-                            {feature.basic ? (
-                              <CheckIcon
-                                sx={{
-                                  color: theme.palette.primary.main,
-                                  filter: `drop-shadow(0 0 4px ${alpha(theme.palette.primary.main,0.4)})`,
-                                }}
-                              />
-                            ) : (
-                              <CloseIcon
-                                sx={{
-                                  color: '#e0e0e0',
-                                  fontSize: { xs: 16, md: 18 },
-                                }}
-                              />
-                            )}
-                          </Box>
-                        </Fade>
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        sx={{
-                          backgroundColor: alpha(theme.palette.primary.main, 0.02),
-                          borderBottom: '1px solid #f0f0f0',
-                          py: 0.75,
-                        }}
-                      >
-                        <Fade in={inView} timeout={1200 + index * 50}>
-                          <Box>
-                            {feature.premium ? (
-                              <CheckIcon
-                                sx={{
-                                  color: theme.palette.primary.main,
-                                  filter: `drop-shadow(0 0 4px ${alpha(theme.palette.primary.main,0.4)})`,
-                                }}
-                              />
-                            ) : (
-                              <CloseIcon
-                                sx={{
-                                  color: '#e0e0e0',
-                                  fontSize: { xs: 16, md: 18 },
-                                }}
-                              />
-                            )}
-                          </Box>
-                        </Fade>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow>
-                    <TableCell sx={{ border: 'none', py: 1.5, borderRight: '1px solid #f0f0f0' }} />
-                    {plans.map((plan, index) => (
-                      <TableCell
-                        key={index}
-                        align="center"
-                        sx={{
-                          border: 'none',
-                          py: 1.5,
-                          borderRight: index === 0 ? '1px solid #f0f0f0' : 'none',
-                          backgroundColor: plan.highlighted ? 'rgba(0, 106, 104, 0.02)' : 'transparent',
-                        }}
-                      >
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <Button
-                            variant="contained"
-                            onClick={() => window.open('https://t.me/yaryna_yaromii', '_self')}
-                            sx={{
-                              backgroundColor: theme.palette.primary.main,
-                              color: 'white',
-                              px: { xs: 2, md: 3 },
-                              py: 0.75,
-                              fontSize: { xs: '0.8rem', md: '0.85rem' },
-                              fontWeight: 'bold',
-                              // boxShadow: plan.highlighted 
-                                // ? `0 6px 20px ${alpha(theme.palette.primary.main,0.4)}` 
-                                // : `0 2px 8px ${alpha(theme.palette.primary.main,0.2)}`,
-                              '&:hover': {
-                                backgroundColor: theme.palette.primary.dark,
-                                boxShadow: plan.highlighted 
-                                  ? `0 8px 25px ${alpha(theme.palette.primary.main,0.5)}` 
-                                  : `0 4px 12px ${alpha(theme.palette.primary.main,0.3)}`,
-                              },
-                            }}
-                          >
-                            Навчатись
-                          </Button>
-                        </motion.div>
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
+          {isMobile ? renderMobileTable() : renderDesktopTable()}
         </motion.div>
       </Box>
     </Box>
