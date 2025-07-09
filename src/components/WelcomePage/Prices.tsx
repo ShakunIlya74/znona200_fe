@@ -12,8 +12,6 @@ import {
   TableHead,
   TableRow,
   Chip,
-  useTheme,
-  useMediaQuery,
   Paper,
   Fade,
   Zoom,
@@ -24,6 +22,8 @@ import CircleIcon from '@mui/icons-material/Circle';
 import StarIcon from '@mui/icons-material/Star';
 import { motion, Variants } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import { useTheme, useMediaQuery } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 interface PricingFeature {
   text: string;
@@ -226,9 +226,9 @@ const Prices: React.FC = () => {
                             >
                               <Box component="span" sx={{ 
                                 fontWeight: 'bold', 
-                                color: '#006A68', 
+                                color: theme.palette.primary.main, 
                                 fontSize: { xs: '0.85rem', md: '0.9rem' },
-                                filter: plan.highlighted ? 'drop-shadow(0 0 3px rgba(0,106,104,0.5))' : 'none',
+                                // filter: plan.highlighted ? 'drop-shadow(0 0 3px rgba(0,106,104,0.5))' : 'none',
                               }}>
                                 {plan.monthlyPrice}
                               </Box>
@@ -243,9 +243,9 @@ const Prices: React.FC = () => {
                             >
                               <Box component="span" sx={{ 
                                 fontWeight: 'bold', 
-                                color: '#006A68', 
+                                color: theme.palette.primary.main, 
                                 fontSize: { xs: '0.85rem', md: '0.9rem' },
-                                filter: plan.highlighted ? 'drop-shadow(0 0 3px rgba(0,106,104,0.5))' : 'none',
+                                // filter: plan.highlighted ? 'drop-shadow(0 0 3px rgba(0,106,104,0.5))' : 'none',
                               }}>
                                 {plan.halfYearPrice}
                               </Box>
@@ -272,9 +272,9 @@ const Prices: React.FC = () => {
                             >
                               <Box component="span" sx={{ 
                                 fontWeight: 'bold', 
-                                color: '#006A68', 
+                                color: theme.palette.primary.main, 
                                 fontSize: { xs: '0.85rem', md: '0.9rem' },
-                                filter: plan.highlighted ? 'drop-shadow(0 0 3px rgba(0,106,104,0.5))' : 'none',
+                                // filter: plan.highlighted ? 'drop-shadow(0 0 3px rgba(0,106,104,0.5))' : 'none',
                               }}>
                                 {plan.yearlyPrice}
                               </Box>
@@ -326,10 +326,10 @@ const Prices: React.FC = () => {
                       sx={{
                         cursor: 'default',
                         '&:hover': {
-                          backgroundColor: 'rgba(0, 106, 104, 0.02)',
+                          backgroundColor: alpha(theme.palette.primary.main, 0.02),
                         },
                         '&:hover .feature-text': {
-                          color: '#006A68',
+                          color: theme.palette.primary.main,
                         }
                       }}
                     >
@@ -385,9 +385,8 @@ const Prices: React.FC = () => {
                             {feature.basic ? (
                               <CheckIcon
                                 sx={{
-                                  color: '#4caf50',
-                                  fontSize: { xs: 16, md: 18 },
-                                  filter: 'drop-shadow(0 0 4px rgba(76,175,80,0.4))',
+                                  color: theme.palette.primary.main,
+                                  filter: `drop-shadow(0 0 4px ${alpha(theme.palette.primary.main,0.4)})`,
                                 }}
                               />
                             ) : (
@@ -404,7 +403,7 @@ const Prices: React.FC = () => {
                       <TableCell
                         align="center"
                         sx={{
-                          backgroundColor: 'rgba(0, 106, 104, 0.02)',
+                          backgroundColor: alpha(theme.palette.primary.main, 0.02),
                           borderBottom: '1px solid #f0f0f0',
                           py: 0.75,
                         }}
@@ -414,9 +413,8 @@ const Prices: React.FC = () => {
                             {feature.premium ? (
                               <CheckIcon
                                 sx={{
-                                  color: '#4caf50',
-                                  fontSize: { xs: 16, md: 18 },
-                                  filter: 'drop-shadow(0 0 4px rgba(76,175,80,0.4))',
+                                  color: theme.palette.primary.main,
+                                  filter: `drop-shadow(0 0 4px ${alpha(theme.palette.primary.main,0.4)})`,
                                 }}
                               />
                             ) : (
@@ -453,21 +451,20 @@ const Prices: React.FC = () => {
                             variant="contained"
                             onClick={() => window.open('https://t.me/yaryna_yaromii', '_self')}
                             sx={{
-                              backgroundColor: '#006A68',
+                              backgroundColor: theme.palette.primary.main,
                               color: 'white',
                               px: { xs: 2, md: 3 },
                               py: 0.75,
                               fontSize: { xs: '0.8rem', md: '0.85rem' },
                               fontWeight: 'bold',
-                              boxShadow: plan.highlighted 
-                                ? '0 6px 20px rgba(0, 106, 104, 0.4)' 
-                                : '0 2px 8px rgba(0, 106, 104, 0.2)',
-                              filter: plan.highlighted ? 'drop-shadow(0 0 8px rgba(0,106,104,0.3))' : 'none',
+                              // boxShadow: plan.highlighted 
+                                // ? `0 6px 20px ${alpha(theme.palette.primary.main,0.4)}` 
+                                // : `0 2px 8px ${alpha(theme.palette.primary.main,0.2)}`,
                               '&:hover': {
-                                backgroundColor: '#004D40',
+                                backgroundColor: theme.palette.primary.dark,
                                 boxShadow: plan.highlighted 
-                                  ? '0 8px 25px rgba(0, 106, 104, 0.5)' 
-                                  : '0 4px 12px rgba(0, 106, 104, 0.3)',
+                                  ? `0 8px 25px ${alpha(theme.palette.primary.main,0.5)}` 
+                                  : `0 4px 12px ${alpha(theme.palette.primary.main,0.3)}`,
                               },
                             }}
                           >
