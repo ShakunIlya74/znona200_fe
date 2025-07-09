@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, Button, CircularProgress } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { alpha, styled } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { GetQuote, PickNewQuote, Quote } from '../../services/MenuService';
 
@@ -20,7 +20,7 @@ const AdminButton = styled(Button)(({ theme }) => ({
   backgroundColor: theme.palette.primary.main,
   color: 'white',
   '&:hover': {
-    backgroundColor: theme.palette.primary.dark,
+    backgroundColor: alpha(theme.palette.primary.main, 0.8),
   },
 }));
 
@@ -153,7 +153,7 @@ const QuoteOfTheDay: React.FC = () => {
         <AdminButton
           onClick={handlePickNewQuote}
           disabled={refreshing}
-          title="Pick new quote"
+          title="Обрати нову цитату дня"
         >
           {refreshing ? (
             <CircularProgress size={16} color="inherit" />
