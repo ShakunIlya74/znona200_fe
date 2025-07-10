@@ -229,8 +229,9 @@ const Prices: React.FC = () => {
       <Box
         sx={{
           background: currentPlan.highlighted
-        ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.2)} 0%, ${alpha(theme.palette.primary.main, 0.1)} 100%)`
-        : `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.02)} 0%, ${alpha(theme.palette.primary.main, 0.01)} 100%)`,
+            ? 'linear-gradient(135deg, #e8f5f3 0%, #d4ebe8 100%)' 
+            : 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)', 
+            // todo: change to theme palette colors, but without alpha
           py: 2,
           px: 2,
           borderBottom: `3px solid ${alpha(theme.palette.primary.main, 0.9)}`,
@@ -364,7 +365,7 @@ const Prices: React.FC = () => {
                   scope="row"
                   sx={{
                     fontSize: '0.8rem',
-                    py: 1,
+                    py: 0.3,
                     borderBottom: '1px solid #f0f0f0',
                   }}
                 >
@@ -394,7 +395,7 @@ const Prices: React.FC = () => {
                   align="center"
                   sx={{
                     borderBottom: '1px solid #f0f0f0',
-                    py: 1,
+                    py: 0.3,
                   }}
                 >
                   <Fade in={inView} timeout={1200 + index * 50}>
@@ -555,7 +556,7 @@ const Prices: React.FC = () => {
                   scope="row"
                   sx={{
                     fontSize: '0.8rem',
-                    py: 0.75,
+                    py: 0.3,
                     borderBottom: '1px solid #f0f0f0',
                     borderRight: '1px solid #f0f0f0',
                   }}
@@ -601,7 +602,7 @@ const Prices: React.FC = () => {
                       sx={{
                         borderBottom: '1px solid #f0f0f0',
                         borderRight: planIndex < plans.length - 1 ? '1px solid #f0f0f0' : 'none',
-                        py: 0.75,
+                        py: 0.3,
                         backgroundColor: plan.highlighted ? alpha(theme.palette.primary.main, 0.02) : 'transparent',
                       }}
                     >
