@@ -217,10 +217,10 @@ const Prices: React.FC = () => {
   const isBasicPlan = currentPlan.name.includes('КОМПЛЕКСНИЙ') && !currentPlan.name.includes('КОНТРОЛЬ');
 
   const renderMobileTable = () => (
-    <Card
-      sx={{
+      <Card
+        sx={{
         borderRadius: 4,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 10px 30px rgba(0,106,104,0.1)',
+        boxShadow: `0 20px 60px rgba(0,0,0,0.15), 0 10px 30px ${alpha(theme.palette.primary.main, 0.1)}`,
         overflow: 'visible',
         background: 'white',
       }}
@@ -229,11 +229,11 @@ const Prices: React.FC = () => {
       <Box
         sx={{
           background: currentPlan.highlighted
-            ? 'linear-gradient(135deg, #e8f5f3 0%, #d4ebe8 100%)'
-            : 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
+        ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.2)} 0%, ${alpha(theme.palette.primary.main, 0.1)} 100%)`
+        : `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.02)} 0%, ${alpha(theme.palette.primary.main, 0.01)} 100%)`,
           py: 2,
           px: 2,
-          borderBottom: '3px solid #006A68',
+          borderBottom: `3px solid ${alpha(theme.palette.primary.main, 0.9)}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -247,8 +247,8 @@ const Prices: React.FC = () => {
         <IconButton
           onClick={handlePrevPlan}
           sx={{
-            color: '#006A68',
-            '&:hover': { backgroundColor: alpha('#006A68', 0.1) },
+        color: theme.palette.primary.main,
+        '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) },
           }}
         >
           <ArrowBackIosIcon />
@@ -256,54 +256,53 @@ const Prices: React.FC = () => {
 
         <Box sx={{ textAlign: 'center', flex: 1 }}>
           <Typography
-            variant="subtitle1"
-            sx={{
-              fontWeight: 'bold',
-              fontSize: '1rem',
-              mb: 1,
-              color: '#063231',
-            }}
+        variant="subtitle1"
+        sx={{
+          fontWeight: 'bold',
+          fontSize: '1rem',
+          mb: 1,
+          color: '#063231',
+        }}
           >
-            {currentPlan.name}
-          </Typography>          {currentPlan.description && (
-            <Box sx={{ mb: 1 }}>
-              <DescriptionRenderer description={currentPlan.description} theme={theme} />
-            </Box>
+        {currentPlan.name}
+          </Typography>
+          {currentPlan.description && (
+        <Box sx={{ mb: 1 }}>
+          <DescriptionRenderer description={currentPlan.description} theme={theme} />
+        </Box>
           )}
 
-
-
           <Typography
-            variant="caption"
-            sx={{
-              display: 'block',
-              opacity: 0.7,
-              fontSize: '0.7rem',
-              color: '#757877',
-            }}
+        variant="caption"
+        sx={{
+          display: 'block',
+          opacity: 0.7,
+          fontSize: '0.7rem',
+          color: '#757877',
+        }}
           >
-            Ціни актуальні до 11 липня
+        Ціни актуальні до 11 липня
           </Typography>
 
           <Typography
-            variant="caption"
-            sx={{
-              display: 'block',
-              mt: 1,
-              fontSize: '0.75rem',
-              color: '#006A68',
-              fontWeight: 'bold',
-            }}
+        variant="caption"
+        sx={{
+          display: 'block',
+          mt: 1,
+          fontSize: '0.75rem',
+          color: theme.palette.primary.main,
+          fontWeight: 'bold',
+        }}
           >
-            {currentPlanIndex + 1} з {plans.length}
+        {currentPlanIndex + 1} з {plans.length}
           </Typography>
         </Box>
 
         <IconButton
           onClick={handleNextPlan}
           sx={{
-            color: '#006A68',
-            '&:hover': { backgroundColor: alpha('#006A68', 0.1) },
+        color: theme.palette.primary.main,
+        '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) },
           }}
         >
           <ArrowForwardIosIcon />
@@ -320,7 +319,7 @@ const Prices: React.FC = () => {
                   background: 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
                   fontWeight: 'bold',
                   color: '#063231',
-                  borderBottom: '2px solid #006A68',
+                  borderBottom: `2px solid ${alpha(theme.palette.primary.main, 0.8)}`,
                   py: 1.5,
                   fontSize: '0.9rem',
                 }}
@@ -333,7 +332,7 @@ const Prices: React.FC = () => {
                   background: 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
                   fontWeight: 'bold',
                   color: '#063231',
-                  borderBottom: '2px solid #006A68',
+                  borderBottom: `2px solid ${alpha(theme.palette.primary.main, 0.8)}`,
                   py: 1.5,
                   fontSize: '0.9rem',
                 }}
@@ -373,9 +372,9 @@ const Prices: React.FC = () => {
                     <CircleIcon
                       sx={{
                         fontSize: 6,
-                        color: '#006A68',
+                        color: theme.palette.primary.main,
                         flexShrink: 0,
-                        filter: 'drop-shadow(0 0 2px rgba(0,106,104,0.4))',
+                        filter: `drop-shadow(0 0 2px ${alpha(theme.palette.primary.main, 0.5)})`,
                       }}
                     />
                     <Typography
@@ -458,7 +457,7 @@ const Prices: React.FC = () => {
     <Card
       sx={{
         borderRadius: 4,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 10px 30px rgba(0,106,104,0.1)',
+        boxShadow: `0 20px 60px rgba(0,0,0,0.15), 0 10px 30px ${alpha(theme.palette.primary.main, 0.02)}`,
         overflow: 'hidden',
         background: 'white',
       }}
@@ -472,7 +471,7 @@ const Prices: React.FC = () => {
                   background: 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
                   fontWeight: 'bold',
                   color: '#063231',
-                  borderBottom: '3px solid #006A68',
+                  borderBottom: `3px solid ${alpha(theme.palette.primary.main, 0.9)}`,
                   borderRight: '1px solid #e0e0e0',
                   py: 1.5,
                   fontSize: '0.9rem',
@@ -486,10 +485,10 @@ const Prices: React.FC = () => {
                   align="center"
                   sx={{
                     background: plan.highlighted
-                      ? 'linear-gradient(135deg, #e8f5f3 0%, #d4ebe8 100%)'
+                      ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`
                       : 'linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%)',
                     color: '#063231',
-                    borderBottom: '3px solid #006A68',
+                    borderBottom: `3px solid ${alpha(theme.palette.primary.main, 0.9)}`,
                     borderRight: index < plans.length - 1 ? '1px solid #e0e0e0' : 'none',
                     position: 'relative',
                     minWidth: 180,
@@ -568,25 +567,25 @@ const Prices: React.FC = () => {
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <CircleIcon
-                        sx={{
-                          fontSize: 6,
-                          color: '#006A68',
-                          flexShrink: 0,
-                          filter: 'drop-shadow(0 0 2px rgba(0,106,104,0.4))',
-                        }}
+                      sx={{
+                        fontSize: 6,
+                        color: alpha(theme.palette.primary.main, 0.7),
+                        flexShrink: 0,
+                        filter: `drop-shadow(0 0 2px ${alpha(theme.palette.primary.main, 0.2)})`,
+                      }}
                       />
                       <motion.div variants={textHoverVariants}>
-                        <Typography
-                          className="feature-text"
-                          sx={{
-                            fontSize: '0.8rem',
-                            lineHeight: 1.4,
-                            transition: 'color 0.3s ease',
-                            fontWeight: feature.isNew ? 500 : 400,
-                          }}
-                        >
-                          {feature.text}
-                        </Typography>
+                      <Typography
+                        className="feature-text"
+                        sx={{
+                        fontSize: '0.8rem',
+                        lineHeight: 1.4,
+                        transition: 'color 0.3s ease',
+                        fontWeight: feature.isNew ? 500 : 400,
+                        }}
+                      >
+                        {feature.text}
+                      </Typography>
                       </motion.div>
                     </Box>
                   </motion.div>
