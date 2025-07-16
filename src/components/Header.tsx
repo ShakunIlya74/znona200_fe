@@ -31,7 +31,6 @@ import ExpandLessOutlinedIcon from '@mui/icons-material/ExpandLessOutlined';
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-
 import packageJson from '../../package.json';
 import { GetSessionData, Logout } from "../services/AuthService";
 
@@ -188,7 +187,7 @@ function Header() {
   const drawerContent = (
     <Box
       sx={{
-        backgroundColor: '#f4f4f3',
+        backgroundColor: theme => theme.palette.greysh.main,
         display: 'flex',
         flexDirection: 'column',
         height: '100%', // Ensure full height
@@ -209,7 +208,7 @@ function Header() {
             component={Link}
             to="/menu"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "menu" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "menu" ? theme => theme.palette.background.paper : "inherit" }}
           >
             <WidgetsOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
@@ -223,7 +222,7 @@ function Header() {
             component={Link}
             to="/library"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "library" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "library" ? theme => theme.palette.background.paper : "inherit" }}
           >
             <ReceiptLongOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
@@ -237,7 +236,7 @@ function Header() {
             component={Link}
             to="/tests"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "tests" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "tests" ? theme => theme.palette.background.paper : "inherit" }}
           >
             <ReceiptLongOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
@@ -251,7 +250,7 @@ function Header() {
             component={Link}
             to="/webinars"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "webinars" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "webinars" ? theme => theme.palette.background.paper : "inherit" }}
           >
             <VideoCameraFrontOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
@@ -265,7 +264,7 @@ function Header() {
             component={Link}
             to="/minilections"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "minilections" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "minilections" ? theme => theme.palette.background.paper : "inherit" }}
           >
             <VoiceChatOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
@@ -279,7 +278,7 @@ function Header() {
             component={Link}
             to="/notes"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "notes" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "notes" ? theme => theme.palette.background.paper : "inherit" }}
           >
             <ArticleOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
@@ -293,7 +292,7 @@ function Header() {
             component={Link}
             to="/statistics"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "statistics" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "statistics" ? theme => theme.palette.background.paper : "inherit" }}
           >
             <QueryStatsOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
@@ -307,7 +306,7 @@ function Header() {
             component={Link}
             to="/user-control"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "user-control" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "user-control" ? theme => theme.palette.background.paper : "inherit" }}
           >
             <ContactPhoneOutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
@@ -321,7 +320,7 @@ function Header() {
             component={Link}
             to="/user-groups"
             onClick={() => setDrawerOpen(false)}
-            sx={{ backgroundColor: selectedMenu === "user-groups" ? "#FFFFFF" : "inherit" }}
+            sx={{ backgroundColor: selectedMenu === "user-groups" ? theme => theme.palette.background.paper : "inherit" }}
           >
             <Diversity1OutlinedIcon sx={{ mr: 2, ml: '50px', fontSize: BUTTON_FONT_SIZE }} />
             <ListItemText
@@ -341,7 +340,7 @@ function Header() {
       <AppBar
         position="sticky"
         sx={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: theme => theme.palette.background.paper,
           boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
           top: 0, // Ensure it sticks at the top
           height: {
@@ -365,7 +364,7 @@ function Header() {
               sm: HEADER_HEIGHT.sm,
               md: HEADER_HEIGHT.md,
             },
-            backgroundColor: '#f4f4f3',
+            backgroundColor: theme => theme.palette.greysh.main,
             minHeight: {
               xs: HEADER_HEIGHT.xs,
               sm: HEADER_HEIGHT.sm,
@@ -416,7 +415,7 @@ function Header() {
                   width: '45px',
                   height: '45px',
                   borderRadius: '50%',
-                  backgroundColor: '#016a68',
+                  backgroundColor: theme => theme.palette.primary.main,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -453,7 +452,7 @@ function Header() {
                 elevation: 3,
                 sx: {
                   mt: 1.5,
-                  backgroundColor: '#f4f4f3',
+                  backgroundColor: theme => theme.palette.greysh.main,
                   borderRadius: '10px',
                   minWidth: '180px',
                   overflow: 'visible',
@@ -465,7 +464,7 @@ function Header() {
                     right: 20,
                     width: 20,
                     height: 20,
-                    bgcolor: '#f4f4f3',
+                    bgcolor: theme => theme.palette.greysh.main,
                     transform: 'rotate(45deg)',
                     zIndex: 0,
                   },
@@ -481,7 +480,7 @@ function Header() {
                 fontSize: '16px',
                 py: 1.5,
                 color: '#5b5f5e',
-                '&:hover': { backgroundColor: '#e6e6e5' }
+                '&:hover': { backgroundColor: theme => theme.palette.greysh.dark }
               }}
             >
               <SettingsOutlinedIcon sx={{ mr: 1 }} />
@@ -493,7 +492,7 @@ function Header() {
                 fontSize: '16px',
                 py: 1.5,
                 color: '#5b5f5e',
-                '&:hover': { backgroundColor: '#e6e6e5' }
+                '&:hover': { backgroundColor: theme => theme.palette.greysh.dark }
               }}
             >
               <LogoutOutlinedIcon sx={{ mr: 1 }} />
@@ -512,7 +511,7 @@ function Header() {
             '& .MuiDrawer-paper': {
               width: '275px',
               boxSizing: 'border-box',
-              backgroundColor: '#f4f4f3',
+              backgroundColor: theme => theme.palette.greysh.main,
               boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.1)'
             },
           }}
@@ -533,7 +532,7 @@ function Header() {
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
             width: 250,
-            backgroundColor: '#f4f4f3', // Ensure consistent background
+            backgroundColor: theme => theme.palette.greysh.main,
           },
         }}
       >

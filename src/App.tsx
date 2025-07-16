@@ -30,7 +30,7 @@ import UserControlPage from './pages/user-managment/UserControlPage';
 
 const withLayout = (Component: React.ComponentType, isViewComponent=false) => () => (
   <>
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#ffffff' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: theme => theme.palette.greysh.light}}>
       <Header />
       <Box sx={{ display: 'flex', flex: 1 }}>
         <Box
@@ -47,7 +47,7 @@ const withLayout = (Component: React.ComponentType, isViewComponent=false) => ()
             width: '100%',
             p: isViewComponent ? 0 : { xs: 0, md: 5 },
             flex: 1,
-            backgroundColor: isViewComponent ? 'white' : '#f4f4f3',
+            backgroundColor: isViewComponent ? 'white' : theme => theme.palette.greysh.light,
             paddingBottom: isViewComponent ? 0 : { xs: 5, md: 10 },
           }}
         >

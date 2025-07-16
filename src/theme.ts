@@ -57,8 +57,32 @@ declare module '@mui/material/styles' {
  */
 
 declare module '@mui/material/styles' {
-  interface BreakpointOverrides {
-    max: true;
+  interface TypeBackground {
+    default: string;
+    paper: string;
+    dark: string;
+  }
+}
+
+declare module '@mui/material/styles' {
+  interface PaletteColor {
+    main: string;
+    light: string;
+    dark: string;
+    darker: string;
+    contrastText: string;
+  }
+
+  interface SimplePaletteColorOptions {
+    darker?: string;
+  }
+
+  interface Palette {
+    greysh: PaletteColor;
+  }
+
+  interface PaletteOptions {
+    greysh?: SimplePaletteColorOptions;
   }
 }
 
@@ -68,12 +92,27 @@ const theme = () => {
   znoTheme = createTheme(znoTheme, {
 
   palette: {
+    // greysh: {
+    //   main:  '#f4f4f3',
+    //   light: '#ffffff',
+    //   dark: '#e6e6e5',
+    // },
+    greysh: { //misty blue
+      main:  '#e8f2f9ff',
+      light: '#f4faffff',
+      dark: '#b7cfdc',
+    },
     primary: {
-      main: '#006A68',
+      main: '#385e72',
     },
     secondary: {
       main: '#3F6563',
     },
+    // background: {
+    //   default:  '#f4f4f3',
+    //   paper: '#ffffff',
+    //   dark: '#e6e6e5',
+    // },
   },  typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif', // Default font
     h6: {
