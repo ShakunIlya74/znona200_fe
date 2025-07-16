@@ -92,18 +92,33 @@ const theme = () => {
   znoTheme = createTheme(znoTheme, {
 
   palette: {
-    // greysh: {
-    //   main:  '#f4f4f3',
-    //   light: '#ffffff',
-    //   dark: '#e6e6e5',
-    // },
-    greysh: { //misty blue
-      main:  '#e8f2f9ff',
-      light: '#f4faffff',
-      dark: '#b7cfdc',
+    greysh: {
+      main:  '#f4f4f3',
+      light: '#f4f4f3',
+      dark: '#e6e6e5',
     },
+    // greysh: { //misty blue
+    //   main:  '#e8f2f9ff',
+    //   light: '#f4faffff',
+    //   dark: '#b7cfdc',
+    // },
+    //     greysh: { //green minty
+    //   main:  '#e7f6f1',
+    //   light: '#f4fbf9',
+    //   dark: '#b7cfdc',
+    // },
+    // greysh: { // latte brownish
+    //   main:  '#f4ede7',
+    //   light: '#fbf8f5',
+    //   dark: '#e6e6e5',
+    //   darker: '#d0cfcf',
+    // },
+
     primary: {
-      main: '#385e72',
+      main: '#0f6a68', //original
+      // main: '#385e72', //misty blue
+      // main: '#48715e', //green minty
+      // main: '#7a6250', // latte brownish
     },
     secondary: {
       main: '#3F6563',
