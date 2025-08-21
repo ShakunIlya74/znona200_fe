@@ -26,6 +26,7 @@ import {
     Error as ErrorIcon,
     Group as GroupIcon
 } from '@mui/icons-material';
+import { getAllActiveGroups } from '../../services/UserService';
 
 /**
  * Interface for user data from TSV file
@@ -86,18 +87,33 @@ const AddUsersTab: React.FC = memo(() => {
         severity: 'success' | 'error' | 'info' | 'warning';
     } | null>(null);
 
-    // Mock data for groups - TODO: Replace with actual API call
+    // Fetch active groups from backend
     React.useEffect(() => {
-        // Simulate API call to fetch available groups
-        const mockGroups: GroupOption[] = [
-            { id: '1', name: 'Група А', description: 'Основна група для початківців' },
-            { id: '2', name: 'Група Б', description: 'Поглиблений курс' },
-            { id: '3', name: 'Група В', description: 'Спеціальна група' },
-            { id: '4', name: 'ЗНО 2024', description: 'Підготовка до ЗНО' },
-            { id: '5', name: 'ЗНО 2025', description: 'Підготовка до ЗНО наступного року' },
-            { id: '6', name: 'Індивідуальні заняття', description: 'Персональні уроки' }
-        ];
-        setAvailableGroups(mockGroups);
+        const fetchGroups = async () => {
+            try {
+                const response = await getAllActiveGroups();
+                if (response.success && response.groups) {
+                    const groups: GroupOption[] = response.groups.map(group => ({
+                        id: group.group_id.toString(),
+                        name: group.group_name
+                    }));
+                    setAvailableGroups(groups);
+                } else {
+                    setNotification({
+                        message: 'Помилка завантаження груп',
+                        severity: 'error'
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching groups:', error);
+                setNotification({
+                    message: 'Помилка завантаження груп',
+                    severity: 'error'
+                });
+            }
+        };
+
+        fetchGroups();
     }, []);
 
     // Handle file drag and drop
@@ -581,16 +597,9 @@ const AddUsersTab: React.FC = memo(() => {
                         }
                         renderOption={(props, option) => (
                             <Box component="li" {...props}>
-                                <Box>
-                                    <Typography variant="body2" fontWeight={600}>
-                                        {option.name}
-                                    </Typography>
-                                    {option.description && (
-                                        <Typography variant="caption" color="text.secondary">
-                                            {option.description}
-                                        </Typography>
-                                    )}
-                                </Box>
+                                <Typography variant="body2" fontWeight={600}>
+                                    {option.name}
+                                </Typography>
                             </Box>
                         )}
                         ChipProps={{

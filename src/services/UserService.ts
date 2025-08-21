@@ -249,6 +249,16 @@ interface UpdateUserSurnameResponse {
   message?: string;
 }
 
+// Interface for active groups response
+interface ActiveGroupsResponse {
+  success: boolean;
+  groups?: {
+    group_name: string;
+    group_id: number;
+  }[];
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -859,6 +869,20 @@ export const updateRequestStatus = async (
     return response.data;
   } catch (error) {
     console.error('Error updating request status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches all active user groups
+ * @returns Promise with active groups information including group names and IDs
+ */
+export const getAllActiveGroups = async (): Promise<ActiveGroupsResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-control/active-groups/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching active groups:', error);
     throw error;
   }
 };
