@@ -691,92 +691,94 @@ const AddUsersTab: React.FC = memo(() => {
                     )}
 
                     {/* Drop Zone */}
-                    <Box
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={handleDrop}
-                        sx={{
-                            border: `2px dashed ${dragActive 
-                                ? theme.palette.primary.main 
-                                : alpha(theme.palette.grey[400], 0.5)
-                            }`,
-                            borderRadius: 2,
-                            p: isMobile ? 3 : 6,
-                            textAlign: 'center',
-                            bgcolor: dragActive 
-                                ? alpha(theme.palette.primary.main, 0.05) 
-                                : alpha(theme.palette.grey[50], 0.5),
-                            transition: 'all 0.2s ease-in-out',
-                            cursor: 'pointer',
-                            '&:hover': {
-                                bgcolor: alpha(theme.palette.primary.main, 0.02),
-                                borderColor: theme.palette.primary.light
-                            }
-                        }}
-                    >
-                        <input
-                            type="file"
-                            accept=".tsv,.txt"
-                            onChange={handleFileInputChange}
-                            style={{
-                                position: 'absolute',
-                                left: '-9999px',
-                                top: '-9999px'
-                            }}
-                            id="tsv-file-input"
-                        />
-                        
-                        <CloudUploadIcon 
-                            sx={{ 
-                                fontSize: isMobile ? 48 : 64,
-                                color: dragActive 
-                                    ? theme.palette.primary.main 
-                                    : theme.palette.grey[400],
-                                mb: 2
-                            }} 
-                        />
-                        
-                        <Typography
-                            variant={isMobile ? "body1" : "h6"}
-                            sx={{ 
-                                mb: 1,
-                                color: dragActive 
-                                    ? theme.palette.primary.main 
-                                    : theme.palette.text.primary,
-                                fontWeight: 600
-                            }}
-                        >
-                            Перетягніть TSV файл сюди
-                        </Typography>
-                        
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                            або
-                        </Typography>
-                        
-                        <Button
-                            variant="contained"
-                            component="label"
-                            htmlFor="tsv-file-input"
-                            startIcon={<DescriptionIcon />}
+                    {!uploadedFile && (
+                        <Box
+                            onDragEnter={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDragOver={handleDrag}
+                            onDrop={handleDrop}
                             sx={{
+                                border: `2px dashed ${dragActive 
+                                    ? theme.palette.primary.main 
+                                    : alpha(theme.palette.grey[400], 0.5)
+                                }`,
                                 borderRadius: 2,
-                                px: 4,
-                                py: 1.5,
-                                fontWeight: 600
+                                p: isMobile ? 3 : 6,
+                                textAlign: 'center',
+                                bgcolor: dragActive 
+                                    ? alpha(theme.palette.primary.main, 0.05) 
+                                    : alpha(theme.palette.grey[50], 0.5),
+                                transition: 'all 0.2s ease-in-out',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    bgcolor: alpha(theme.palette.primary.main, 0.02),
+                                    borderColor: theme.palette.primary.light
+                                }
                             }}
                         >
-                            Оберіть файл
-                        </Button>
-                        
-                        <Typography 
-                            variant="caption" 
-                            color="text.secondary" 
-                            sx={{ display: 'block', mt: 2 }}
-                        >
-                            Підтримувані формати: .tsv (максимум 10MB, до {MAX_USERS_LIMIT} користувачів)
-                        </Typography>
-                    </Box>
+                            <input
+                                type="file"
+                                accept=".tsv,.txt"
+                                onChange={handleFileInputChange}
+                                style={{
+                                    position: 'absolute',
+                                    left: '-9999px',
+                                    top: '-9999px'
+                                }}
+                                id="tsv-file-input"
+                            />
+                            
+                            <CloudUploadIcon 
+                                sx={{ 
+                                    fontSize: isMobile ? 48 : 64,
+                                    color: dragActive 
+                                        ? theme.palette.primary.main 
+                                        : theme.palette.grey[400],
+                                    mb: 2
+                                }} 
+                            />
+                            
+                            <Typography
+                                variant={isMobile ? "body1" : "h6"}
+                                sx={{ 
+                                    mb: 1,
+                                    color: dragActive 
+                                        ? theme.palette.primary.main 
+                                        : theme.palette.text.primary,
+                                    fontWeight: 600
+                                }}
+                            >
+                                Перетягніть TSV файл сюди
+                            </Typography>
+                            
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                або
+                            </Typography>
+                            
+                            <Button
+                                variant="contained"
+                                component="label"
+                                htmlFor="tsv-file-input"
+                                startIcon={<DescriptionIcon />}
+                                sx={{
+                                    borderRadius: 2,
+                                    px: 4,
+                                    py: 1.5,
+                                    fontWeight: 600
+                                }}
+                            >
+                                Оберіть файл
+                            </Button>
+                            
+                            <Typography 
+                                variant="caption" 
+                                color="text.secondary" 
+                                sx={{ display: 'block', mt: 2 }}
+                            >
+                                Підтримувані формати: .tsv (максимум 10MB, до {MAX_USERS_LIMIT} користувачів)
+                            </Typography>
+                        </Box>
+                    )}
 
                     {/* Process File Button */}
                     {uploadedFile && !uploading && parsedUsers.length === 0 && selectedGroups.length > 0 && (
