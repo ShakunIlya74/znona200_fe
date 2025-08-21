@@ -13,6 +13,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import UserControlSearch from './UserControlSearch';
+import AddUsersTab from './AddUsersTab';
 import { getAllUsersPaginated, searchUsersControlPage, UserInfo, getAllUserRequestsPaginated, UserRequest, searchUserRequests } from '../../services/UserService';
 
 
@@ -110,6 +111,7 @@ const UserControlPage: React.FC = () => {
                     <Tab label="Користувачі без груп" />
                     <Tab label="Активні користувачі" />
                     <Tab label="Деактивовані користувачі" />
+                    <Tab label="+ Додати користувачів" />
                 </Tabs>
             </Paper>
 
@@ -170,6 +172,11 @@ const UserControlPage: React.FC = () => {
                     searchPlaceholder="Пошук деактивованих користувачів..."
                     mode="inactive"
                 />
+            </Box>
+
+            {/* Add Users Tab */}
+            <Box sx={{ display: tabValue === 4 ? 'block' : 'none' }}>
+                <AddUsersTab />
             </Box>
 
             <Snackbar
