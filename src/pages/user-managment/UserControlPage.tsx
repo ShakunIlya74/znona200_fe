@@ -19,6 +19,9 @@ import { getAllUsersPaginated, searchUsersControlPage, UserInfo, getAllUserReque
 const UserControlPage: React.FC = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+    // Dynamic header offset based on screen size (align with MinilectionsPage)
+    const HEADER_OFFSET = isMobile ? 50 : isMedium ? 70 : 100;
     
     // States
     const [tabValue, setTabValue] = useState<number>(0);
@@ -64,11 +67,23 @@ const UserControlPage: React.FC = () => {
     const searchUsersActive = useCallback((searchQuery: string) => searchUsersControlPage(searchQuery, 'active'), []);
     
     const getUsersPaginatedInactive = useCallback((page: number) => getAllUsersPaginated(page, 'inactive'), []);
-    const searchUsersInactive = useCallback((searchQuery: string) => searchUsersControlPage(searchQuery, 'inactive'), []);return (
-        <Container maxWidth="lg" sx={{ py: 3 }}>
+    const searchUsersInactive = useCallback((searchQuery: string) => searchUsersControlPage(searchQuery, 'inactive'), []);
+
+    return (
+        <Container
+            maxWidth="lg"
+            sx={{ 
+                py: 1,
+                // Counteract the layout wrapper's bottom padding to prevent extra scroll
+                mb: { xs: -5, md: -10 }
+            }}
+        >
             <Paper
                 elevation={0}
                 sx={{
+                    position: 'sticky',
+                    top: HEADER_OFFSET,
+                    zIndex: 3,
                     borderRadius: '16px',
                     overflow: 'hidden',
                     border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
