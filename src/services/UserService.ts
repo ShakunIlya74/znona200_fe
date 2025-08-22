@@ -283,6 +283,29 @@ export interface BulkCreateUsersResponse {
   }[];
 }
 
+// Interface for user creation log
+export interface UserCreationLog {
+  add_process_id: number;
+  updated_at: string;
+  total_added_users: number;
+  successful_creations: number;
+  failed_creations: number;
+  successful_emails: number;
+  failed_emails: number;
+  status: 'started' | 'finished';
+}
+
+// Interface for email stats response
+export interface EmailStatsResponse {
+  success: boolean;
+  email_stats?: {
+    emails_sent_today: number;
+    emails_left_for_today: number;
+    user_creation_logs: UserCreationLog[];
+  };
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -924,6 +947,20 @@ export const bulkCreateUsers = async (
     return response.data;
   } catch (error) {
     console.error('Error creating users in bulk:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches email statistics and user creation logs
+ * @returns Promise with email stats including daily limits and user creation logs
+ */
+export const getEmailStats = async (): Promise<EmailStatsResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-control/email_stats/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching email stats:', error);
     throw error;
   }
 };

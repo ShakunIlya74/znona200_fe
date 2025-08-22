@@ -14,7 +14,17 @@ import {
     LinearProgress,
     Chip,
     Autocomplete,
-    TextField
+    TextField,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    CircularProgress,
+    Card,
+    CardContent,
+    Grid
 } from '@mui/material';
 import {
     CloudUpload as CloudUploadIcon,
@@ -24,9 +34,13 @@ import {
     CheckCircle as CheckCircleIcon,
     Send as SendIcon,
     Error as ErrorIcon,
-    Group as GroupIcon
+    Group as GroupIcon,
+    Refresh as RefreshIcon,
+    Email as EmailIcon,
+    TrendingUp as TrendingUpIcon,
+    Assessment as AssessmentIcon
 } from '@mui/icons-material';
-import { getAllActiveGroups, bulkCreateUsers, BulkCreateUsersPayload } from '../../services/UserService';
+import { getAllActiveGroups, bulkCreateUsers, BulkCreateUsersPayload, getEmailStats, UserCreationLog, EmailStatsResponse } from '../../services/UserService';
 
 /**
  * Interface for user data from TSV file
@@ -86,6 +100,63 @@ const AddUsersTab: React.FC = memo(() => {
         message: string;
         severity: 'success' | 'error' | 'info' | 'warning';
     } | null>(null);
+    const [loadingStats, setLoadingStats] = useState(false);
+    const [emailStats, setEmailStats] = useState<EmailStatsResponse | null>(null);
+
+    // Get status color based on log status and failed creations
+    const getStatusColor = (log: UserCreationLog): 'warning' | 'success' | 'error' => {
+        if (log.status === 'started') {
+            return 'warning';
+        } else if (log.status === 'finished') {
+            return log.failed_creations > 0 ? 'error' : 'success';
+        }
+        return 'warning';
+    };
+
+    // Get status text
+    const getStatusText = (log: UserCreationLog): string => {
+        if (log.status === 'started') {
+            return 'В процесі';
+        } else if (log.status === 'finished') {
+            return log.failed_creations > 0 ? 'Завершено з помилками' : 'Завершено успішно';
+        }
+        return 'Невідомо';
+    };
+
+    // Format date string
+    const formatDate = (dateString: string): string => {
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleString('uk-UA', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        } catch {
+            return dateString;
+        }
+    };
+
+    // Fetch email statistics
+    const fetchEmailStats = useCallback(async () => {
+        setLoadingStats(true);
+
+        try {
+            const response = await getEmailStats();
+            setEmailStats(response);
+
+            if (!response.success) {
+                console.error('Error fetching email stats:', response.message);
+            }
+        } catch (error) {
+            console.error('Error fetching email stats:', error);
+        } finally {
+            setLoadingStats(false);
+        }
+    }, []);
 
     // Fetch active groups from backend
     React.useEffect(() => {
@@ -114,7 +185,8 @@ const AddUsersTab: React.FC = memo(() => {
         };
 
         fetchGroups();
-    }, []);
+        fetchEmailStats();
+    }, [fetchEmailStats]);
 
     // Handle file drag and drop
     const handleDrag = useCallback((e: React.DragEvent) => {
@@ -456,6 +528,11 @@ const AddUsersTab: React.FC = memo(() => {
                 setParsedUsers([]);
                 setValidationErrors([]);
                 setSelectedGroups([]);
+
+                // Refresh email stats after successful user creation
+                setTimeout(() => {
+                    fetchEmailStats();
+                }, 1000);
             } else {
                 setNotification({
                     message: response.message || 'Помилка при створенні користувачів',
@@ -532,7 +609,7 @@ const AddUsersTab: React.FC = memo(() => {
                                 fontWeight: 600
                             }}
                         >
-                            Крок 1: Завантажте шаблон TSV файлу
+                            Крок 1: Завантажте шаблон TSV файлу (опціонально)
                         </Typography>
                         
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -1058,6 +1135,240 @@ const AddUsersTab: React.FC = memo(() => {
                             <li>Опціональні поля можуть бути порожніми</li>
                         </Box>
                     </Typography>
+                </Paper>
+
+                <Divider sx={{ my: 4 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Статистика
+                    </Typography>
+                </Divider>
+
+                {/* Email Statistics Section */}
+                <Paper
+                    sx={{
+                        borderRadius: 3,
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                        overflow: 'hidden'
+                    }}
+                >
+                    <Box sx={{ p: 3, borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.5)}` }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <AssessmentIcon sx={{ color: theme.palette.primary.main }} />
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: 600,
+                                        color: theme.palette.primary.main
+                                    }}
+                                >
+                                    Статистика створення користувачів
+                                </Typography>
+                            </Box>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={loadingStats ? <CircularProgress size={16} /> : <RefreshIcon />}
+                                onClick={fetchEmailStats}
+                                disabled={loadingStats}
+                                sx={{
+                                    borderRadius: 2,
+                                    px: 2,
+                                    py: 0.5,
+                                    fontWeight: 600
+                                }}
+                            >
+                                {loadingStats ? 'Оновлення...' : 'Оновити'}
+                            </Button>
+                        </Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            Статистика відправки електронних листів та створення користувачів
+                        </Typography>
+                    </Box>
+
+                    {/* Email Statistics Cards */}
+                    {emailStats?.success && emailStats.email_stats && (
+                        <Box sx={{ p: 3, borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.5)}` }}>
+                            <Grid container spacing={3}>
+                                <Grid item xs={12} md={6}>
+                                    <Card
+                                        sx={{
+                                            borderRadius: 2,
+                                            border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                                            boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.1)}`
+                                        }}
+                                    >
+                                        <CardContent sx={{ p: 2 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                                                <EmailIcon sx={{ fontSize: 24, color: theme.palette.primary.main }} />
+                                                <Typography variant="subtitle1" fontWeight={600}>
+                                                    Листи сьогодні
+                                                </Typography>
+                                            </Box>
+                                            <Typography variant="h4" color="primary" fontWeight={700}>
+                                                {emailStats.email_stats.emails_sent_today}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                відправлено
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                                
+                                <Grid item xs={12} md={6}>
+                                    <Card
+                                        sx={{
+                                            borderRadius: 2,
+                                            border: `1px solid ${alpha(theme.palette.success.main, 0.1)}`,
+                                            boxShadow: `0 2px 8px ${alpha(theme.palette.success.main, 0.1)}`
+                                        }}
+                                    >
+                                        <CardContent sx={{ p: 2 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                                                <TrendingUpIcon sx={{ fontSize: 24, color: theme.palette.success.main }} />
+                                                <Typography variant="subtitle1" fontWeight={600}>
+                                                    Залишилося
+                                                </Typography>
+                                            </Box>
+                                            <Typography variant="h4" color="success.main" fontWeight={700}>
+                                                {emailStats.email_stats.emails_left_for_today}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                можна відправити
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    )}
+
+                    {/* User Creation Logs Table */}
+                    <Box>
+                        <Box sx={{ p: 2, borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.3)}` }}>
+                            <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                                Історія створення користувачів
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                Останні процеси створення користувачів
+                            </Typography>
+                        </Box>
+
+                        <TableContainer sx={{ maxHeight: 400 }}>
+                            <Table stickyHeader size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            ID
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Оновлено
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Всього
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Створено
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Помилки
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Листи
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Статус
+                                        </TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {loadingStats ? (
+                                        <TableRow>
+                                            <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
+                                                <CircularProgress size={24} />
+                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                                                    Завантаження...
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : emailStats?.success && emailStats.email_stats?.user_creation_logs ? (
+                                        emailStats.email_stats.user_creation_logs.length > 0 ? (
+                                            emailStats.email_stats.user_creation_logs.slice(0, 10).map((log) => (
+                                                <TableRow
+                                                    key={log.add_process_id}
+                                                    sx={{
+                                                        '&:hover': {
+                                                            bgcolor: alpha(theme.palette.primary.main, 0.02)
+                                                        }
+                                                    }}
+                                                >
+                                                    <TableCell sx={{ fontSize: '0.75rem' }}>{log.add_process_id}</TableCell>
+                                                    <TableCell sx={{ fontSize: '0.75rem' }}>{formatDate(log.updated_at)}</TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="caption" fontWeight={600}>
+                                                            {log.total_added_users}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="caption" color="success.main" fontWeight={600}>
+                                                            {log.successful_creations}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography 
+                                                            variant="caption" 
+                                                            color={log.failed_creations > 0 ? "error.main" : "text.secondary"}
+                                                            fontWeight={log.failed_creations > 0 ? 600 : 400}
+                                                        >
+                                                            {log.failed_creations}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="caption" color="primary.main" fontWeight={600}>
+                                                            {log.successful_emails}
+                                                            {log.failed_emails > 0 && (
+                                                                <Typography component="span" variant="caption" color="error.main" sx={{ ml: 0.5 }}>
+                                                                    ({log.failed_emails} помилок)
+                                                                </Typography>
+                                                            )}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Chip
+                                                            label={getStatusText(log)}
+                                                            color={getStatusColor(log)}
+                                                            size="small"
+                                                            sx={{
+                                                                fontSize: '0.7rem',
+                                                                height: 20,
+                                                                fontWeight: 600
+                                                            }}
+                                                        />
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={7} sx={{ textAlign: 'center', py: 3 }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Немає даних для відображення
+                                                    </Typography>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={7} sx={{ textAlign: 'center', py: 3 }}>
+                                                <Typography variant="caption" color="error">
+                                                    Помилка завантаження даних
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
                 </Paper>
             </Stack>
         </Container>
