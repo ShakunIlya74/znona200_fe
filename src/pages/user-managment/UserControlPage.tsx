@@ -13,6 +13,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import UserControlSearch from './UserControlSearch';
+import UserRequestSearch from './UserRequestSearch';
 import AddUsersTab from './AddUsersTab';
 import { getAllUsersPaginated, searchUsersControlPage, UserInfo, getAllUserRequestsPaginated, UserRequest, searchUserRequests } from '../../services/UserService';
 
@@ -58,7 +59,12 @@ const UserControlPage: React.FC = () => {
     // Common user change handler - memoized to prevent unnecessary re-renders
     const handleUserChange = useCallback((users: (UserInfo | UserRequest)[]) => {
         console.log('Users changed:', users.length);
-    }, []);// Wrapper functions for UserControlSearch - memoized to prevent unnecessary re-renders
+    }, []);
+
+    // Wrapper for requests to match UserInfo | UserRequest type
+    const handleRequestChange = useCallback((requests: UserRequest[]) => {
+        handleUserChange(requests);
+    }, [handleUserChange]);    // Wrapper functions for UserControlSearch - memoized to prevent unnecessary re-renders
     const getUserRequestsPaginated = useCallback((page: number) => getAllUserRequestsPaginated(page), []);
     
     const getUsersPaginatedWithoutGroups = useCallback((page: number) => getAllUsersPaginated(page, 'without group'), []);
@@ -130,13 +136,11 @@ const UserControlPage: React.FC = () => {
                 </Typography>
             )}            {/* User Requests Tab */}
             <Box sx={{ display: tabValue === 0 ? 'block' : 'none' }}>
-                <UserControlSearch
+                <UserRequestSearch
                     onClick={handleUserClick}
-                    onUserChange={handleUserChange}
+                    onUserChange={handleRequestChange}
                     retrieveUsersPaginated={getUserRequestsPaginated}
-                    onSearch={searchUserRequests}
                     searchPlaceholder="Пошук запитів..."
-                    mode="requests"
                 />
             </Box>{/* Users Without Groups Tab */}
             <Box sx={{ display: tabValue === 1 ? 'block' : 'none' }}>

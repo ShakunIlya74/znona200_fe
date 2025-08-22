@@ -503,13 +503,16 @@ export const searchUsersControlPage = async (searchQuery: string, searchMode: st
 /**
  * Searches for user request across the entire system
  * @param searchQuery The search query to filter users by
- * @returns Promise with matching users information
+ * @param searchMode The search mode to filter requests by (optional)
+ * @param page The page number for pagination (optional, defaults to 1)
+ * @returns Promise with matching users information and pagination
  */
-export const searchUserRequests = async (searchQuery: string): Promise<UserSearchResponse> => {
+export const searchUserRequests = async (searchQuery: string, searchMode?: string, page: number = 1): Promise<UserRequestsPaginatedResponse> => {
   try {
     const response = await axiosInstance.get('/user-control/user-requests-search', {
-      params: { searchQuery }
+      params: { searchQuery, searchMode, page }
     });
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error('Error searching for user requests:', error);
