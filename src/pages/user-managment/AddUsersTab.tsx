@@ -26,7 +26,7 @@ import {
     Error as ErrorIcon,
     Group as GroupIcon
 } from '@mui/icons-material';
-import { getAllActiveGroups } from '../../services/UserService';
+import { getAllActiveGroups, bulkCreateUsers, BulkCreateUsersPayload } from '../../services/UserService';
 
 /**
  * Interface for user data from TSV file
@@ -412,33 +412,64 @@ const AddUsersTab: React.FC = memo(() => {
         setSelectedGroups(newValue);
     }, []);
 
-    // Send users to backend (placeholder)
+    // Send users to backend
     const handleSendToBackend = useCallback(async () => {
         if (parsedUsers.length === 0) return;
 
         setNotification({
-            message: `Готово до відправки ${parsedUsers.length} користувачів на сервер...`,
+            message: `Відправка ${parsedUsers.length} користувачів на сервер...`,
             severity: 'info'
         });
 
-        // TODO: Implement actual backend sending logic
-        console.log('Users to send:', parsedUsers);
-        console.log('Selected groups:', selectedGroups);
-        
-        // Simulate API call
-        setTimeout(() => {
+        try {
+            // Prepare payload for backend
+            const payload: BulkCreateUsersPayload = {
+                users: parsedUsers,
+                group_ids: selectedGroups.map(group => group.id)
+            };
+
+            const response = await bulkCreateUsers(payload);
+
+            if (response.success) {
+                const successMessage = response.created_users_count 
+                    ? `${response.created_users_count} користувачів успішно додано до груп: ${selectedGroups.map(g => g.name).join(', ')}`
+                    : `Користувачі успішно додані до груп: ${selectedGroups.map(g => g.name).join(', ')}`;
+
+                setNotification({
+                    message: successMessage,
+                    severity: 'success'
+                });
+
+                // Show information about failed users if any
+                if (response.failed_users && response.failed_users.length > 0) {
+                    const failedEmails = response.failed_users.map(u => u.email).join(', ');
+                    setTimeout(() => {
+                        setNotification({
+                            message: `Деякі користувачі не були створені: ${failedEmails}`,
+                            severity: 'warning'
+                        });
+                    }, 3000);
+                }
+
+                // Reset after successful send
+                setUploadedFile(null);
+                setParsedUsers([]);
+                setValidationErrors([]);
+                setSelectedGroups([]);
+            } else {
+                setNotification({
+                    message: response.message || 'Помилка при створенні користувачів',
+                    severity: 'error'
+                });
+            }
+        } catch (error) {
+            console.error('Error creating users:', error);
             setNotification({
-                message: `${parsedUsers.length} користувачів успішно додано до груп: ${selectedGroups.map(g => g.name).join(', ')}`,
-                severity: 'success'
+                message: 'Помилка при відправці даних на сервер',
+                severity: 'error'
             });
-            
-            // Reset after successful send
-            setUploadedFile(null);
-            setParsedUsers([]);
-            setValidationErrors([]);
-            setSelectedGroups([]);
-        }, 1500);
-    }, [parsedUsers]);
+        }
+    }, [parsedUsers, selectedGroups]);
 
     return (
         <Container maxWidth="md" sx={{ py: 3 }}>

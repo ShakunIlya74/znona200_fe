@@ -259,6 +259,30 @@ interface ActiveGroupsResponse {
   message?: string;
 }
 
+// Interface for bulk user creation payload
+export interface BulkCreateUsersPayload {
+  users: {
+    name: string;
+    surname: string;
+    email: string;
+    phone?: string;
+    telegram_username?: string;
+    instagram_username?: string;
+  }[];
+  group_ids: (string | number)[];
+}
+
+// Interface for bulk user creation response
+export interface BulkCreateUsersResponse {
+  success: boolean;
+  message?: string;
+  created_users_count?: number;
+  failed_users?: {
+    email: string;
+    error: string;
+  }[];
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -883,6 +907,23 @@ export const getAllActiveGroups = async (): Promise<ActiveGroupsResponse> => {
     return response.data;
   } catch (error) {
     console.error('Error fetching active groups:', error);
+    throw error;
+  }
+};
+
+/**
+ * Creates multiple users and adds them to specified groups
+ * @param userData The data containing users array and group IDs
+ * @returns Promise with bulk creation results including success count and failed users
+ */
+export const bulkCreateUsers = async (
+  userData: BulkCreateUsersPayload
+): Promise<BulkCreateUsersResponse> => {
+  try {
+    const response = await axiosInstance.post('/user-control/bulk-create-users/', userData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating users in bulk:', error);
     throw error;
   }
 };
