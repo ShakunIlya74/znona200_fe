@@ -306,6 +306,19 @@ export interface EmailStatsResponse {
   message?: string;
 }
 
+// Interface for create new group payload
+export interface CreateNewGroupPayload {
+  groupName: string;
+  openDate?: string;
+  closeDate?: string;
+}
+
+// Interface for create new group response
+export interface CreateNewGroupResponse {
+  success: boolean;
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -961,6 +974,23 @@ export const getEmailStats = async (): Promise<EmailStatsResponse> => {
     return response.data;
   } catch (error) {
     console.error('Error fetching email stats:', error);
+    throw error;
+  }
+};
+
+/**
+ * Creates a new user group
+ * @param groupData The data for the new group including name and optional dates
+ * @returns Promise with success status and optional message
+ */
+export const createNewGroup = async (
+  groupData: CreateNewGroupPayload
+): Promise<CreateNewGroupResponse> => {
+  try {
+    const response = await axiosInstance.post('/user-groups/create-new-group/', groupData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating new group:', error);
     throw error;
   }
 };
