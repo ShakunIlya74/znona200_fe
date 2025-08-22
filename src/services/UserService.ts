@@ -319,6 +319,13 @@ export interface CreateNewGroupResponse {
   message?: string;
 }
 
+// Interface for get user password response
+export interface GetUserPasswordResponse {
+  success: boolean;
+  password?: string;
+  message?: string;
+}
+
 /**
  * Fetches all active user groups
  * @returns Promise with active user groups and admin status
@@ -991,6 +998,23 @@ export const createNewGroup = async (
     return response.data;
   } catch (error) {
     console.error('Error creating new group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Retrieves the password for a non-admin user (admin only function)
+ * @param userId The ID of the user to get the password for
+ * @returns Promise with success status, password, and optional message
+ */
+export const getUserPassword = async (
+  userId: number | string
+): Promise<GetUserPasswordResponse> => {
+  try {
+    const response = await axiosInstance.get(`/user-control/get-user-password/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting user password:', error);
     throw error;
   }
 };
