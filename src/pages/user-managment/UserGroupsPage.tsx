@@ -146,7 +146,7 @@ const UserGroupsPage: React.FC = () => {
         setExpandedGroupId(null);
         
         // Reset create form when switching away from create tab
-        if (tabValue !== 2) {
+        if (tabValue !== 0) {
             setNewGroupName('');
             setNewGroupOpenDate(null);
             setNewGroupCloseDate(null);
@@ -178,7 +178,7 @@ const UserGroupsPage: React.FC = () => {
 
     // Load inactive groups when inactive tab is clicked
     useEffect(() => {
-        if (tabValue === 1 && !inactiveTabClicked) {
+        if (tabValue === 2 && !inactiveTabClicked) {
             const fetchInactiveGroups = async () => {
                 setInactiveTabClicked(true);
                 setInactiveLoading(true);
@@ -518,39 +518,32 @@ const UserGroupsPage: React.FC = () => {
         try {
             const response = await toggleGroupActivation(groupId, activate);
             if (response.success) {
+                // Find the group in the current list
+                const currentGroup = activate 
+                    ? inactiveGroups.find(g => g.group_id === groupId)
+                    : activeGroups.find(g => g.group_id === groupId);
+                
+                if (!currentGroup) {
+                    console.error('Group not found in current list');
+                    return;
+                }
+
                 // Update local state to reflect the change
                 if (activate) {
                     // Moving from inactive to active
-                    if (tabValue === 1) {
-                        // If we're in the inactive tab, remove from inactive and add to active
-                        setInactiveGroups(groups => groups.filter(group => group.group_id !== groupId));
-                        setActiveGroups(groups => [...groups, { ...inactiveGroups.find(g => g.group_id === groupId)!, is_active: true }]);
-                    } else {
-                        // Just update the status if we're in the active tab
-                        setActiveGroups(groups =>
-                            groups.map(group =>
-                                group.group_id === groupId
-                                    ? { ...group, is_active: true }
-                                    : group
-                            )
-                        );
-                    }
+                    const updatedGroup = { ...currentGroup, is_active: true };
+                    setInactiveGroups(groups => groups.filter(group => group.group_id !== groupId));
+                    setActiveGroups(groups => [...groups, updatedGroup]);
                 } else {
                     // Moving from active to inactive
-                    if (tabValue === 0) {
-                        // If we're in the active tab, remove from active and add to inactive
-                        setActiveGroups(groups => groups.filter(group => group.group_id !== groupId));
-                        setInactiveGroups(groups => [...groups, { ...activeGroups.find(g => g.group_id === groupId)!, is_active: false }]);
-                    } else {
-                        // Just update the status if we're in the inactive tab
-                        setInactiveGroups(groups =>
-                            groups.map(group =>
-                                group.group_id === groupId
-                                    ? { ...group, is_active: false }
-                                    : group
-                            )
-                        );
-                    }
+                    const updatedGroup = { ...currentGroup, is_active: false };
+                    setActiveGroups(groups => groups.filter(group => group.group_id !== groupId));
+                    setInactiveGroups(groups => [...groups, updatedGroup]);
+                }
+
+                // Reset expanded group if it was the one being modified
+                if (expandedGroupId === groupId) {
+                    setExpandedGroupId(null);
                 }
 
                 setNotification({
