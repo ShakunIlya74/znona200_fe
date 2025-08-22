@@ -97,28 +97,82 @@ const UserControlPage: React.FC = () => {
                     mb: 3
                 }}
             >
-                <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    variant="fullWidth"
-                    sx={{
-                        '& .MuiTabs-indicator': {
-                            height: 3,
-                            borderRadius: '3px 3px 0 0'
-                        },
-                        '& .MuiTab-root': {
-                            fontWeight: 600,
-                            py: 1.5,
-                            fontSize: isMobile ? '0.8rem' : '0.875rem'
-                        }
-                    }}
-                >
-                    <Tab label="Запити" />
-                    <Tab label="Користувачі без груп" />
-                    <Tab label="Активні користувачі" />
-                    <Tab label="Деактивовані користувачі" />
-                    <Tab label="+ Додати користувачів" />
-                </Tabs>
+                {isMobile ? (
+                    // Mobile: Two row layout
+                    <Box>
+                        {/* First row: Main tabs */}
+                        <Tabs
+                            value={tabValue > 3 ? false : tabValue}
+                            onChange={handleTabChange}
+                            variant="fullWidth"
+                            sx={{
+                                '& .MuiTabs-indicator': {
+                                    height: 3,
+                                    borderRadius: '3px 3px 0 0'
+                                },
+                                '& .MuiTab-root': {
+                                    fontWeight: 600,
+                                    py: 1,
+                                    fontSize: '0.75rem',
+                                    minHeight: 40
+                                }
+                            }}
+                        >
+                            <Tab label="Запити" />
+                            <Tab label="Без груп" />
+                            <Tab label="Активні" />
+                            <Tab label="Деактивовані" />
+                        </Tabs>
+                        
+                        {/* Second row: Add button */}
+                        <Box 
+                            sx={{ 
+                                borderTop: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                                bgcolor: tabValue === 4 ? alpha(theme.palette.primary.main, 0.1) : 'transparent'
+                            }}
+                        >
+                            <Tab 
+                                label="+ Додати користувачів" 
+                                onClick={() => handleTabChange({} as React.SyntheticEvent, 4)}
+                                sx={{
+                                    width: '100%',
+                                    fontWeight: 600,
+                                    py: 1,
+                                    fontSize: '0.75rem',
+                                    minHeight: 40,
+                                    color: tabValue === 4 ? 'primary.main' : 'text.secondary',
+                                    '&:hover': {
+                                        bgcolor: alpha(theme.palette.primary.main, 0.04),
+                                    }
+                                }}
+                            />
+                        </Box>
+                    </Box>
+                ) : (
+                    // Desktop: Single row layout (original)
+                    <Tabs
+                        value={tabValue}
+                        onChange={handleTabChange}
+                        variant="fullWidth"
+                        sx={{
+                            '& .MuiTabs-indicator': {
+                                height: 3,
+                                borderRadius: '3px 3px 0 0'
+                            },
+                            '& .MuiTab-root': {
+                                fontWeight: 600,
+                                py: 1.5,
+                                fontSize: '0.875rem'
+                            }
+                        }}
+                    >
+                        <Tab label="Запити" />
+                        <Tab label="Користувачі без груп" />
+                        <Tab label="Активні користувачі" />
+                        <Tab label="Деактивовані користувачі" />
+                        <Tab label="+ Додати користувачів" />
+                    </Tabs>
+                )}
             </Paper>
 
             {error && (

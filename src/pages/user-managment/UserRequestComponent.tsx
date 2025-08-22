@@ -168,9 +168,9 @@ const EditableField: React.FC<EditableFieldProps> = ({
                         }}
                     />
                     <Tooltip title="Зберегти">
-                        <IconButton 
-                            size="small" 
-                            color="primary" 
+                        <IconButton
+                            size="small"
+                            color="primary"
                             onClick={handleSave}
                             disabled={isSaving}
                         >
@@ -178,15 +178,15 @@ const EditableField: React.FC<EditableFieldProps> = ({
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Скасувати">
-                        <IconButton 
-                            size="small" 
+                        <IconButton
+                            size="small"
                             onClick={handleCancel}
                             disabled={isSaving}
                         >
                             <CloseIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>
-                </Box>            ) : (
+                </Box>) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="body2" sx={{ flex: 1, wordBreak: 'break-word' }}>
                         {value || <em style={{ color: theme.palette.text.disabled }}>Не вказано</em>}
@@ -217,7 +217,7 @@ const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({
     copyable = false
 }) => {
     const theme = useTheme();
-    const [copySuccess, setCopySuccess] = useState(false);    const handleCopy = async (event: React.MouseEvent) => {
+    const [copySuccess, setCopySuccess] = useState(false); const handleCopy = async (event: React.MouseEvent) => {
         event.stopPropagation();
         if (!value) return;
         try {
@@ -263,7 +263,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
 }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-      // State management
+    // State management
     const [currentRequest, setCurrentRequest] = useState<UserRequest>(request);
     const [isInternallyCollapsed, setIsInternallyCollapsed] = useState(collapsed);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -288,10 +288,10 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
             a = ((a << 5) - a) + b.charCodeAt(0);
             return a & a;
         }, 0);
-        
+
         const hue = Math.abs(hash) % 360;
         return `hsl(${hue}, 70%, 80%)`;
-    };    const trimComment = (comment: string | undefined, maxLength: number = 80) => {
+    }; const trimComment = (comment: string | undefined, maxLength: number = 80) => {
         if (!comment || comment.length <= maxLength) return comment || '';
         return comment.substring(0, maxLength) + '...';
     };
@@ -324,7 +324,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
     };    // Handle status change
     const handleStatusChange = async (event: SelectChangeEvent<string>) => {
         const newStatus = event.target.value as RequestStatus;
-        
+
         try {
             // Use the new service function
             const result = await updateRequestStatus(currentRequest.request_id, newStatus);
@@ -389,174 +389,420 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                     }}
                     onClick={handleCardClick}
                 >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        {/* Number Badge */}
-                        {typeof index !== 'undefined' && (
-                            <Box sx={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                minWidth: 24,
-                                height: 24,
-                                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                borderRadius: '50%',
-                                fontSize: '0.7rem',
-                                fontWeight: 600,
-                                color: theme.palette.primary.main
-                            }}>
-                                {index}
+                    {isMobile ? (
+                        // Mobile Layout: Restructured compact view
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            {/* First Row: Badge, Name and Contact Info */}
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                {/* Left side: Badge + Contact Info */}
+                                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                    {/* Number Badge and Name */}
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        {typeof index !== 'undefined' && (
+                                            <Box sx={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                minWidth: 20,
+                                                height: 20,
+                                                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                                borderRadius: '50%',
+                                                fontSize: '0.65rem',
+                                                fontWeight: 600,
+                                                color: theme.palette.primary.main
+                                            }}>
+                                                {index}
+                                            </Box>
+                                        )}
+
+                                        {/* Name and Surname */}
+                                        {(currentRequest.name || currentRequest.surname) && (
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    fontSize: '0.7rem',
+                                                    fontWeight: 500,
+                                                    lineHeight: 1.2,
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                {[currentRequest.name, currentRequest.surname].filter(Boolean).join(' ')}
+                                            </Typography>
+                                        )}
+                                    </Box>
+
+                                    {/* Contact Info */}
+                                    {currentRequest.phone ? (
+                                        <Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.25 }}>
+                                                <PhoneIcon sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }} />
+                                                <Typography variant="caption" sx={{ fontSize: '0.65rem', color: theme.palette.text.secondary }}>
+                                                    Телефон:
+                                                </Typography>
+                                            </Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
+                                                    {currentRequest.phone}
+                                                </Typography>
+                                                <Tooltip title={copySuccess === 'phone' ? "Скопійовано!" : "Копіювати телефон"}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => copyToClipboard(currentRequest.phone || '', 'phone', e)}
+                                                        sx={{ p: 0.3 }}
+                                                    >
+                                                        <ContentCopyIcon
+                                                            fontSize="small"
+                                                            color={copySuccess === 'phone' ? "success" : "inherit"}
+                                                            sx={{ fontSize: '1rem' }}
+                                                        />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Шукати в Telegram">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => openTelegramLink(currentRequest.phone || '', e)}
+                                                        sx={{ p: 0.4 }}
+                                                    >
+                                                        <TelegramIcon
+                                                            fontSize="medium"
+                                                            color="primary"
+                                                            sx={{ fontSize: '1.2rem' }}
+                                                        />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                        </Box>
+                                    ) : currentRequest.telegram_username ? (
+                                        <Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.25 }}>
+                                                <TelegramIcon sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }} />
+                                                <Typography variant="caption" sx={{ fontSize: '0.65rem', color: theme.palette.text.secondary }}>
+                                                    Telegram:
+                                                </Typography>
+                                            </Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
+                                                    {currentRequest.telegram_username}
+                                                </Typography>
+                                                <Tooltip title={copySuccess === 'telegram' ? "Скопійовано!" : "Копіювати Telegram"}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => copyToClipboard(currentRequest.telegram_username || '', 'telegram', e)}
+                                                        sx={{ p: 0.3 }}
+                                                    >
+                                                        <ContentCopyIcon
+                                                            fontSize="small"
+                                                            color={copySuccess === 'telegram' ? "success" : "inherit"}
+                                                            sx={{ fontSize: '1rem' }}
+                                                        />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Відкрити Telegram">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => { e.stopPropagation(); window.open(`https://t.me/${currentRequest.telegram_username?.replace(/^@/, '')}`, '_blank'); }}
+                                                        sx={{ p: 0.4 }}
+                                                    >
+                                                        <TelegramIcon
+                                                            fontSize="medium"
+                                                            color="primary"
+                                                            sx={{ fontSize: '1.2rem' }}
+                                                        />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                        </Box>
+                                    ) : currentRequest.instagram_username ? (
+                                        <Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.25 }}>
+                                                <InstagramIcon sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }} />
+                                                <Typography variant="caption" sx={{ fontSize: '0.65rem', color: theme.palette.text.secondary }}>
+                                                    Instagram:
+                                                </Typography>
+                                            </Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
+                                                    {currentRequest.instagram_username}
+                                                </Typography>
+                                                <Tooltip title={copySuccess === 'instagram' ? "Скопійовано!" : "Копіювати Instagram"}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => copyToClipboard(currentRequest.instagram_username || '', 'instagram', e)}
+                                                        sx={{ p: 0.3 }}
+                                                    >
+                                                        <ContentCopyIcon
+                                                            fontSize="small"
+                                                            color={copySuccess === 'instagram' ? "success" : "inherit"}
+                                                            sx={{ fontSize: '1rem' }}
+                                                        />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Відкрити Instagram">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => { e.stopPropagation(); window.open(`https://instagram.com/${currentRequest.instagram_username}`, '_blank'); }}
+                                                        sx={{ p: 0.4 }}
+                                                    >
+                                                        <InstagramIcon
+                                                            fontSize="medium"
+                                                            color="primary"
+                                                            sx={{ fontSize: '1.2rem' }}
+                                                        />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                        </Box>
+                                    ) : (
+                                        <Typography variant="caption" sx={{ fontSize: '0.65rem', color: theme.palette.text.secondary }}>
+                                            Контакти не вказано
+                                        </Typography>
+                                    )}
+
+                                    {/* Date */}
+                                    {currentRequest.created_at && (
+                                        <Typography
+                                            variant="caption"
+                                            sx={{
+                                                display: 'block',
+                                                color: theme.palette.text.secondary,
+                                                fontSize: '0.6rem',
+                                                lineHeight: 1.2,
+                                                mt: 0.5
+                                            }}
+                                        >
+                                            {new Date(currentRequest.created_at).toLocaleDateString('uk-UA')}
+                                        </Typography>
+                                    )}
+                                </Box>
+
+                                {/* Right side: Status Selector and Expand Icon */}
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'flex-end', flex: '0 0 auto' }}>
+                                    {/* Status Selector */}
+                                    <FormControl size="small" sx={{ minWidth: 100 }}>
+                                        <Select
+                                            value={currentRequest.status || RequestStatus.NEW}
+                                            onChange={handleStatusChange}
+                                            onClick={(e) => e.stopPropagation()}
+                                            size="small"
+                                            sx={{
+                                                '& .MuiSelect-select': {
+                                                    fontSize: '0.65rem',
+                                                    py: 0.5
+                                                }
+                                            }}
+                                        >
+                                            <MenuItem value={RequestStatus.NEW}>
+                                                <Chip label="Новий" color="info" size="small" />
+                                            </MenuItem>
+                                            <MenuItem value={RequestStatus.APPROVED}>
+                                                <Chip label="Схвалений" color="success" size="small" />
+                                            </MenuItem>
+                                            <MenuItem value={RequestStatus.REJECTED}>
+                                                <Chip label="Відхилений" color="error" size="small" />
+                                            </MenuItem>
+                                            <MenuItem value={RequestStatus.WRONG_CONTACTS}>
+                                                <Chip label="Неправильні контакти" color="warning" size="small" />
+                                            </MenuItem>
+                                        </Select>
+                                    </FormControl>
+
+                                    {/* Expand Icon */}
+                                    <IconButton size="small" onClick={handleCardClick} sx={{ p: 0.5 }}>
+                                        <ExpandMoreOutlinedIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
                             </Box>
-                        )}
 
-                        {/* Avatar */}
-                        <Avatar 
-                            sx={{ 
-                                bgcolor: getAvatarColor(currentRequest.request_id),
-                                width: 32, 
-                                height: 32,
-                                fontSize: '0.8rem'
-                            }}
-                        >
-                            {getInitials(currentRequest.name, currentRequest.surname)}
-                        </Avatar>
-
-                        {/* Main Content */}
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                            {/* Name and Surname (if present) */}
-                            {(currentRequest.name || currentRequest.surname) && (
-                                <Typography 
-                                    variant="caption" 
-                                    sx={{ 
-                                        display: 'block',
-                                        fontSize: '0.65rem',
-                                        color: theme.palette.text.secondary,
-                                        lineHeight: 1.2,
-                                        mb: 0.2
-                                    }}
-                                >
-                                    {[currentRequest.name, currentRequest.surname].filter(Boolean).join(' ')}
-                                </Typography>
-                            )}                            {/* Phone or fallback */}                            {currentRequest.phone ? (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
-                                    <PhoneIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
-                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                        {currentRequest.phone}
-                                    </Typography>
-                                    <Tooltip title={copySuccess === 'phone' ? "Скопійовано!" : "Копіювати телефон"}>
-                                        <IconButton 
-                                            size="small" 
-                                            onClick={(e) => copyToClipboard(currentRequest.phone || '', 'phone', e)}
-                                            sx={{ ml: 0.5 }}
-                                        >
-                                            <ContentCopyIcon 
-                                                fontSize="small" 
-                                                color={copySuccess === 'phone' ? "success" : "inherit"}
-                                            />
-                                        </IconButton>
-                                    </Tooltip>
-                                    <Tooltip title="Шукати в Telegram">
-                                        <IconButton 
-                                            size="small" 
-                                            onClick={(e) => openTelegramLink(currentRequest.phone || '', e)}
-                                            sx={{ ml: 0.5 }}
-                                        >
-                                            <TelegramIcon 
-                                                fontSize="small" 
-                                                color="primary"
-                                            />
-                                        </IconButton>
-                                    </Tooltip>
-                                </Box>
-                            ) : currentRequest.telegram_username ? (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
-                                    <TelegramIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
-                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                        {currentRequest.telegram_username}
-                                    </Typography>
-                                    <Tooltip title={copySuccess === 'telegram' ? "Скопійовано!" : "Копіювати Telegram"}>
-                                        <IconButton 
-                                            size="small" 
-                                            onClick={(e) => copyToClipboard(currentRequest.telegram_username || '', 'telegram', e)} 
-                                            sx={{ ml: 0.5 }}
-                                        >
-                                            <ContentCopyIcon 
-                                                fontSize="small" 
-                                                color={copySuccess === 'telegram' ? "success" : "inherit"}
-                                            />
-                                        </IconButton>
-                                    </Tooltip>
-                                    <Tooltip title="Відкрити Telegram">
-                                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(`https://t.me/${currentRequest.telegram_username?.replace(/^@/, '')}`, '_blank'); }} sx={{ ml: 0.5 }}>
-                                            <TelegramIcon fontSize="small" color="primary" />
-                                        </IconButton>
-                                    </Tooltip>
-                                </Box>
-                            ) : currentRequest.instagram_username ? (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
-                                    <InstagramIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
-                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                        {currentRequest.instagram_username}
-                                    </Typography>
-                                    <Tooltip title={copySuccess === 'instagram' ? "Скопійовано!" : "Копіювати Instagram"}>
-                                        <IconButton 
-                                            size="small" 
-                                            onClick={(e) => copyToClipboard(currentRequest.instagram_username || '', 'instagram', e)} 
-                                            sx={{ ml: 0.5 }}
-                                        >
-                                            <ContentCopyIcon 
-                                                fontSize="small" 
-                                                color={copySuccess === 'instagram' ? "success" : "inherit"}
-                                            />
-                                        </IconButton>
-                                    </Tooltip>
-                                    <Tooltip title="Відкрити Instagram">
-                                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(`https://instagram.com/${currentRequest.instagram_username}`, '_blank'); }} sx={{ ml: 0.5 }}>
-                                            <InstagramIcon fontSize="small" color="primary" />
-                                        </IconButton>
-                                    </Tooltip>
-                                </Box>
-                            ) : (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
-                                    <PhoneIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
-                                    <Typography variant="body2" sx={{ fontStyle: 'italic', color: theme.palette.text.secondary }}>
-                                        Телефон не вказано
-                                    </Typography>
-                                </Box>
-                            )}                            {/* Trimmed Comment */}
+                            {/* Comment (if present) */}
                             {currentRequest.comment && (
-                                <Typography 
-                                    variant="caption" 
-                                    sx={{ 
-                                        display: 'block',
-                                        color: theme.palette.text.secondary,
-                                        fontSize: '0.7rem',
-                                        lineHeight: 1.3
-                                    }}
-                                >
-                                    {trimComment(currentRequest.comment, 60)}
-                                </Typography>
-                            )}
-
-                            {/* Created Date */}
-                            {currentRequest.created_at && (
-                                <Typography 
-                                    variant="caption" 
-                                    sx={{ 
-                                        display: 'block',
-                                        color: theme.palette.text.secondary,
-                                        fontSize: '0.65rem',
-                                        lineHeight: 1.2,
-                                        mt: 0.5
-                                    }}
-                                >
-                                    Створено: {new Date(currentRequest.created_at).toLocaleDateString('uk-UA')}
-                                </Typography>
+                                <Box sx={{ mt: 0.5 }}>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            display: 'block',
+                                            color: theme.palette.text.secondary,
+                                            fontSize: '0.65rem',
+                                            lineHeight: 1.3,
+                                            fontStyle: 'italic'
+                                        }}
+                                    >
+                                        {trimComment(currentRequest.comment, 80)}
+                                    </Typography>
+                                </Box>
                             )}
                         </Box>
+                    ) : (
+                        // Desktop Layout: Single row (original layout)
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            {/* Number Badge */}
+                            {typeof index !== 'undefined' && (
+                                <Box sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    minWidth: 24,
+                                    height: 24,
+                                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                    borderRadius: '50%',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
+                                    color: theme.palette.primary.main
+                                }}>
+                                    {index}
+                                </Box>
+                            )}
 
-                        {/* Status Selector */}
-                        <Box sx={{ ml: 1 }}>
-                            <FormControl size="small" sx={{ minWidth: 120 }}>                                <Select
+                            {/* Avatar */}
+                            <Avatar
+                                sx={{
+                                    bgcolor: getAvatarColor(currentRequest.request_id),
+                                    width: 32,
+                                    height: 32,
+                                    fontSize: '0.8rem'
+                                }}
+                            >
+                                {getInitials(currentRequest.name, currentRequest.surname)}
+                            </Avatar>
+
+                            {/* Main Content */}
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                                {/* Name and Surname (if present) */}
+                                {(currentRequest.name || currentRequest.surname) && (
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            display: 'block',
+                                            fontSize: '0.65rem',
+                                            color: theme.palette.text.secondary,
+                                            lineHeight: 1.2,
+                                            mb: 0.2
+                                        }}
+                                    >
+                                        {[currentRequest.name, currentRequest.surname].filter(Boolean).join(' ')}
+                                    </Typography>
+                                )}                            {/* Phone or fallback */}                            {currentRequest.phone ? (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                        <PhoneIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
+                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                            {currentRequest.phone}
+                                        </Typography>
+                                        <Tooltip title={copySuccess === 'phone' ? "Скопійовано!" : "Копіювати телефон"}>
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => copyToClipboard(currentRequest.phone || '', 'phone', e)}
+                                                sx={{ ml: 0.5 }}
+                                            >
+                                                <ContentCopyIcon
+                                                    fontSize="small"
+                                                    color={copySuccess === 'phone' ? "success" : "inherit"}
+                                                />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Шукати в Telegram">
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => openTelegramLink(currentRequest.phone || '', e)}
+                                                sx={{ ml: 0.5 }}
+                                            >
+                                                <TelegramIcon
+                                                    fontSize="small"
+                                                    color="primary"
+                                                />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Box>
+                                ) : currentRequest.telegram_username ? (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                        <TelegramIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
+                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                            {currentRequest.telegram_username}
+                                        </Typography>
+                                        <Tooltip title={copySuccess === 'telegram' ? "Скопійовано!" : "Копіювати Telegram"}>
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => copyToClipboard(currentRequest.telegram_username || '', 'telegram', e)}
+                                                sx={{ ml: 0.5 }}
+                                            >
+                                                <ContentCopyIcon
+                                                    fontSize="small"
+                                                    color={copySuccess === 'telegram' ? "success" : "inherit"}
+                                                />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Відкрити Telegram">
+                                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(`https://t.me/${currentRequest.telegram_username?.replace(/^@/, '')}`, '_blank'); }} sx={{ ml: 0.5 }}>
+                                                <TelegramIcon fontSize="small" color="primary" />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Box>
+                                ) : currentRequest.instagram_username ? (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                        <InstagramIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
+                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                            {currentRequest.instagram_username}
+                                        </Typography>
+                                        <Tooltip title={copySuccess === 'instagram' ? "Скопійовано!" : "Копіювати Instagram"}>
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => copyToClipboard(currentRequest.instagram_username || '', 'instagram', e)}
+                                                sx={{ ml: 0.5 }}
+                                            >
+                                                <ContentCopyIcon
+                                                    fontSize="small"
+                                                    color={copySuccess === 'instagram' ? "success" : "inherit"}
+                                                />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Відкрити Instagram">
+                                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(`https://instagram.com/${currentRequest.instagram_username}`, '_blank'); }} sx={{ ml: 0.5 }}>
+                                                <InstagramIcon fontSize="small" color="primary" />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Box>
+                                ) : (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                        <PhoneIcon sx={{ fontSize: '0.9rem', color: theme.palette.text.secondary }} />
+                                        <Typography variant="body2" sx={{ fontStyle: 'italic', color: theme.palette.text.secondary }}>
+                                            Телефон не вказано
+                                        </Typography>
+                                    </Box>
+                                )}                            {/* Trimmed Comment */}
+                                {currentRequest.comment && (
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            display: 'block',
+                                            color: theme.palette.text.secondary,
+                                            fontSize: '0.7rem',
+                                            lineHeight: 1.3
+                                        }}
+                                    >
+                                        {trimComment(currentRequest.comment, 60)}
+                                    </Typography>
+                                )}
+
+                                {/* Created Date */}
+                                {currentRequest.created_at && (
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            display: 'block',
+                                            color: theme.palette.text.secondary,
+                                            fontSize: '0.65rem',
+                                            lineHeight: 1.2,
+                                            mt: 0.5
+                                        }}
+                                    >
+                                        Створено: {new Date(currentRequest.created_at).toLocaleDateString('uk-UA')}
+                                    </Typography>
+                                )}
+                            </Box>
+
+                            {/* Status Selector */}
+                            <Box sx={{ ml: 1 }}>
+                                <FormControl size="small" sx={{ minWidth: 120 }}>                                    <Select
                                     value={currentRequest.status || RequestStatus.NEW}
                                     onChange={handleStatusChange}
                                     onClick={(e) => e.stopPropagation()}
@@ -580,14 +826,15 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                         <Chip label="Неправильні контакти" color="warning" size="small" />
                                     </MenuItem>
                                 </Select>
-                            </FormControl>
-                        </Box>
+                                </FormControl>
+                            </Box>
 
-                        {/* Expand Icon */}
-                        <IconButton size="small" onClick={handleCardClick}>
-                            <ExpandMoreOutlinedIcon fontSize="small" />
-                        </IconButton>
-                    </Box>
+                            {/* Expand Icon */}
+                            <IconButton size="small" onClick={handleCardClick}>
+                                <ExpandMoreOutlinedIcon fontSize="small" />
+                            </IconButton>
+                        </Box>
+                    )}
                 </Paper>
             ) : (
                 // Expanded mode - full details
@@ -606,11 +853,11 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                     }}
                 >
                     {/* Header */}
-                    <Box 
-                        sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: 2, 
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 2,
                             mb: 2,
                             cursor: 'pointer',
                             '&:hover': {
@@ -621,10 +868,10 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                         }}
                         onClick={handleCardClick}
                     >
-                        <Avatar 
-                            sx={{ 
+                        <Avatar
+                            sx={{
                                 bgcolor: getAvatarColor(currentRequest.request_id),
-                                width: 40, 
+                                width: 40,
                                 height: 40,
                                 fontSize: '1.1rem'
                             }}
@@ -634,7 +881,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
 
                         <Box sx={{ flex: 1 }}>
                             <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                {[currentRequest.name, currentRequest.surname].filter(Boolean).join(' ') || 'Заявка без імені'}
+                                {[currentRequest.name, currentRequest.surname].filter(Boolean).join(' ') || 'Запит без імені'}
                             </Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 <Chip
@@ -650,7 +897,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                 </Typography>
                             </Box>
                         </Box>
-                        
+
                         {/* Close/Collapse button */}
                         <IconButton
                             onClick={handleCardClick}
@@ -670,7 +917,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
 
                     {/* Status Management */}
                     <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
-                        Статус заявки
+                        Статус запита
                     </Typography>
 
                     <Box sx={{ mb: 2 }}>
@@ -680,10 +927,18 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                                 onChange={handleStatusChange}
                                 label="Статус"
                             >
-                                <MenuItem value={RequestStatus.NEW}>Новий</MenuItem>
-                                <MenuItem value={RequestStatus.APPROVED}>Схвалений</MenuItem>
-                                <MenuItem value={RequestStatus.REJECTED}>Відхилений</MenuItem>
-                                <MenuItem value={RequestStatus.WRONG_CONTACTS}>Неправильні контакти</MenuItem>
+                                <MenuItem value={RequestStatus.NEW}>
+                                        <Chip label="Новий" color="info" size="small" />
+                                    </MenuItem>
+                                    <MenuItem value={RequestStatus.APPROVED}>
+                                        <Chip label="Схвалений" color="success" size="small" />
+                                    </MenuItem>
+                                    <MenuItem value={RequestStatus.REJECTED}>
+                                        <Chip label="Відхилений" color="error" size="small" />
+                                    </MenuItem>
+                                    <MenuItem value={RequestStatus.WRONG_CONTACTS}>
+                                        <Chip label="Неправильні контакти" color="warning" size="small" />
+                                    </MenuItem>
                             </Select>
                         </FormControl>
                     </Box>
@@ -750,7 +1005,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                     <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
                         Коментар
                     </Typography>                    <EditableField
-                        label="Коментар до заявки"
+                        label="Коментар до запиту"
                         value={currentRequest.comment || ''}
                         icon={<CommentIcon sx={{ opacity: 0.7, fontSize: '1.2rem' }} />}
                         onSave={(value) => handleSaveField('comment', value)}
@@ -762,7 +1017,7 @@ const UserRequestComponent: React.FC<UserRequestComponentProps> = ({
                     {(currentRequest.created_at || currentRequest.updated_at) && (
                         <>
                             <Divider sx={{ my: 2 }} />
-                            
+
                             <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
                                 Дати
                             </Typography>
