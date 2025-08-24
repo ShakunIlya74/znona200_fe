@@ -55,6 +55,7 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
     
     // Loading states
     const [initialLoading, setInitialLoading] = useState<boolean>(false);
+    const [needsReload, setNeedsReload] = useState<boolean>(true);
 
     // Filter options
     const filterOptions = [
@@ -67,6 +68,7 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
 
     const loadInitialRequests = useCallback(async () => {
         setInitialLoading(true);
+        setNeedsReload(false);
         setError(null);
         
         try {
@@ -117,19 +119,21 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
             if (response.success) {
                 const newRequests = response.requests || [];
                 
-                const newAllRequests = [...allRequests, ...newRequests];
-                setAllRequests(newAllRequests);
+                setAllRequests(prev => {
+                    const newAllRequests = [...prev, ...newRequests];
+                    
+                    // Call onUserChange if provided with the updated data
+                    if (onUserChange) {
+                        onUserChange(newAllRequests);
+                    }
+                    
+                    return newAllRequests;
+                });
                 setCurrentPage(nextPage);
                 setHasNextPage(response.pagination?.has_next || false);
                 
-                // Call onUserChange if provided
-                if (onUserChange) {
-                    onUserChange(newAllRequests);
-                }
-                
                 console.log('More requests loaded:', {
                     newRequestsCount: newRequests.length,
-                    totalRequestsNow: newAllRequests.length,
                     hasNextPage: response.pagination?.has_next
                 });
             }
@@ -138,7 +142,7 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
         } finally {
             setPaginationLoading(false);
         }
-    }, [paginationLoading, hasNextPage, currentPage, allRequests, retrieveUsersPaginated, onUserChange]);    
+    }, [paginationLoading, hasNextPage, currentPage, retrieveUsersPaginated]);    
 
     // Debounced search function to prevent excessive API calls
     const debouncedSearch = useCallback(
@@ -253,7 +257,7 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
         } finally {
             setSearchLoading(false);
         }
-    }, [searchLoading, searchHasNextPage, searchCurrentPage, searchQuery, selectedFilter, onUserChange]);
+    }, [searchLoading, searchHasNextPage, searchCurrentPage, searchQuery, selectedFilter]);
     
     // Function to handle scroll event for infinite scrolling
     const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -288,6 +292,7 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
 
     // Load initial requests on component mount
     useEffect(() => {
+        setNeedsReload(true);
         loadInitialRequests();
     }, [loadInitialRequests]);
 
@@ -302,18 +307,24 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
             setSearchCurrentPage(1);
             setSearchHasNextPage(false);
             setSearchTotalCount(0);
-            
-            // Reset to show all requests
-            if (onUserChange) {
-                onUserChange(allRequests);
-            }
         }
         
         // Cleanup function to cancel debounced call if component unmounts or dependencies change
         return () => {
             debouncedSearch.cancel();
         };
-    }, [searchQuery, selectedFilter, debouncedSearch, allRequests, onUserChange]);    
+    }, [searchQuery, selectedFilter, debouncedSearch]);
+
+    // Separate effect to handle onUserChange when switching between search and all requests
+    useEffect(() => {
+        const isFiltering = searchQuery.trim() || selectedFilter;
+        const currentData = isFiltering ? searchResults : allRequests;
+        
+        // Only call onUserChange when we have data and are not loading initial data
+        if (onUserChange && !initialLoading && !needsReload && currentData.length > 0) {
+            onUserChange(currentData);
+        }
+    }, [searchQuery, selectedFilter, searchResults, allRequests, onUserChange, initialLoading, needsReload]);    
 
     const handleRequestClick = (request: UserRequest) => {
         onClick(request);
@@ -332,7 +343,7 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
     return (
         <Box sx={{ width: '100%' }}>            
             {/* Request Count Display */}
-            {currentTotalCount > 0 && !initialLoading && (
+            {currentTotalCount > 0 && !initialLoading && !needsReload && (
                 <Typography 
                     variant="caption" 
                     sx={{ 
@@ -457,7 +468,7 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
                 onScroll={handleScroll}
             >
                 {/* Initial Loading State */}
-                {initialLoading && (
+                {(initialLoading || needsReload) && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                         <LoadingDots />
                     </Box>
@@ -487,7 +498,7 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
                 )}
                   
                 {/* Empty Results */}
-                {!searchLoading && isFiltering && displayRequests.length === 0 && !error && !initialLoading && (
+                {!searchLoading && isFiltering && displayRequests.length === 0 && !error && !initialLoading && !needsReload && (
                     <Typography 
                         sx={{ 
                             textAlign: 'center', 
@@ -507,7 +518,7 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
                 )}
 
                 {/* Empty All Requests */}
-                {!initialLoading && !isFiltering && allRequests.length === 0 && !error && (
+                {!initialLoading && !isFiltering && allRequests.length === 0 && !error && !needsReload && (
                     <Typography 
                         sx={{ 
                             textAlign: 'center', 
@@ -525,7 +536,7 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
                 )}
                   
                 {/* Display Results */}
-                {!initialLoading && !(searchLoading && searchCurrentPage === 1) && (
+                {!initialLoading && !(searchLoading && searchCurrentPage === 1) && !needsReload && (
                     <>                        
                         {displayRequests.map((request, index) => (
                             <UserRequestComponent
@@ -545,7 +556,7 @@ const UserRequestSearch: React.FC<UserRequestSearchProps> = ({
                         )}
                         
                         {/* Total count information */}
-                        {currentTotalCount > 0 && (
+                        {currentTotalCount > 0 && !needsReload && (
                             <Typography 
                                 variant="caption" 
                                 sx={{ 

@@ -52,9 +52,11 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
     
     // Loading states
     const [initialLoading, setInitialLoading] = useState<boolean>(false);
+    const [needsReload, setNeedsReload] = useState<boolean>(true);
 
     const loadInitialUsers = useCallback(async () => {
         setInitialLoading(true);
+        setNeedsReload(false);
         setError(null);
         
         try {
@@ -111,19 +113,21 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                     ? (rawNewUsers as UserRequest[])
                     : rawNewUsers as UserInfo[];
                 
-                const newAllUsers = [...allUsers, ...newUsers];
-                setAllUsers(newAllUsers);
+                setAllUsers(prev => {
+                    const newAllUsers = [...prev, ...newUsers];
+                    
+                    // Call onUserChange if provided
+                    if (onUserChange) {
+                        onUserChange(newAllUsers);
+                    }
+                    
+                    return newAllUsers;
+                });
                 setCurrentPage(nextPage);
                 setHasNextPage(response.pagination?.has_next || false);
                 
-                // Call onUserChange if provided
-                if (onUserChange) {
-                    onUserChange(newAllUsers);
-                }
-                
                 console.log('More users loaded:', {
                     newUsersCount: newUsers.length,
-                    totalUsersNow: newAllUsers.length,
                     hasNextPage: response.pagination?.has_next
                 });
             }
@@ -131,7 +135,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
             console.error('Error loading more users:', err);        } finally {
             setPaginationLoading(false);
         }
-    }, [paginationLoading, hasNextPage, currentPage, allUsers, retrieveUsersPaginated, mode, onUserChange]);    // Debounced search function to prevent excessive API calls
+    }, [paginationLoading, hasNextPage, currentPage, retrieveUsersPaginated, mode]);    // Debounced search function to prevent excessive API calls
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const debouncedSearch = useCallback(
         debounce(async (query: string) => {
@@ -196,6 +200,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
 
     // Load initial users on component mount
     useEffect(() => {
+        setNeedsReload(true);
         loadInitialUsers();
     }, [loadInitialUsers]);
 
@@ -213,7 +218,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
 
     return (
         <Box sx={{ width: '100%' }}>            {/* User Count Display */}
-            {totalCount > 0 && !initialLoading && (
+            {totalCount > 0 && !initialLoading && !needsReload && (
                 <Typography 
                     variant="caption" 
                     sx={{ 
@@ -281,7 +286,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                 onScroll={handleScroll}
             >
                 {/* Initial Loading State */}
-                {initialLoading && (
+                {(initialLoading || needsReload) && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                         <LoadingDots />
                     </Box>
@@ -310,7 +315,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                     </Typography>
                 )}
                   {/* Empty Search Results */}
-                {!searchLoading && searchQuery && searchResults.length === 0 && !error && !initialLoading && (
+                {!searchLoading && searchQuery && searchResults.length === 0 && !error && !initialLoading && !needsReload && (
                     <Typography 
                         sx={{ 
                             textAlign: 'center', 
@@ -328,7 +333,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                 )}
 
                 {/* Empty All Users Results */}
-                {!initialLoading && !searchQuery && allUsers.length === 0 && !error && (
+                {!initialLoading && !searchQuery && allUsers.length === 0 && !error && !needsReload && (
                     <Typography 
                         sx={{ 
                             textAlign: 'center', 
@@ -345,7 +350,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                     </Typography>
                 )}
                   {/* Display Search Results or All Users */}
-                {!initialLoading && !searchLoading && (
+                {!initialLoading && !searchLoading && !needsReload && (
                     <>                        {/* Show search results when searching */}
                         {searchQuery.trim() && searchResults.map((item, index) => (
                             mode === 'requests' ? (
@@ -396,7 +401,7 @@ const UserControlSearch: React.FC<UserControlSearchProps> = ({
                         )}
                         
                         {/* Total count information */}
-                        {!searchQuery.trim() && totalCount > 0 && (
+                        {!searchQuery.trim() && totalCount > 0 && !needsReload && (
                             <Typography 
                                 variant="caption" 
                                 sx={{ 
