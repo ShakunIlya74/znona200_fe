@@ -57,8 +57,32 @@ declare module '@mui/material/styles' {
  */
 
 declare module '@mui/material/styles' {
-  interface BreakpointOverrides {
-    max: true;
+  interface TypeBackground {
+    default: string;
+    paper: string;
+    dark: string;
+  }
+}
+
+declare module '@mui/material/styles' {
+  interface PaletteColor {
+    main: string;
+    light: string;
+    dark: string;
+    darker: string;
+    contrastText: string;
+  }
+
+  interface SimplePaletteColorOptions {
+    darker?: string;
+  }
+
+  interface Palette {
+    greysh: PaletteColor;
+  }
+
+  interface PaletteOptions {
+    greysh?: SimplePaletteColorOptions;
   }
 }
 
@@ -68,12 +92,42 @@ const theme = () => {
   znoTheme = createTheme(znoTheme, {
 
   palette: {
+    greysh: {
+      main:  '#f4f4f3',
+      light: '#f4f4f3',
+      dark: '#e6e6e5',
+    },
+    // greysh: { //misty blue
+    //   main:  '#e8f2f9ff',
+    //   light: '#f4faffff',
+    //   dark: '#b7cfdc',
+    // },
+    //     greysh: { //green minty
+    //   main:  '#e7f6f1',
+    //   light: '#f4fbf9',
+    //   dark: '#b7cfdc',
+    // },
+    // greysh: { // latte brownish
+    //   main:  '#f4ede7',
+    //   light: '#fbf8f5',
+    //   dark: '#e6e6e5',
+    //   darker: '#d0cfcf',
+    // },
+
     primary: {
-      main: '#006A68',
+      main: '#0f6a68', //original
+      // main: '#385e72', //misty blue
+      // main: '#48715e', //green minty
+      // main: '#7a6250', // latte brownish
     },
     secondary: {
       main: '#3F6563',
     },
+    // background: {
+    //   default:  '#f4f4f3',
+    //   paper: '#ffffff',
+    //   dark: '#e6e6e5',
+    // },
   },  typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif', // Default font
     h6: {

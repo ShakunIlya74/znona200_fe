@@ -13,12 +13,17 @@ import {
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import UserControlSearch from './UserControlSearch';
-import { getAllUsersPaginated, searchUsersControlPage, UserInfo, getAllUserRequestsPaginated, UserRequest } from '../../services/UserService';
+import UserRequestSearch from './UserRequestSearch';
+import AddUsersTab from './AddUsersTab';
+import { getAllUsersPaginated, searchUsersControlPage, UserInfo, getAllUserRequestsPaginated, UserRequest, searchUserRequests } from '../../services/UserService';
 
 
 const UserControlPage: React.FC = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isMedium = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+    // Dynamic header offset based on screen size (align with MinilectionsPage)
+    const HEADER_OFFSET = isMobile ? 50 : isMedium ? 70 : 100;
     
     // States
     const [tabValue, setTabValue] = useState<number>(0);
@@ -54,7 +59,12 @@ const UserControlPage: React.FC = () => {
     // Common user change handler - memoized to prevent unnecessary re-renders
     const handleUserChange = useCallback((users: (UserInfo | UserRequest)[]) => {
         console.log('Users changed:', users.length);
-    }, []);// Wrapper functions for UserControlSearch - memoized to prevent unnecessary re-renders
+    }, []);
+
+    // Wrapper for requests to match UserInfo | UserRequest type
+    const handleRequestChange = useCallback((requests: UserRequest[]) => {
+        handleUserChange(requests);
+    }, [handleUserChange]);    // Wrapper functions for UserControlSearch - memoized to prevent unnecessary re-renders
     const getUserRequestsPaginated = useCallback((page: number) => getAllUserRequestsPaginated(page), []);
     
     const getUsersPaginatedWithoutGroups = useCallback((page: number) => getAllUsersPaginated(page, 'without group'), []);
@@ -64,38 +74,105 @@ const UserControlPage: React.FC = () => {
     const searchUsersActive = useCallback((searchQuery: string) => searchUsersControlPage(searchQuery, 'active'), []);
     
     const getUsersPaginatedInactive = useCallback((page: number) => getAllUsersPaginated(page, 'inactive'), []);
-    const searchUsersInactive = useCallback((searchQuery: string) => searchUsersControlPage(searchQuery, 'inactive'), []);return (
-        <Container maxWidth="lg" sx={{ py: 3 }}>
+    const searchUsersInactive = useCallback((searchQuery: string) => searchUsersControlPage(searchQuery, 'inactive'), []);
+
+    return (
+        <Container
+            maxWidth="lg"
+            sx={{ 
+                py: 1,
+                // Counteract the layout wrapper's bottom padding to prevent extra scroll
+                mb: { xs: -5, md: -10 }
+            }}
+        >
             <Paper
                 elevation={0}
                 sx={{
+                    position: 'sticky',
+                    top: HEADER_OFFSET,
+                    zIndex: 3,
                     borderRadius: '16px',
                     overflow: 'hidden',
                     border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
                     mb: 3
                 }}
             >
-                <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    variant="fullWidth"
-                    sx={{
-                        '& .MuiTabs-indicator': {
-                            height: 3,
-                            borderRadius: '3px 3px 0 0'
-                        },
-                        '& .MuiTab-root': {
-                            fontWeight: 600,
-                            py: 1.5,
-                            fontSize: isMobile ? '0.8rem' : '0.875rem'
-                        }
-                    }}
-                >
-                    <Tab label="Запити" />
-                    <Tab label="Користувачі без груп" />
-                    <Tab label="Активні користувачі" />
-                    <Tab label="Деактивовані користувачі" />
-                </Tabs>
+                {isMobile ? (
+                    // Mobile: Two row layout
+                    <Box>
+                        {/* First row: Main tabs */}
+                        <Tabs
+                            value={tabValue > 3 ? false : tabValue}
+                            onChange={handleTabChange}
+                            variant="fullWidth"
+                            sx={{
+                                '& .MuiTabs-indicator': {
+                                    height: 3,
+                                    borderRadius: '3px 3px 0 0'
+                                },
+                                '& .MuiTab-root': {
+                                    fontWeight: 600,
+                                    py: 1,
+                                    fontSize: '0.75rem',
+                                    minHeight: 40
+                                }
+                            }}
+                        >
+                            <Tab label="Запити" />
+                            <Tab label="Без груп" />
+                            <Tab label="Активні" />
+                            <Tab label="Деактивовані" />
+                        </Tabs>
+                        
+                        {/* Second row: Add button */}
+                        <Box 
+                            sx={{ 
+                                borderTop: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                                bgcolor: tabValue === 4 ? alpha(theme.palette.primary.main, 0.1) : 'transparent'
+                            }}
+                        >
+                            <Tab 
+                                label="+ Додати користувачів" 
+                                onClick={() => handleTabChange({} as React.SyntheticEvent, 4)}
+                                sx={{
+                                    width: '100%',
+                                    fontWeight: 600,
+                                    py: 1,
+                                    fontSize: '0.75rem',
+                                    minHeight: 40,
+                                    color: tabValue === 4 ? 'primary.main' : 'text.secondary',
+                                    '&:hover': {
+                                        bgcolor: alpha(theme.palette.primary.main, 0.04),
+                                    }
+                                }}
+                            />
+                        </Box>
+                    </Box>
+                ) : (
+                    // Desktop: Single row layout (original)
+                    <Tabs
+                        value={tabValue}
+                        onChange={handleTabChange}
+                        variant="fullWidth"
+                        sx={{
+                            '& .MuiTabs-indicator': {
+                                height: 3,
+                                borderRadius: '3px 3px 0 0'
+                            },
+                            '& .MuiTab-root': {
+                                fontWeight: 600,
+                                py: 1.5,
+                                fontSize: '0.875rem'
+                            }
+                        }}
+                    >
+                        <Tab label="Запити" />
+                        <Tab label="Користувачі без груп" />
+                        <Tab label="Активні користувачі" />
+                        <Tab label="Деактивовані користувачі" />
+                        <Tab label="+ Додати користувачів" />
+                    </Tabs>
+                )}
             </Paper>
 
             {error && (
@@ -113,12 +190,11 @@ const UserControlPage: React.FC = () => {
                 </Typography>
             )}            {/* User Requests Tab */}
             <Box sx={{ display: tabValue === 0 ? 'block' : 'none' }}>
-                <UserControlSearch
+                <UserRequestSearch
                     onClick={handleUserClick}
-                    onUserChange={handleUserChange}
+                    onUserChange={handleRequestChange}
                     retrieveUsersPaginated={getUserRequestsPaginated}
                     searchPlaceholder="Пошук запитів..."
-                    mode="requests"
                 />
             </Box>{/* Users Without Groups Tab */}
             <Box sx={{ display: tabValue === 1 ? 'block' : 'none' }}>
@@ -154,6 +230,11 @@ const UserControlPage: React.FC = () => {
                     searchPlaceholder="Пошук деактивованих користувачів..."
                     mode="inactive"
                 />
+            </Box>
+
+            {/* Add Users Tab */}
+            <Box sx={{ display: tabValue === 4 ? 'block' : 'none' }}>
+                <AddUsersTab />
             </Box>
 
             <Snackbar

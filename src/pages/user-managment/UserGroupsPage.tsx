@@ -35,6 +35,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import AddIcon from '@mui/icons-material/Add';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
@@ -47,12 +48,15 @@ import {
     toggleGroupActivation,
     addUserToGroup,
     removeUserFromGroup,
+    createNewGroup,
+    CreateNewGroupPayload,
     UserInfo
 } from '../../services/UserService';
 import LoadingDots from '../../components/tools/LoadingDots';
 import UserInGroupSearch from './UserInGroupSearch';
 import UserSearchDropdown from './UserSearchDropdown';
 import UserGroupContent from './UserGroupContent';
+import { tab } from '@testing-library/user-event/dist/tab';
 
 interface UserGroup {
     group_id: number;
@@ -95,7 +99,7 @@ const UserGroupsPage: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [activeLoading, setActiveLoading] = useState<boolean>(true);
     const [inactiveLoading, setInactiveLoading] = useState<boolean>(false);
-    const [tabValue, setTabValue] = useState<number>(0);
+    const [tabValue, setTabValue] = useState<number>(1);
     const [inactiveTabClicked, setInactiveTabClicked] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [expandedGroupId, setExpandedGroupId] = useState<number | null>(null);
@@ -132,9 +136,22 @@ const UserGroupsPage: React.FC = () => {
         severity: 'info'
     });
 
+    // States for creating new group
+    const [newGroupName, setNewGroupName] = useState<string>('');
+    const [newGroupOpenDate, setNewGroupOpenDate] = useState<Date | null>(null);
+    const [newGroupCloseDate, setNewGroupCloseDate] = useState<Date | null>(null);
+    const [isCreatingGroup, setIsCreatingGroup] = useState<boolean>(false);
+
     // Reset expanded group when changing tabs
     useEffect(() => {
         setExpandedGroupId(null);
+        
+        // Reset create form when switching away from create tab
+        if (tabValue !== 0) {
+            setNewGroupName('');
+            setNewGroupOpenDate(null);
+            setNewGroupCloseDate(null);
+        }
     }, [tabValue]);
 
     // Load active groups on initial render
@@ -162,7 +179,7 @@ const UserGroupsPage: React.FC = () => {
 
     // Load inactive groups when inactive tab is clicked
     useEffect(() => {
-        if (tabValue === 1 && !inactiveTabClicked) {
+        if (tabValue === 2 && !inactiveTabClicked) {
             const fetchInactiveGroups = async () => {
                 setInactiveTabClicked(true);
                 setInactiveLoading(true);
@@ -291,7 +308,7 @@ const UserGroupsPage: React.FC = () => {
 
             if (response.success) {
                 // Update local state to reflect the change
-                if (tabValue === 0) {
+                if (tabValue === 1) {
                     setActiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -299,7 +316,7 @@ const UserGroupsPage: React.FC = () => {
                                 : group
                         )
                     );
-                } else {
+                } else if (tabValue === 2) {
                     setInactiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -387,7 +404,7 @@ const UserGroupsPage: React.FC = () => {
 
             if (response.success) {
                 // Update local state to reflect the change
-                if (tabValue === 0) {
+                if (tabValue === 1) {
                     setActiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -395,7 +412,7 @@ const UserGroupsPage: React.FC = () => {
                                 : group
                         )
                     );
-                } else {
+                } else if (tabValue === 2) {
                     setInactiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -451,7 +468,7 @@ const UserGroupsPage: React.FC = () => {
 
             if (response.success) {
                 // Update local state to reflect the change
-                if (tabValue === 0) {
+                if (tabValue === 1) {
                     setActiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -459,7 +476,7 @@ const UserGroupsPage: React.FC = () => {
                                 : group
                         )
                     );
-                } else {
+                } else if (tabValue === 2) {
                     setInactiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -502,39 +519,32 @@ const UserGroupsPage: React.FC = () => {
         try {
             const response = await toggleGroupActivation(groupId, activate);
             if (response.success) {
+                // Find the group in the current list
+                const currentGroup = activate 
+                    ? inactiveGroups.find(g => g.group_id === groupId)
+                    : activeGroups.find(g => g.group_id === groupId);
+                
+                if (!currentGroup) {
+                    console.error('Group not found in current list');
+                    return;
+                }
+
                 // Update local state to reflect the change
                 if (activate) {
                     // Moving from inactive to active
-                    if (tabValue === 1) {
-                        // If we're in the inactive tab, remove from inactive and add to active
-                        setInactiveGroups(groups => groups.filter(group => group.group_id !== groupId));
-                        setActiveGroups(groups => [...groups, { ...inactiveGroups.find(g => g.group_id === groupId)!, is_active: true }]);
-                    } else {
-                        // Just update the status if we're in the active tab
-                        setActiveGroups(groups =>
-                            groups.map(group =>
-                                group.group_id === groupId
-                                    ? { ...group, is_active: true }
-                                    : group
-                            )
-                        );
-                    }
+                    const updatedGroup = { ...currentGroup, is_active: true };
+                    setInactiveGroups(groups => groups.filter(group => group.group_id !== groupId));
+                    setActiveGroups(groups => [...groups, updatedGroup]);
                 } else {
                     // Moving from active to inactive
-                    if (tabValue === 0) {
-                        // If we're in the active tab, remove from active and add to inactive
-                        setActiveGroups(groups => groups.filter(group => group.group_id !== groupId));
-                        setInactiveGroups(groups => [...groups, { ...activeGroups.find(g => g.group_id === groupId)!, is_active: false }]);
-                    } else {
-                        // Just update the status if we're in the inactive tab
-                        setInactiveGroups(groups =>
-                            groups.map(group =>
-                                group.group_id === groupId
-                                    ? { ...group, is_active: false }
-                                    : group
-                            )
-                        );
-                    }
+                    const updatedGroup = { ...currentGroup, is_active: false };
+                    setActiveGroups(groups => groups.filter(group => group.group_id !== groupId));
+                    setInactiveGroups(groups => [...groups, updatedGroup]);
+                }
+
+                // Reset expanded group if it was the one being modified
+                if (expandedGroupId === groupId) {
+                    setExpandedGroupId(null);
                 }
 
                 setNotification({
@@ -638,6 +648,72 @@ const UserGroupsPage: React.FC = () => {
                 severity: "error"
             });
             return false;
+        }
+    };
+
+    // Handle creating a new group
+    const handleCreateNewGroup = async () => {
+        if (!newGroupName.trim()) {
+            setNotification({
+                open: true,
+                message: "Назва групи не може бути порожньою",
+                severity: "error"
+            });
+            return;
+        }
+
+        setIsCreatingGroup(true);
+        try {
+            const groupData: CreateNewGroupPayload = {
+                groupName: newGroupName.trim()
+            };
+
+            if (newGroupOpenDate) {
+                groupData.openDate = newGroupOpenDate.toISOString().split('T')[0];
+            }
+
+            if (newGroupCloseDate) {
+                groupData.closeDate = newGroupCloseDate.toISOString().split('T')[0];
+            }
+
+            const response = await createNewGroup(groupData);
+
+            if (response.success) {
+                setNotification({
+                    open: true,
+                    message: "Групу успішно створено",
+                    severity: "success"
+                });
+
+                // Reset form
+                setNewGroupName('');
+                setNewGroupOpenDate(null);
+                setNewGroupCloseDate(null);
+
+                // Switch to active groups tab
+                setTabValue(1);
+
+                // Refresh active groups data
+                const refreshResponse = await getUserGroups() as UserGroupsResponse;
+                if (refreshResponse.success && refreshResponse.active_user_groups) {
+                    setActiveGroups(refreshResponse.active_user_groups);
+                }
+            } else {
+                setNotification({
+                    open: true,
+                    message: response.message || "Помилка при створенні групи",
+                    severity: "error"
+                });
+            }
+        } catch (err) {
+            console.error('Error creating group:', err);
+            setNotification({
+                open: true,
+                message: "Помилка при створенні групи",
+                severity: "error"
+            });
+        } finally {
+            setIsCreatingGroup(false);
         }
     };
 
@@ -972,7 +1048,7 @@ const UserGroupsPage: React.FC = () => {
                                             }}>
 
                                                 {/* Warning icon for active groups with passed close date */}
-                                                {group.is_active && isDatePassed(group.close_date) && tabValue === 0 && (
+                                                {group.is_active && isDatePassed(group.close_date) && tabValue === 1 && (
                                                     <Tooltip title="Термін дії цієї групи закінчився. Рекомендується деактивувати групу.">
                                                         <WarningIcon
                                                             color="warning"
@@ -1189,6 +1265,17 @@ const UserGroupsPage: React.FC = () => {
                         }
                     }}
                 >
+                    <Tab 
+                        label="додати нову групу" 
+                        icon={<AddIcon />}
+                        iconPosition="start"
+                        sx={{
+                            '& .MuiTab-iconWrapper': {
+                                marginRight: 1,
+                                marginBottom: 0
+                            }
+                        }}
+                    />
                     <Tab label="Активні групи" />
                     <Tab label="Деактивовані групи" />
                 </Tabs>
@@ -1209,7 +1296,7 @@ const UserGroupsPage: React.FC = () => {
                 </Typography>
             )}
 
-            <Box sx={{ display: tabValue === 0 ? 'block' : 'none' }}>
+            <Box sx={{ display: tabValue === 1 ? 'block' : 'none' }}>
                 {activeLoading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                         <LoadingDots />
@@ -1229,7 +1316,7 @@ const UserGroupsPage: React.FC = () => {
                 )}
             </Box>
 
-            <Box sx={{ display: tabValue === 1 ? 'block' : 'none' }}>
+            <Box sx={{ display: tabValue === 2 ? 'block' : 'none' }}>
                 {inactiveLoading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                         <LoadingDots />
@@ -1247,6 +1334,105 @@ const UserGroupsPage: React.FC = () => {
                         {inactiveTabClicked ? 'No inactive groups available.' : ''}
                     </Typography>
                 )}
+            </Box>
+
+            {/* Create New Group Tab */}
+            <Box sx={{ display: tabValue === 0 ? 'block' : 'none' }}>
+                <Card
+                    sx={{
+                        borderRadius: '16px',
+                        boxShadow: `0px 1px 3px ${alpha(theme.palette.common.black, 0.05)}`,
+                        border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+                        mt: 1,
+                        p: isMobile ? 2 : 3
+                    }}
+                >
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            mb: 3,
+                            fontWeight: 600,
+                            color: theme.palette.primary.main
+                        }}
+                    >
+                        Створити нову групу
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        {/* Group Name */}
+                        <TextField
+                            label="Назва групи"
+                            value={newGroupName}
+                            onChange={(e) => setNewGroupName(e.target.value)}
+                            fullWidth
+                            required
+                            error={!newGroupName.trim() && newGroupName !== ''}
+                            helperText={!newGroupName.trim() && newGroupName !== '' ? 'Назва групи обов\'язкова' : ''}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: '12px'
+                                }
+                            }}
+                        />
+
+                        {/* Date Pickers */}
+                        <Box sx={{
+                            display: 'flex',
+                            flexDirection: { xs: 'column', md: 'row' },
+                            gap: 2
+                        }}>
+                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                <DatePicker
+                                    label="Дата початку (опціонально)"
+                                    value={newGroupOpenDate}
+                                    onChange={(newValue) => setNewGroupOpenDate(newValue)}
+                                    sx={{
+                                        flex: 1,
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: '12px'
+                                        }
+                                    }}
+                                />
+                            </LocalizationProvider>
+
+                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                <DatePicker
+                                    label="Дата закінчення (опціонально)"
+                                    value={newGroupCloseDate}
+                                    onChange={(newValue) => setNewGroupCloseDate(newValue)}
+                                    minDate={newGroupOpenDate || undefined}
+                                    sx={{
+                                        flex: 1,
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: '12px'
+                                        }
+                                    }}
+                                />
+                            </LocalizationProvider>
+                        </Box>
+
+                        {/* Create Button */}
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                            <Button
+                                variant="contained"
+                                size="large"
+                                onClick={handleCreateNewGroup}
+                                disabled={isCreatingGroup || !newGroupName.trim()}
+                                startIcon={isCreatingGroup ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
+                                sx={{
+                                    borderRadius: '12px',
+                                    px: 4,
+                                    py: 1.5,
+                                    minWidth: 200,
+                                    fontWeight: 600,
+                                    textTransform: 'none'
+                                }}
+                            >
+                                {isCreatingGroup ? 'Створюємо...' : 'Створити групу'}
+                            </Button>
+                        </Box>
+                    </Box>
+                </Card>
             </Box>
 
             <Snackbar

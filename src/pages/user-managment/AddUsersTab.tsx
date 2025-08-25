@@ -1,0 +1,1380 @@
+import React, { useState, useCallback, memo } from 'react';
+import {
+    Box,
+    Typography,
+    Button,
+    Paper,
+    Container,
+    alpha,
+    useTheme,
+    useMediaQuery,
+    Divider,
+    Stack,
+    Alert,
+    LinearProgress,
+    Chip,
+    Autocomplete,
+    TextField,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    CircularProgress,
+    Card,
+    CardContent,
+    Grid
+} from '@mui/material';
+import {
+    CloudUpload as CloudUploadIcon,
+    Download as DownloadIcon,
+    Add as AddIcon,
+    Description as DescriptionIcon,
+    CheckCircle as CheckCircleIcon,
+    Send as SendIcon,
+    Error as ErrorIcon,
+    Group as GroupIcon,
+    Refresh as RefreshIcon,
+    Email as EmailIcon,
+    TrendingUp as TrendingUpIcon,
+    Assessment as AssessmentIcon
+} from '@mui/icons-material';
+import { getAllActiveGroups, bulkCreateUsers, BulkCreateUsersPayload, getEmailStats, UserCreationLog, EmailStatsResponse } from '../../services/UserService';
+
+/**
+ * Interface for user data from TSV file
+ */
+interface UserData {
+    name: string;
+    surname: string;
+    email: string;
+    phone?: string;
+    telegram_username?: string;
+    instagram_username?: string;
+}
+
+/**
+ * Interface for group option
+ */
+interface GroupOption {
+    id: string;
+    name: string;
+    description?: string;
+}
+
+/**
+ * Interface for validation error
+ */
+interface ValidationError {
+    type: 'column' | 'required' | 'email' | 'limit';
+    message: string;
+    line?: number;
+    field?: string;
+}
+
+// Maximum number of users that can be processed in one upload
+const MAX_USERS_LIMIT = 200;
+
+// Maximum height for scrollable content areas
+const MAX_CONTENT_HEIGHT = 400;
+
+/**
+ * Memoized component for adding users via TSV file upload
+ * Maintains state when switching between tabs
+ */
+const AddUsersTab: React.FC = memo(() => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    
+    // Component state - preserved when switching tabs due to memoization
+    const [dragActive, setDragActive] = useState(false);
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [parsedUsers, setParsedUsers] = useState<UserData[]>([]);
+    const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+    const [selectedGroups, setSelectedGroups] = useState<GroupOption[]>([]);
+    const [availableGroups, setAvailableGroups] = useState<GroupOption[]>([]);
+    const [notification, setNotification] = useState<{
+        message: string;
+        severity: 'success' | 'error' | 'info' | 'warning';
+    } | null>(null);
+    const [loadingStats, setLoadingStats] = useState(false);
+    const [emailStats, setEmailStats] = useState<EmailStatsResponse | null>(null);
+
+    // Get status color based on log status and failed creations
+    const getStatusColor = (log: UserCreationLog): 'warning' | 'success' | 'error' => {
+        if (log.status === 'started') {
+            return 'warning';
+        } else if (log.status === 'finished') {
+            return log.failed_creations > 0 ? 'error' : 'success';
+        }
+        return 'warning';
+    };
+
+    // Get status text
+    const getStatusText = (log: UserCreationLog): string => {
+        if (log.status === 'started') {
+            return 'В процесі';
+        } else if (log.status === 'finished') {
+            return log.failed_creations > 0 ? 'Завершено з помилками' : 'Завершено успішно';
+        }
+        return 'Невідомо';
+    };
+
+    // Format date string
+    const formatDate = (dateString: string): string => {
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleString('uk-UA', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        } catch {
+            return dateString;
+        }
+    };
+
+    // Fetch email statistics
+    const fetchEmailStats = useCallback(async () => {
+        setLoadingStats(true);
+
+        try {
+            const response = await getEmailStats();
+            setEmailStats(response);
+
+            if (!response.success) {
+                console.error('Error fetching email stats:', response.message);
+            }
+        } catch (error) {
+            console.error('Error fetching email stats:', error);
+        } finally {
+            setLoadingStats(false);
+        }
+    }, []);
+
+    // Fetch active groups from backend
+    React.useEffect(() => {
+        const fetchGroups = async () => {
+            try {
+                const response = await getAllActiveGroups();
+                if (response.success && response.groups) {
+                    const groups: GroupOption[] = response.groups.map(group => ({
+                        id: group.group_id.toString(),
+                        name: group.group_name
+                    }));
+                    setAvailableGroups(groups);
+                } else {
+                    setNotification({
+                        message: 'Помилка завантаження груп',
+                        severity: 'error'
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching groups:', error);
+                setNotification({
+                    message: 'Помилка завантаження груп',
+                    severity: 'error'
+                });
+            }
+        };
+
+        fetchGroups();
+        fetchEmailStats();
+    }, [fetchEmailStats]);
+
+    // Handle file drag and drop
+    const handleDrag = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    }, []);
+
+    const handleDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+        
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            const file = e.dataTransfer.files[0];
+            handleFileSelection(file);
+        }
+    }, []);
+
+    // Validate email format
+    const isValidEmail = (email: string): boolean => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    // Parse TSV file content
+    const parseTsvFile = async (file: File): Promise<{ users: UserData[], errors: ValidationError[] }> => {
+        const content = await file.text();
+        const lines = content.split('\n').map(line => line.trim()).filter(line => line);
+        
+        if (lines.length === 0) {
+            return {
+                users: [],
+                errors: [{ type: 'column', message: 'Файл порожній' }]
+            };
+        }
+
+        // Check maximum users limit (excluding header)
+        const dataRowsCount = lines.length - 1;
+        if (dataRowsCount > MAX_USERS_LIMIT) {
+            return {
+                users: [],
+                errors: [{
+                    type: 'limit',
+                    message: `Занадто багато користувачів у файлі (${dataRowsCount}). Максимум дозволено: ${MAX_USERS_LIMIT}`
+                }]
+            };
+        }
+
+        // Parse header
+        const header = lines[0].split('\t').map(col => col.trim().toLowerCase());
+        const requiredColumns = ['name', 'surname', 'email'];
+        const allowedColumns = ['name', 'surname', 'email', 'phone', 'telegram_username', 'instagram_username'];
+        
+        // Validate columns
+        const errors: ValidationError[] = [];
+        const missingColumns = requiredColumns.filter(col => !header.includes(col));
+        
+        if (missingColumns.length > 0) {
+            errors.push({
+                type: 'column',
+                message: `Відсутні обов'язкові колонки: ${missingColumns.join(', ')}`
+            });
+        }
+
+        const invalidColumns = header.filter(col => !allowedColumns.includes(col));
+        if (invalidColumns.length > 0) {
+            errors.push({
+                type: 'column',
+                message: `Невідомі колонки: ${invalidColumns.join(', ')}. Дозволені: ${allowedColumns.join(', ')}`
+            });
+        }
+
+        if (errors.length > 0) {
+            return { users: [], errors };
+        }
+
+        // Parse data rows
+        const users: UserData[] = [];
+        const emailSet = new Set<string>();
+
+        for (let i = 1; i < lines.length; i++) {
+            const lineNumber = i + 1;
+            const values = lines[i].split('\t');
+            
+            // Pad values array to match header length (for optional empty columns)
+            while (values.length < header.length) {
+                values.push('');
+            }
+            
+            if (values.length > header.length) {
+                errors.push({
+                    type: 'column',
+                    message: `Рядок ${lineNumber}: занадто багато значень (${values.length}) порівняно з кількістю колонок (${header.length})`,
+                    line: lineNumber
+                });
+                continue;
+            }
+
+            const user: Partial<UserData> = {};
+            
+            // Map values to user object
+            header.forEach((col, index) => {
+                const value = values[index]?.trim() || '';
+                switch (col) {
+                    case 'name':
+                    case 'surname':
+                    case 'email':
+                        user[col as keyof UserData] = value;
+                        break;
+                    case 'phone':
+                    case 'telegram_username':
+                    case 'instagram_username':
+                        // Only set if value is not empty
+                        if (value) {
+                            user[col as keyof UserData] = value;
+                        }
+                        break;
+                }
+            });
+
+            // Validate required fields
+            if (!user.name || user.name.trim() === '') {
+                errors.push({
+                    type: 'required',
+                    message: `Рядок ${lineNumber}: поле "name" обов'язкове`,
+                    line: lineNumber,
+                    field: 'name'
+                });
+            }
+
+            if (!user.surname || user.surname.trim() === '') {
+                errors.push({
+                    type: 'required',
+                    message: `Рядок ${lineNumber}: поле "surname" обов'язкове`,
+                    line: lineNumber,
+                    field: 'surname'
+                });
+            }
+
+            if (!user.email || user.email.trim() === '') {
+                errors.push({
+                    type: 'required',
+                    message: `Рядок ${lineNumber}: поле "email" обов'язкове`,
+                    line: lineNumber,
+                    field: 'email'
+                });
+            } else if (!isValidEmail(user.email)) {
+                errors.push({
+                    type: 'email',
+                    message: `Рядок ${lineNumber}: невірний формат email "${user.email}"`,
+                    line: lineNumber,
+                    field: 'email'
+                });
+            } else if (emailSet.has(user.email.toLowerCase())) {
+                errors.push({
+                    type: 'email',
+                    message: `Рядок ${lineNumber}: email "${user.email}" вже існує у файлі`,
+                    line: lineNumber,
+                    field: 'email'
+                });
+            } else {
+                emailSet.add(user.email.toLowerCase());
+            }
+
+            // If no validation errors for this user, add to users array
+            if (user.name && user.name.trim() && 
+                user.surname && user.surname.trim() && 
+                user.email && user.email.trim() && 
+                isValidEmail(user.email)) {
+                users.push(user as UserData);
+            }
+        }
+
+        return { users, errors };
+    };
+
+    const handleFileSelection = useCallback((file: File) => {
+        // Validate file type
+        if (!file.name.toLowerCase().endsWith('.tsv')) {
+            setNotification({
+                message: 'Будь ласка, оберіть TSV файл (.tsv)',
+                severity: 'error'
+            });
+            return;
+        }
+
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            setNotification({
+                message: 'Файл занадто великий. Максимальний розмір: 10MB',
+                severity: 'error'
+            });
+            return;
+        }
+
+        setUploadedFile(file);
+        setNotification({
+            message: `Файл "${file.name}" готовий до завантаження`,
+            severity: 'success'
+        });
+    }, []);
+
+    const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            handleFileSelection(e.target.files[0]);
+        }
+    }, [handleFileSelection]);
+
+    // Download template file
+    const handleDownloadTemplate = useCallback(() => {
+        const templateContent = "name\tsurname\temail\tphone\ttelegram_username\tinstagram_username\n";
+        
+        const blob = new Blob([templateContent], { type: 'text/tab-separated-values;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'users_template.tsv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        setNotification({
+            message: 'Шаблон TSV файлу завантажено',
+            severity: 'success'
+        });
+    }, []);
+
+    // Process uploaded file
+    const handleProcessFile = useCallback(async () => {
+        if (!uploadedFile) return;
+
+        setUploading(true);
+        setUploadProgress(0);
+        setValidationErrors([]);
+        setParsedUsers([]);
+
+        try {
+            // Simulate progress for file reading
+            setUploadProgress(20);
+            
+            // Parse the TSV file
+            const { users, errors } = await parseTsvFile(uploadedFile);
+            
+            setUploadProgress(60);
+            
+            if (errors.length > 0) {
+                setValidationErrors(errors);
+                setNotification({
+                    message: `Знайдено ${errors.length} помилок у файлі`,
+                    severity: 'error'
+                });
+                setUploadProgress(100);
+                setUploading(false);
+                return;
+            }
+
+            setUploadProgress(80);
+            
+            // If successful, store parsed users
+            setParsedUsers(users);
+            setUploadProgress(100);
+            
+            setNotification({
+                message: `Файл успішно оброблено. Знайдено ${users.length} користувачів`,
+                severity: 'success'
+            });
+
+        } catch (error) {
+            console.error('Error processing file:', error);
+            setNotification({
+                message: 'Помилка при обробці файлу',
+                severity: 'error'
+            });
+        } finally {
+            setUploading(false);
+        }
+    }, [uploadedFile]);
+
+    // Remove uploaded file
+    const handleRemoveFile = useCallback(() => {
+        setUploadedFile(null);
+        setNotification(null);
+        setParsedUsers([]);
+        setValidationErrors([]);
+    }, []);
+
+    // Handle group selection change
+    const handleGroupChange = useCallback((event: any, newValue: GroupOption[]) => {
+        setSelectedGroups(newValue);
+    }, []);
+
+    // Send users to backend
+    const handleSendToBackend = useCallback(async () => {
+        if (parsedUsers.length === 0) return;
+
+        setNotification({
+            message: `Відправка ${parsedUsers.length} користувачів на сервер...`,
+            severity: 'info'
+        });
+
+        try {
+            // Prepare payload for backend
+            const payload: BulkCreateUsersPayload = {
+                users: parsedUsers,
+                group_ids: selectedGroups.map(group => group.id)
+            };
+
+            const response = await bulkCreateUsers(payload);
+
+            if (response.success) {
+                const successMessage = response.created_users_count 
+                    ? `${response.created_users_count} користувачів успішно додано до груп: ${selectedGroups.map(g => g.name).join(', ')}`
+                    : `Користувачі успішно додані до груп: ${selectedGroups.map(g => g.name).join(', ')}`;
+
+                setNotification({
+                    message: successMessage,
+                    severity: 'success'
+                });
+
+                // Show information about failed users if any
+                if (response.failed_users && response.failed_users.length > 0) {
+                    const failedEmails = response.failed_users.map(u => u.email).join(', ');
+                    setTimeout(() => {
+                        setNotification({
+                            message: `Деякі користувачі не були створені: ${failedEmails}`,
+                            severity: 'warning'
+                        });
+                    }, 3000);
+                }
+
+                // Reset after successful send
+                setUploadedFile(null);
+                setParsedUsers([]);
+                setValidationErrors([]);
+                setSelectedGroups([]);
+
+                // Refresh email stats after successful user creation
+                setTimeout(() => {
+                    fetchEmailStats();
+                }, 1000);
+            } else {
+                setNotification({
+                    message: response.message || 'Помилка при створенні користувачів',
+                    severity: 'error'
+                });
+            }
+        } catch (error) {
+            console.error('Error creating users:', error);
+            setNotification({
+                message: 'Помилка при відправці даних на сервер',
+                severity: 'error'
+            });
+        }
+    }, [parsedUsers, selectedGroups]);
+
+    return (
+        <Container maxWidth="md" sx={{ py: 3 }}>
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+                <Typography
+                    variant="h4"
+                    component="h1"
+                    sx={{
+                        fontFamily: '"Lato", sans-serif',
+                        fontWeight: 700,
+                        color: theme.palette.primary.main,
+                        mb: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 1
+                    }}
+                >
+                    <AddIcon fontSize="large" />
+                    Додати нових користувачів
+                </Typography>
+                
+                <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{ maxWidth: 600, mx: 'auto' }}
+                >
+                    Завантажте TSV файл з даними користувачів для масового додавання до системи
+                </Typography>
+            </Box>
+
+            {/* Notification */}
+            {notification && (
+                <Alert 
+                    severity={notification.severity} 
+                    sx={{ mb: 3 }}
+                    onClose={() => setNotification(null)}
+                >
+                    {notification.message}
+                </Alert>
+            )}
+
+            <Stack spacing={3}>
+                {/* Download Template Section */}
+                <Paper
+                    elevation={2}
+                    sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                    }}
+                >
+                    <Box sx={{ textAlign: 'center' }}>
+                        <Typography
+                            variant="h6"
+                            component="h2"
+                            sx={{ 
+                                mb: 2,
+                                color: theme.palette.primary.main,
+                                fontWeight: 600
+                            }}
+                        >
+                            Крок 1: Завантажте шаблон TSV файлу (опціонально)
+                        </Typography>
+                        
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                            Завантажте шаблон для заповнення даних користувачів у правильному форматі
+                        </Typography>
+                        
+                        <Button
+                            variant="outlined"
+                            size="large"
+                            startIcon={<DownloadIcon />}
+                            onClick={handleDownloadTemplate}
+                            sx={{
+                                borderRadius: 2,
+                                px: 4,
+                                py: 1.5,
+                                fontWeight: 600
+                            }}
+                        >
+                            Завантажити шаблон TSV
+                        </Button>
+                    </Box>
+                </Paper>
+
+                <Divider sx={{ my: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        потім
+                    </Typography>
+                </Divider>
+
+                {/* Group Selection Section */}
+                <Paper
+                    elevation={2}
+                    sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                    }}
+                >
+                    <Box sx={{ textAlign: 'center', mb: 3 }}>
+                        <Typography
+                            variant="h6"
+                            component="h2"
+                            sx={{ 
+                                mb: 2,
+                                color: theme.palette.primary.main,
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 1
+                            }}
+                        >
+                            <GroupIcon />
+                            Крок 2: Оберіть групи для додавання користувачів
+                        </Typography>
+                        
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                            Виберіть одну або декілька груп, до яких будуть додані користувачі
+                        </Typography>
+                    </Box>
+
+                    <Autocomplete
+                        multiple
+                        id="group-selection"
+                        options={availableGroups}
+                        getOptionLabel={(option) => option.name}
+                        value={selectedGroups}
+                        onChange={handleGroupChange}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                variant="outlined"
+                                label="Оберіть групи"
+                                placeholder="Почніть вводити назву групи..."
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: '12px',
+                                    }
+                                }}
+                            />
+                        )}
+                        renderTags={(value, getTagProps) =>
+                            value.map((option, index) => (
+                                <Chip
+                                    {...getTagProps({ index })}
+                                    key={option.id}
+                                    label={option.name}
+                                    color="primary"
+                                    variant="filled"
+                                    sx={{ margin: 0.5 }}
+                                />
+                            ))
+                        }
+                        renderOption={(props, option) => (
+                            <Box component="li" {...props}>
+                                <Typography variant="body2" fontWeight={600}>
+                                    {option.name}
+                                </Typography>
+                            </Box>
+                        )}
+                        ChipProps={{
+                            color: "primary",
+                            variant: "filled"
+                        }}
+                        sx={{ mb: 2 }}
+                    />
+
+                    {selectedGroups.length > 0 && (
+                        <Alert severity="info" sx={{ mt: 2 }}>
+                            Користувачі будуть додані до {selectedGroups.length} {selectedGroups.length === 1 ? 'групи' : 'груп'}: {selectedGroups.map(g => g.name).join(', ')}
+                        </Alert>
+                    )}
+                </Paper>
+
+                <Divider sx={{ my: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        далі
+                    </Typography>
+                </Divider>
+
+                {/* File Upload Section */}
+                <Paper
+                    elevation={2}
+                    sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                    }}
+                >
+                    <Typography
+                        variant="h6"
+                        component="h2"
+                        sx={{ 
+                            mb: 3,
+                            color: theme.palette.primary.main,
+                            fontWeight: 600,
+                            textAlign: 'center'
+                        }}
+                    >
+                        Крок 3: Завантажте заповнений TSV файл
+                    </Typography>
+
+                    {/* Upload Progress */}
+                    {uploading && (
+                        <Box sx={{ mb: 3 }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                Обробка файлу: {uploadProgress}%
+                            </Typography>
+                            <LinearProgress 
+                                variant="determinate" 
+                                value={uploadProgress}
+                                sx={{ borderRadius: 1, height: 8 }}
+                            />
+                        </Box>
+                    )}
+
+                    {/* Uploaded File Display */}
+                    {uploadedFile && !uploading && (
+                        <Paper
+                            sx={{
+                                p: 2,
+                                mb: 3,
+                                bgcolor: alpha(theme.palette.success.main, 0.05),
+                                border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
+                                borderRadius: 2
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <CheckCircleIcon color="success" />
+                                <Box sx={{ flexGrow: 1 }}>
+                                    <Typography variant="body2" fontWeight={600}>
+                                        {uploadedFile.name}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {(uploadedFile.size / 1024).toFixed(1)} KB
+                                    </Typography>
+                                </Box>
+                                <Button
+                                    size="small"
+                                    color="error"
+                                    onClick={handleRemoveFile}
+                                >
+                                    Видалити
+                                </Button>
+                            </Box>
+                        </Paper>
+                    )}
+
+                    {/* Drop Zone */}
+                    {!uploadedFile && (
+                        <Box
+                            onDragEnter={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDragOver={handleDrag}
+                            onDrop={handleDrop}
+                            sx={{
+                                border: `2px dashed ${dragActive 
+                                    ? theme.palette.primary.main 
+                                    : alpha(theme.palette.grey[400], 0.5)
+                                }`,
+                                borderRadius: 2,
+                                p: isMobile ? 3 : 6,
+                                textAlign: 'center',
+                                bgcolor: dragActive 
+                                    ? alpha(theme.palette.primary.main, 0.05) 
+                                    : alpha(theme.palette.grey[50], 0.5),
+                                transition: 'all 0.2s ease-in-out',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    bgcolor: alpha(theme.palette.primary.main, 0.02),
+                                    borderColor: theme.palette.primary.light
+                                }
+                            }}
+                        >
+                            <input
+                                type="file"
+                                accept=".tsv,.txt"
+                                onChange={handleFileInputChange}
+                                style={{
+                                    position: 'absolute',
+                                    left: '-9999px',
+                                    top: '-9999px'
+                                }}
+                                id="tsv-file-input"
+                            />
+                            
+                            <CloudUploadIcon 
+                                sx={{ 
+                                    fontSize: isMobile ? 48 : 64,
+                                    color: dragActive 
+                                        ? theme.palette.primary.main 
+                                        : theme.palette.grey[400],
+                                    mb: 2
+                                }} 
+                            />
+                            
+                            <Typography
+                                variant={isMobile ? "body1" : "h6"}
+                                sx={{ 
+                                    mb: 1,
+                                    color: dragActive 
+                                        ? theme.palette.primary.main 
+                                        : theme.palette.text.primary,
+                                    fontWeight: 600
+                                }}
+                            >
+                                Перетягніть TSV файл сюди
+                            </Typography>
+                            
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                або
+                            </Typography>
+                            
+                            <Button
+                                variant="contained"
+                                component="label"
+                                htmlFor="tsv-file-input"
+                                startIcon={<DescriptionIcon />}
+                                sx={{
+                                    borderRadius: 2,
+                                    px: 4,
+                                    py: 1.5,
+                                    fontWeight: 600
+                                }}
+                            >
+                                Оберіть файл
+                            </Button>
+                            
+                            <Typography 
+                                variant="caption" 
+                                color="text.secondary" 
+                                sx={{ display: 'block', mt: 2 }}
+                            >
+                                Підтримувані формати: .tsv (максимум 10MB, до {MAX_USERS_LIMIT} користувачів)
+                            </Typography>
+                        </Box>
+                    )}
+
+                    {/* Process File Button */}
+                    {uploadedFile && !uploading && parsedUsers.length === 0 && selectedGroups.length > 0 && (
+                        <Box sx={{ textAlign: 'center', mt: 3 }}>
+                            <Button
+                                variant="contained"
+                                size="large"
+                                onClick={handleProcessFile}
+                                startIcon={<AddIcon />}
+                                sx={{
+                                    borderRadius: 2,
+                                    px: 4,
+                                    py: 1.5,
+                                    fontWeight: 600,
+                                    bgcolor: theme.palette.success.main,
+                                    '&:hover': {
+                                        bgcolor: theme.palette.success.dark
+                                    }
+                                }}
+                            >
+                                Обробити файл
+                            </Button>
+                        </Box>
+                    )}
+
+                    {/* Warning when no groups selected */}
+                    {uploadedFile && !uploading && selectedGroups.length === 0 && (
+                        <Alert severity="warning" sx={{ mt: 3 }}>
+                            Спочатку оберіть групи для додавання користувачів
+                        </Alert>
+                    )}
+                </Paper>
+
+                {/* Validation Errors */}
+                {validationErrors.length > 0 && (
+                    <Paper
+                        sx={{
+                            p: 3,
+                            borderRadius: 2,
+                            bgcolor: alpha(theme.palette.error.main, 0.05),
+                            border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                            <ErrorIcon color="error" />
+                            <Typography variant="h6" color="error">
+                                Знайдено помилки у файлі
+                            </Typography>
+                        </Box>
+                        
+                        <Stack 
+                            spacing={1}
+                            sx={{
+                                maxHeight: MAX_CONTENT_HEIGHT,
+                                overflowY: 'auto',
+                                pr: 1,
+                                '&::-webkit-scrollbar': {
+                                    width: '8px',
+                                },
+                                '&::-webkit-scrollbar-thumb': {
+                                    backgroundColor: alpha(theme.palette.error.main, 0.3),
+                                    borderRadius: '4px',
+                                },
+                                '&::-webkit-scrollbar-track': {
+                                    backgroundColor: alpha(theme.palette.grey[200], 0.5),
+                                    borderRadius: '4px',
+                                },
+                            }}
+                        >
+                            {validationErrors.map((error, index) => (
+                                <Alert 
+                                    key={index} 
+                                    severity="error" 
+                                    variant="outlined"
+                                    sx={{ 
+                                        bgcolor: 'transparent',
+                                        '& .MuiAlert-message': {
+                                            fontSize: '0.875rem'
+                                        }
+                                    }}
+                                >
+                                    {error.message}
+                                </Alert>
+                            ))}
+                        </Stack>
+                    </Paper>
+                )}
+
+                {/* Parsed Users Preview */}
+                {parsedUsers.length > 0 && (
+                    <Paper
+                        sx={{
+                            p: 3,
+                            borderRadius: 2,
+                            bgcolor: alpha(theme.palette.success.main, 0.05),
+                            border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                            <CheckCircleIcon color="success" />
+                            <Typography variant="h6" color="success.main">
+                                Файл успішно оброблено
+                            </Typography>
+                        </Box>
+                        
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                            Знайдено {parsedUsers.length} валідних користувачів
+                        </Typography>
+
+                        {/* Users Preview */}
+                        <Box 
+                            sx={{ 
+                                mb: 3, 
+                                maxHeight: MAX_CONTENT_HEIGHT, 
+                                overflowY: 'auto',
+                                pr: 1,
+                                '&::-webkit-scrollbar': {
+                                    width: '8px',
+                                },
+                                '&::-webkit-scrollbar-thumb': {
+                                    backgroundColor: alpha(theme.palette.success.main, 0.3),
+                                    borderRadius: '4px',
+                                },
+                                '&::-webkit-scrollbar-track': {
+                                    backgroundColor: alpha(theme.palette.grey[200], 0.5),
+                                    borderRadius: '4px',
+                                },
+                            }}
+                        >
+                            {parsedUsers.map((user, index) => (
+                                <Box 
+                                    key={index}
+                                    sx={{ 
+                                        p: 2, 
+                                        mb: 1,
+                                        bgcolor: 'white',
+                                        borderRadius: 1,
+                                        border: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                        <Typography variant="caption" color="text.secondary">
+                                            #{index + 1}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                        <Chip 
+                                            label={`${user.name} ${user.surname}`} 
+                                            color="primary" 
+                                            size="small" 
+                                        />
+                                        <Chip 
+                                            label={user.email} 
+                                            variant="outlined" 
+                                            size="small" 
+                                        />
+                                        {user.phone && (
+                                            <Chip 
+                                                label={user.phone} 
+                                                variant="outlined" 
+                                                size="small" 
+                                            />
+                                        )}
+                                        {user.telegram_username && (
+                                            <Chip 
+                                                label={user.telegram_username.startsWith('@') ? user.telegram_username : `@${user.telegram_username}`} 
+                                                variant="outlined" 
+                                                size="small" 
+                                            />
+                                        )}
+                                        {user.instagram_username && (
+                                            <Chip 
+                                                label={`IG: ${user.instagram_username}`} 
+                                                variant="outlined" 
+                                                size="small" 
+                                            />
+                                        )}
+                                    </Box>
+                                    {/* Show selected groups for this user */}
+                                    {selectedGroups.length > 0 && (
+                                        <Box sx={{ mt: 1 }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                                                Буде додано до:
+                                            </Typography>
+                                            {selectedGroups.map((group) => (
+                                                <Chip 
+                                                    key={group.id}
+                                                    label={group.name} 
+                                                    color="secondary" 
+                                                    size="small" 
+                                                    sx={{ mr: 0.5 }}
+                                                />
+                                            ))}
+                                        </Box>
+                                    )}
+                                </Box>
+                            ))}
+                        </Box>
+
+                        {/* Send to Backend Button */}
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Button
+                                variant="contained"
+                                size="large"
+                                onClick={handleSendToBackend}
+                                startIcon={<SendIcon />}
+                                sx={{
+                                    borderRadius: 2,
+                                    px: 4,
+                                    py: 1.5,
+                                    fontWeight: 600,
+                                    bgcolor: theme.palette.primary.main,
+                                    '&:hover': {
+                                        bgcolor: theme.palette.primary.dark
+                                    }
+                                }}
+                            >
+                                Додати користувачів до системи
+                            </Button>
+                        </Box>
+                    </Paper>
+                )}
+
+                {/* Instructions */}
+                <Paper
+                    sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        bgcolor: alpha(theme.palette.info.main, 0.05),
+                        border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`
+                    }}
+                >
+                    <Typography variant="h6" sx={{ mb: 2, color: theme.palette.info.main }}>
+                        Інструкції по формату файлу:
+                    </Typography>
+                    
+                    <Typography variant="body2" component="div" color="text.secondary">
+                        <Box component="ul" sx={{ pl: 2, m: 0 }}>
+                            <li>Файл повинен бути у форматі TSV</li>
+                            <li>Перший рядок має містити заголовки колонок</li>
+                            <li>Обов'язкові поля: name, surname, email</li>
+                            <li>Опціональні поля: phone, telegram_username, instagram_username</li>
+                            <li>Email адреси повинні бути унікальними</li>
+                            <li>Максимальний розмір файлу: 10MB</li>
+                            <li>Максимальна кількість користувачів: {MAX_USERS_LIMIT}</li>
+                            <li>Опціональні поля можуть бути порожніми</li>
+                        </Box>
+                    </Typography>
+                </Paper>
+
+                <Divider sx={{ my: 4 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Статистика
+                    </Typography>
+                </Divider>
+
+                {/* Email Statistics Section */}
+                <Paper
+                    sx={{
+                        borderRadius: 3,
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                        overflow: 'hidden'
+                    }}
+                >
+                    <Box sx={{ p: 3, borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.5)}` }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <AssessmentIcon sx={{ color: theme.palette.primary.main }} />
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: 600,
+                                        color: theme.palette.primary.main
+                                    }}
+                                >
+                                    Статистика створення користувачів
+                                </Typography>
+                            </Box>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={loadingStats ? <CircularProgress size={16} /> : <RefreshIcon />}
+                                onClick={fetchEmailStats}
+                                disabled={loadingStats}
+                                sx={{
+                                    borderRadius: 2,
+                                    px: 2,
+                                    py: 0.5,
+                                    fontWeight: 600
+                                }}
+                            >
+                                {loadingStats ? 'Оновлення...' : 'Оновити'}
+                            </Button>
+                        </Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            Статистика відправки електронних листів та створення користувачів
+                        </Typography>
+                    </Box>
+
+                    {/* Email Statistics Cards */}
+                    {emailStats?.success && emailStats.email_stats && (
+                        <Box sx={{ p: 3, borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.5)}` }}>
+                            <Grid container spacing={3}>
+                                <Grid item xs={12} md={6}>
+                                    <Card
+                                        sx={{
+                                            borderRadius: 2,
+                                            border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                                            boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.1)}`
+                                        }}
+                                    >
+                                        <CardContent sx={{ p: 2 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                                                <EmailIcon sx={{ fontSize: 24, color: theme.palette.primary.main }} />
+                                                <Typography variant="subtitle1" fontWeight={600}>
+                                                    Листи сьогодні
+                                                </Typography>
+                                            </Box>
+                                            <Typography variant="h4" color="primary" fontWeight={700}>
+                                                {emailStats.email_stats.emails_sent_today}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                відправлено
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                                
+                                <Grid item xs={12} md={6}>
+                                    <Card
+                                        sx={{
+                                            borderRadius: 2,
+                                            border: `1px solid ${alpha(theme.palette.success.main, 0.1)}`,
+                                            boxShadow: `0 2px 8px ${alpha(theme.palette.success.main, 0.1)}`
+                                        }}
+                                    >
+                                        <CardContent sx={{ p: 2 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                                                <TrendingUpIcon sx={{ fontSize: 24, color: theme.palette.success.main }} />
+                                                <Typography variant="subtitle1" fontWeight={600}>
+                                                    Залишилося
+                                                </Typography>
+                                            </Box>
+                                            <Typography variant="h4" color="success.main" fontWeight={700}>
+                                                {emailStats.email_stats.emails_left_for_today}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                можна відправити
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    )}
+
+                    {/* User Creation Logs Table */}
+                    <Box>
+                        <Box sx={{ p: 2, borderBottom: `1px solid ${alpha(theme.palette.grey[300], 0.3)}` }}>
+                            <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                                Історія створення користувачів
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                Останні процеси створення користувачів
+                            </Typography>
+                        </Box>
+
+                        <TableContainer sx={{ maxHeight: 400 }}>
+                            <Table stickyHeader size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            ID
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Оновлено
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Всього
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Створено
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Помилки
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Листи
+                                        </TableCell>
+                                        <TableCell sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.grey[50], 0.8), fontSize: '0.75rem' }}>
+                                            Статус
+                                        </TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {loadingStats ? (
+                                        <TableRow>
+                                            <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
+                                                <CircularProgress size={24} />
+                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                                                    Завантаження...
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : emailStats?.success && emailStats.email_stats?.user_creation_logs ? (
+                                        emailStats.email_stats.user_creation_logs.length > 0 ? (
+                                            emailStats.email_stats.user_creation_logs.slice(0, 10).map((log) => (
+                                                <TableRow
+                                                    key={log.add_process_id}
+                                                    sx={{
+                                                        '&:hover': {
+                                                            bgcolor: alpha(theme.palette.primary.main, 0.02)
+                                                        }
+                                                    }}
+                                                >
+                                                    <TableCell sx={{ fontSize: '0.75rem' }}>{log.add_process_id}</TableCell>
+                                                    <TableCell sx={{ fontSize: '0.75rem' }}>{formatDate(log.updated_at)}</TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="caption" fontWeight={600}>
+                                                            {log.total_added_users}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="caption" color="success.main" fontWeight={600}>
+                                                            {log.successful_creations}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography 
+                                                            variant="caption" 
+                                                            color={log.failed_creations > 0 ? "error.main" : "text.secondary"}
+                                                            fontWeight={log.failed_creations > 0 ? 600 : 400}
+                                                        >
+                                                            {log.failed_creations}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="caption" color="primary.main" fontWeight={600}>
+                                                            {log.successful_emails}
+                                                            {log.failed_emails > 0 && (
+                                                                <Typography component="span" variant="caption" color="error.main" sx={{ ml: 0.5 }}>
+                                                                    ({log.failed_emails} помилок)
+                                                                </Typography>
+                                                            )}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Chip
+                                                            label={getStatusText(log)}
+                                                            color={getStatusColor(log)}
+                                                            size="small"
+                                                            sx={{
+                                                                fontSize: '0.7rem',
+                                                                height: 20,
+                                                                fontWeight: 600
+                                                            }}
+                                                        />
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={7} sx={{ textAlign: 'center', py: 3 }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Немає даних для відображення
+                                                    </Typography>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={7} sx={{ textAlign: 'center', py: 3 }}>
+                                                <Typography variant="caption" color="error">
+                                                    Помилка завантаження даних
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
+                </Paper>
+            </Stack>
+        </Container>
+    );
+});
+
+AddUsersTab.displayName = 'AddUsersTab';
+
+export default AddUsersTab;

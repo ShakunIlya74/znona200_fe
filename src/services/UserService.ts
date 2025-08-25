@@ -219,6 +219,9 @@ export interface CreateUserRequestPayload {
   phone?: string;
   telegram_username?: string;
   instagram_username?: string;
+  name?: string;
+  surname?: string;
+  email?: string;
 }
 
 // Interface for create user request response
@@ -243,6 +246,83 @@ interface UpdateUserNameResponse {
 // Interface for update user surname response
 interface UpdateUserSurnameResponse {
   success: boolean;
+  message?: string;
+}
+
+// Interface for active groups response
+interface ActiveGroupsResponse {
+  success: boolean;
+  groups?: {
+    group_name: string;
+    group_id: number;
+  }[];
+  message?: string;
+}
+
+// Interface for bulk user creation payload
+export interface BulkCreateUsersPayload {
+  users: {
+    name: string;
+    surname: string;
+    email: string;
+    phone?: string;
+    telegram_username?: string;
+    instagram_username?: string;
+  }[];
+  group_ids: (string | number)[];
+}
+
+// Interface for bulk user creation response
+export interface BulkCreateUsersResponse {
+  success: boolean;
+  message?: string;
+  created_users_count?: number;
+  failed_users?: {
+    email: string;
+    error: string;
+  }[];
+}
+
+// Interface for user creation log
+export interface UserCreationLog {
+  add_process_id: number;
+  updated_at: string;
+  total_added_users: number;
+  successful_creations: number;
+  failed_creations: number;
+  successful_emails: number;
+  failed_emails: number;
+  status: 'started' | 'finished';
+}
+
+// Interface for email stats response
+export interface EmailStatsResponse {
+  success: boolean;
+  email_stats?: {
+    emails_sent_today: number;
+    emails_left_for_today: number;
+    user_creation_logs: UserCreationLog[];
+  };
+  message?: string;
+}
+
+// Interface for create new group payload
+export interface CreateNewGroupPayload {
+  groupName: string;
+  openDate?: string;
+  closeDate?: string;
+}
+
+// Interface for create new group response
+export interface CreateNewGroupResponse {
+  success: boolean;
+  message?: string;
+}
+
+// Interface for get user password response
+export interface GetUserPasswordResponse {
+  success: boolean;
+  password?: string;
   message?: string;
 }
 
@@ -416,6 +496,26 @@ export const searchUsersControlPage = async (searchQuery: string, searchMode: st
     return response.data;
   } catch (error) {
     console.error('Error searching for users:', error);
+    throw error;
+  }
+};
+
+/**
+ * Searches for user request across the entire system
+ * @param searchQuery The search query to filter users by
+ * @param searchMode The search mode to filter requests by (optional)
+ * @param page The page number for pagination (optional, defaults to 1)
+ * @returns Promise with matching users information and pagination
+ */
+export const searchUserRequests = async (searchQuery: string, searchMode?: string, page: number = 1): Promise<UserRequestsPaginatedResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-control/user-requests-search', {
+      params: { searchQuery, searchMode, page }
+    });
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error searching for user requests:', error);
     throw error;
   }
 };
@@ -818,6 +918,106 @@ export const updateUserSurname = async (
     return response.data;
   } catch (error) {
     console.error('Error updating user surname:', error);
+    throw error;
+  }
+};
+
+/**
+ * Updates the status of a specific user request
+ * @param requestId The ID of the request to update
+ * @param status The new status for the request
+ * @returns Promise with success status and optional message
+ */
+export const updateRequestStatus = async (
+  requestId: number | string,
+  status: string
+): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const response = await axiosInstance.put(`/user-control/update-request-status/${requestId}`, {
+      status
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating request status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches all active user groups
+ * @returns Promise with active groups information including group names and IDs
+ */
+export const getAllActiveGroups = async (): Promise<ActiveGroupsResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-control/active-groups/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching active groups:', error);
+    throw error;
+  }
+};
+
+/**
+ * Creates multiple users and adds them to specified groups
+ * @param userData The data containing users array and group IDs
+ * @returns Promise with bulk creation results including success count and failed users
+ */
+export const bulkCreateUsers = async (
+  userData: BulkCreateUsersPayload
+): Promise<BulkCreateUsersResponse> => {
+  try {
+    const response = await axiosInstance.post('/user-control/bulk-create-users/', userData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating users in bulk:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches email statistics and user creation logs
+ * @returns Promise with email stats including daily limits and user creation logs
+ */
+export const getEmailStats = async (): Promise<EmailStatsResponse> => {
+  try {
+    const response = await axiosInstance.get('/user-control/email_stats/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching email stats:', error);
+    throw error;
+  }
+};
+
+/**
+ * Creates a new user group
+ * @param groupData The data for the new group including name and optional dates
+ * @returns Promise with success status and optional message
+ */
+export const createNewGroup = async (
+  groupData: CreateNewGroupPayload
+): Promise<CreateNewGroupResponse> => {
+  try {
+    const response = await axiosInstance.post('/user-groups/create-new-group/', groupData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating new group:', error);
+    throw error;
+  }
+};
+
+/**
+ * Retrieves the password for a non-admin user (admin only function)
+ * @param userId The ID of the user to get the password for
+ * @returns Promise with success status, password, and optional message
+ */
+export const getUserPassword = async (
+  userId: number | string
+): Promise<GetUserPasswordResponse> => {
+  try {
+    const response = await axiosInstance.get(`/user-control/get-user-password/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting user password:', error);
     throw error;
   }
 };

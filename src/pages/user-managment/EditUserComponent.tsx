@@ -22,7 +22,8 @@ import {
     Divider,
     useMediaQuery,
     Alert,
-    Snackbar
+    Snackbar,
+    CircularProgress
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
@@ -35,7 +36,11 @@ import TelegramIcon from '@mui/icons-material/Telegram';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import GroupIcon from '@mui/icons-material/Group';
 import ExpandLessOutlinedIcon from '@mui/icons-material/ExpandLessOutlined';
-import { UserInfo, activateUser, deactivateUser, updateUserName, updateUserSurname } from '../../services/UserService';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import KeyIcon from '@mui/icons-material/Key';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { UserInfo, activateUser, deactivateUser, updateUserName, updateUserSurname, getUserPassword } from '../../services/UserService';
 
 // Extended UserInfo interface to include Instagram username
 interface ExtendedUserInfo extends UserInfo {
@@ -227,7 +232,15 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-    const [copySuccess, setCopySuccess] = useState<string | null>(null);    // Internal state for collapsed/expanded when used in standalone mode
+    const [copySuccess, setCopySuccess] = useState<string | null>(null);
+    
+    // Password management state
+    const [showPassword, setShowPassword] = useState(false);
+    const [userPassword, setUserPassword] = useState<string | null>(null);
+    const [isLoadingPassword, setIsLoadingPassword] = useState(false);
+    const [passwordCopied, setPasswordCopied] = useState(false);
+    
+    // Internal state for collapsed/expanded when used in standalone mode
     const [isInternallyCollapsed, setIsInternallyCollapsed] = useState(collapsed);
 
     // Always use internal collapsed state to allow toggling
@@ -270,6 +283,14 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
             // External handler provided - execute it
             onClick(currentUser);
         }
+        
+        // If we're about to collapse (currently expanded), clear password data
+        if (!isInternallyCollapsed) {
+            setShowPassword(false);
+            setUserPassword(null);
+            setPasswordCopied(false);
+        }
+        
         // Always toggle internal state to expand/collapse the card
         setIsInternallyCollapsed(!isInternallyCollapsed);
     };    // Field save handlers
@@ -393,6 +414,50 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
         } catch (error) {
             console.error('Error updating groups:', error);
             showSnackbar('Помилка при оновленні груп', 'error');        }
+    };
+
+    // Handle password retrieval
+    const handleShowPassword = async () => {
+        if (showPassword) {
+            // Hide password and clear from memory
+            setShowPassword(false);
+            setUserPassword(null);
+            setPasswordCopied(false);
+            return;
+        }
+
+        setIsLoadingPassword(true);
+        try {
+            const response = await getUserPassword(currentUser.user_id);
+            if (response.success && response.password) {
+                setUserPassword(response.password);
+                setShowPassword(true);
+                showSnackbar('Пароль отримано');
+            } else {
+                showSnackbar(response.message || 'Помилка при отриманні паролю', 'error');
+            }
+        } catch (error) {
+            console.error('Error getting user password:', error);
+            showSnackbar('Помилка при отриманні паролю', 'error');
+        } finally {
+            setIsLoadingPassword(false);
+        }
+    };
+
+    // Handle password copy
+    const handleCopyPassword = () => {
+        if (userPassword) {
+            navigator.clipboard.writeText(userPassword)
+                .then(() => {
+                    setPasswordCopied(true);
+                    showSnackbar('Пароль скопійовано');
+                    setTimeout(() => setPasswordCopied(false), 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy password: ', err);
+                    showSnackbar('Помилка копіювання паролю', 'error');
+                });
+        }
     };
 
     return (
@@ -702,6 +767,77 @@ const EditUserComponent: React.FC<EditUserComponentProps> = ({
                     >
                         Видалити
                     </Button> */}
+                </Box>
+
+                {/* Password Management Section - Admin Only Feature */}
+                <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <KeyIcon />
+                    Пароль користувача
+                </Typography>
+
+                <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 2, alignItems: 'flex-start', mb: 2 }}>
+                    {/* Password display and controls */}
+                    <Box sx={{ flex: 1 }}>
+                        {showPassword && userPassword ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    value={userPassword}
+                                    InputProps={{
+                                        readOnly: true,
+                                        sx: {
+                                            fontFamily: 'monospace',
+                                            fontSize: '0.9rem',
+                                            backgroundColor: alpha(theme.palette.warning.main, 0.1)
+                                        }
+                                    }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: '8px',
+                                        }
+                                    }}
+                                />
+                                <Tooltip title={passwordCopied ? "Скопійовано!" : "Копіювати пароль"}>
+                                    <IconButton 
+                                        size="small" 
+                                        onClick={handleCopyPassword}
+                                        color={passwordCopied ? "success" : "default"}
+                                        sx={{
+                                            bgcolor: passwordCopied ? alpha(theme.palette.success.main, 0.1) : 'transparent'
+                                        }}
+                                    >
+                                        <ContentCopyIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </Box>
+                        ) : null}
+                        
+                        <Button
+                            variant={showPassword ? "outlined" : "contained"}
+                            size="small"
+                            startIcon={
+                                isLoadingPassword ? (
+                                    <CircularProgress size={16} />
+                                ) : showPassword ? (
+                                    <VisibilityOffIcon />
+                                ) : (
+                                    <VisibilityIcon />
+                                )
+                            }
+                            onClick={handleShowPassword}
+                            disabled={isLoadingPassword}
+                            sx={{ minWidth: 140 }}
+                        >
+                            {isLoadingPassword ? 'Завантаження...' : showPassword ? 'Приховати пароль' : 'Показати пароль'}
+                        </Button>
+                        
+                        {showPassword && (
+                            <Typography variant="caption" sx={{ display: 'block', mt: 1, color: theme.palette.warning.main, fontWeight: 500 }}>
+                                ⚠️ Пароль буде приховано після закриття цього режиму
+                            </Typography>
+                        )}
+                    </Box>
                 </Box>
 
                 <Divider sx={{ my: 2 }} />
