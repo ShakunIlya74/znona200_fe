@@ -56,6 +56,7 @@ import LoadingDots from '../../components/tools/LoadingDots';
 import UserInGroupSearch from './UserInGroupSearch';
 import UserSearchDropdown from './UserSearchDropdown';
 import UserGroupContent from './UserGroupContent';
+import { tab } from '@testing-library/user-event/dist/tab';
 
 interface UserGroup {
     group_id: number;
@@ -307,7 +308,7 @@ const UserGroupsPage: React.FC = () => {
 
             if (response.success) {
                 // Update local state to reflect the change
-                if (tabValue === 0) {
+                if (tabValue === 1) {
                     setActiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -315,7 +316,7 @@ const UserGroupsPage: React.FC = () => {
                                 : group
                         )
                     );
-                } else {
+                } else if (tabValue === 2) {
                     setInactiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -403,7 +404,7 @@ const UserGroupsPage: React.FC = () => {
 
             if (response.success) {
                 // Update local state to reflect the change
-                if (tabValue === 0) {
+                if (tabValue === 1) {
                     setActiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -411,7 +412,7 @@ const UserGroupsPage: React.FC = () => {
                                 : group
                         )
                     );
-                } else {
+                } else if (tabValue === 2) {
                     setInactiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -467,7 +468,7 @@ const UserGroupsPage: React.FC = () => {
 
             if (response.success) {
                 // Update local state to reflect the change
-                if (tabValue === 0) {
+                if (tabValue === 1) {
                     setActiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -475,7 +476,7 @@ const UserGroupsPage: React.FC = () => {
                                 : group
                         )
                     );
-                } else {
+                } else if (tabValue === 2) {
                     setInactiveGroups(groups =>
                         groups.map(group =>
                             group.group_id === groupId
@@ -690,7 +691,7 @@ const UserGroupsPage: React.FC = () => {
                 setNewGroupCloseDate(null);
 
                 // Switch to active groups tab
-                setTabValue(0);
+                setTabValue(1);
 
                 // Refresh active groups data
                 const refreshResponse = await getUserGroups() as UserGroupsResponse;
@@ -1047,7 +1048,7 @@ const UserGroupsPage: React.FC = () => {
                                             }}>
 
                                                 {/* Warning icon for active groups with passed close date */}
-                                                {group.is_active && isDatePassed(group.close_date) && tabValue === 0 && (
+                                                {group.is_active && isDatePassed(group.close_date) && tabValue === 1 && (
                                                     <Tooltip title="Термін дії цієї групи закінчився. Рекомендується деактивувати групу.">
                                                         <WarningIcon
                                                             color="warning"
